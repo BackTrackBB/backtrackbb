@@ -1,0 +1,9 @@
+# directories created by setup.py
+build/
+lib/
+
+# python bytecode
+*.pyc
+
+# temporary files
+*.swp
