@@ -14,7 +14,7 @@ wave_type = '.S.'
 data_type = 'sac'
 grid_dir = '/home/tatka/Chile_data/nll/examples/nll_Shikoku/time/layer'
 #
-out_dir = ''
+out_dir = 'out_run/'
 save_projGRID = False
 #
 #------------------------------------------------------------------------
