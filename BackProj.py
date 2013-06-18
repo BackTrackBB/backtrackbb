@@ -9,7 +9,7 @@ from tatka_modules.mod_filter_picker import make_LinFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
 from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
 from tatka_modules.grid_projection import sta_GRD_Proj
-from tatka_modules.plot import plt_SummaryOut
+from tatka_modules.plot import bp_plot, plt_SummaryOut
 from tatka_modules.Config import Config_Input
 import cPickle as pickle
 from multiprocessing import Pool
@@ -137,6 +137,14 @@ Zmax = max(grid1.z_array)
 Zmin = min(grid1.z_array)
 nx,ny,nz = np.shape(grid1.array)
 
+#----geographical coordinates of the eq's epicenter----------------------
+x_eq, y_eq, z_eq = read_locationTremor(loc_infile,config.data_hours,
+                                       config.lat_orig,config.lon_orig)
+
+x_jma,y_jma,z_jma = read_locationEQ(location_JMA, config.data_day,config.data_hours,
+                                    config.lat_orig,config.lon_orig)
+#------------------------------------------------------------------------
+
 print 'starting BPmodule'
 
 fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
@@ -161,6 +169,9 @@ file_out_fig = os.path.join(config.out_dir, file_out_fig)
 def run_BackProj(idd):
     t_b=t_bb[idd]
     t_e = t_b+config.time_lag
+
+    stack_grid = np.zeros((nx,ny,nz),float)
+    #stack_pdf = np.zeros((nx,ny,nz),float)
     
     bb = int(t_b*fs_env)
     ee = int(t_e*fs_env)
@@ -169,6 +180,7 @@ def run_BackProj(idd):
     proj_grid = np.zeros((nx,ny,nz),float)
     k=0
     for l in xrange(len(comb_sta)):
+        proj_grid = np.zeros((nx,ny,nz),float)
         id1 = sta.index(comb_sta[l][0])
         id2 = sta.index(comb_sta[l][1])
         
@@ -177,14 +189,28 @@ def run_BackProj(idd):
         if d <= config.maxSTA_distance:
             k+=1
 
-            proj_grid += sta_GRD_Proj(st_CF, GRD_sta,sta, comb_sta, bb, ee, nn,
+            proj_grid = sta_GRD_Proj(st_CF, GRD_sta,sta, comb_sta, bb, ee, nn,
                                       fs_env,config.time_lag,sttime_env,
                                       config.sm_lcc,nx,ny,nz,l)
-        
-    #Norm_grid= proj_grid/len(comb_sta)
-    Norm_grid= proj_grid/k
+            stack_grid += proj_grid
+            #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
 
-    Max_NormGrid =np.where(Norm_grid == np.max(Norm_grid))
+    ## Plotting------------------------------------------------------------------
+    bp_plot(grid1, stack_grid/k, comb_sta, x_eq, y_eq,z_eq, config.Trigger,
+            t_b, t_e, config.out_dir, config.data_day, config.data_hours, fq_str,
+            extent_grd, extent_yz, extent_xz,
+            x_sta, y_sta,
+            Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
+            st, config.scmap, 0.8*config.lcc_max, config.lcc_max,
+            sta, st_CF,
+            time, time_env, config.time_lag,
+            config.plot_waveforms, fq,
+            n1, n22)
+    
+    #Norm_grid= stack_grid/len(comb_sta)
+    Norm_grid= stack_grid/k
+
+    Max_NormGrid = np.where(Norm_grid == np.max(Norm_grid))
     x_max = Max_NormGrid[0][0]
     y_max = Max_NormGrid[1][0]
     z_max = Max_NormGrid[2][0]
@@ -239,13 +265,6 @@ f = open(file_out_data,'w')
          str(end_trigWin[k])+'\n')for k in xrange(len(beg_trigWin))]
 f.close()
 
-#----geographical coordinates of the eq's epicenter----------------------
-x_eq, y_eq, z_eq = read_locationTremor(loc_infile,config.data_hours,
-                                       config.lat_orig,config.lon_orig)
-
-x_jma,y_jma,z_jma = read_locationEQ(location_JMA, config.data_day,config.data_hours,
-                                    config.lat_orig,config.lon_orig)
-#------------------------------------------------------------------------
 #-plotting output--------------------------------------------------------
 plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, time,
 			   sta, x_sta, y_sta,
