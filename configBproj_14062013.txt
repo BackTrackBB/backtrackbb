@@ -10,9 +10,9 @@ data_folder = '/home/tatka/Tremor_data/data/'
 data_day = '120527'
 data_hours = '21'
 ch = 'E'
-wave_type = '.S.'
+wave_type = 'S'
 data_type = 'sac'
-grid_dir = '/home/tatka/Chile_data/nll/examples/nll_Shikoku/time/layer'
+grid_dir = '/home/tatka/Chile_data/nll/examples/nll_Shikoku/time/'
 #
 out_dir = ''
 save_projGRID = False

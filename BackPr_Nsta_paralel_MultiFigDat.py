@@ -36,8 +36,8 @@ n_sta = sp.arange(0,len(sta))
 t_bb=np.arange(config.start_t,config.end_t,config.t_overlap)
 print 'number of time windows=',len(t_bb)
 
-loc_infile = config.catalog_folder+config.data_day+config.tremor_file
-location_JMA = config.catalog_folder+config.eq_file
+loc_infile = os.path.join(config.catalog_folder, config.data_day+config.tremor_file)
+location_JMA = os.path.join(config.catalog_folder, config.eq_file)
 #-------------------------------------------------------------------------       
 
 #--Reading grids of the theoretical travel-times------------------------
@@ -46,7 +46,8 @@ y_sta=[]
 bname =[]
 GRD_sta=[]
 for station in sta:
-    grid_files = config.grid_dir+config.wave_type+station+'.time'
+    grid_files = '.'.join(('layer', config.wave_type, station, 'time'))
+    grid_files = os.path.join(config.grid_dir, grid_files)
     bname.append(grid_files)
     x_sta.append(NLLGrid(grid_files).sta_x)
     y_sta.append(NLLGrid(grid_files).sta_y)
@@ -60,10 +61,10 @@ GRD_sta=tuple(GRD_sta)
 comp = sta[:]
 comp[0] = '*'+sta[0]+'*'+config.ch+'*.sac'
 
-st = read(os.path.join(config.data_folder,config.data_day,config.data_hours,comp[0]))
+st = read(os.path.join(config.data_folder, config.data_day, config.data_hours, comp[0]))
 for i in range(1,len(sta)):
     comp[i] = '*'+sta[i]+'*'+config.ch+'*.sac'
-    st += read(os.path.join(config.data_folder,config.data_day,config.data_hours,comp[i]))
+    st += read(os.path.join(config.data_folder, config.data_day, config.data_hours, comp[i]))
 print 'No of stations in stream = ', len(st)
 
 #-- cut the data to the selected length dt------------------------------

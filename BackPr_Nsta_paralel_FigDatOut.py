@@ -34,8 +34,8 @@ n_sta = sp.arange(0,len(sta))
 t_bb=np.arange(config.start_t,config.end_t,config.t_overlap)
 print 'number of time windows=',len(t_bb)
 
-loc_infile = config.catalog_folder+config.data_day+config.tremor_file
-location_JMA = config.catalog_folder+config.eq_file
+loc_infile = os.path.join(config.catalog_folder, config.data_day+config.tremor_file)
+location_JMA = os.path.join(config.catalog_folder, config.eq_file)
 #------------------------------------------------------------------------
 
 #--Reading grids of the theoretical travel-times-------------------------
@@ -44,7 +44,8 @@ y_sta=[]
 bname =[]
 GRD_sta=[]
 for station in sta:
-    grid_files = config.grid_dir+config.wave_type+station+'.time'
+    grid_files = '.'.join(('layer', config.wave_type, station, 'time'))
+    grid_files = os.path.join(config.grid_dir, grid_files)
     bname.append(grid_files)
     x_sta.append(NLLGrid(grid_files).sta_x)
     y_sta.append(NLLGrid(grid_files).sta_y)
@@ -58,11 +59,11 @@ GRD_sta=tuple(GRD_sta)
 comp = sta[:]
 comp[0] = '*'+sta[0]+'*'+config.ch+'*.'+config.data_type
 
-st = read(os.path.join(config.data_folder,config.data_day,config.data_hours,comp[0]))
+st = read(os.path.join(config.data_folder, config.data_day, config.data_hours, comp[0]))
 
 for i in xrange(1,len(sta)):
     comp[i] = '*' + sta[i] + '*' + config.ch + '*.'+config.data_type
-    st += read(os.path.join(config.data_folder,config.data_day,config.data_hours,comp[i]))
+    st += read(os.path.join(config.data_folder, config.data_day, config.data_hours, comp[i]))
 print 'No of stations in stream = ', len(st)
 
 #--- cut the data to the selected length dt------------------------------
@@ -137,17 +138,23 @@ Zmin = min(grid1.z_array)
 nx,ny,nz = np.shape(grid1.array)
 
 print 'starting BPmodule'
-fq_str=str(np.round(fq[n1]))+'_'+str(np.round(fq[n22]))
 
-file_out_data = config.out_dir+config.data_day+config.data_hours+'_'+str(len(fq))+'fq'+\
-                fq_str+'hz_'+str(config.w_kurt_s)+str(config.sr_env)+str(config.sm_lcc)+\
-                str(config.t_overlap)+'_'+config.ch_function+'_'+config.ch+config.wave_type+\
-                'trig'+str(config.Trigger)+'_OUT2.dat'
+fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
+file_out_base = '_'.join((
+    config.data_day + config.data_hours,
+    str(len(fq)) + 'fq' + fq_str + 'hz',
+    str(config.w_kurt_s) + str(config.sr_env) + str(config.sm_lcc) + str(config.t_overlap),
+    config.ch_function,
+    config.ch,
+    config.wave_type,
+    'trig'+str(config.Trigger)
+    ))
 
-file_out_fig  = config.out_dir+config.data_day+config.data_hours+'_'+str(len(fq))+'fq'+\
-                fq_str+'hz_'+str(config.w_kurt_s)+str(config.sr_env)+str(config.sm_lcc)+\
-                str(config.t_overlap)+'_'+config.ch_function+'_'+config.ch+config.wave_type+\
-                'trig'+str(config.Trigger)+'_FIG2.png'
+file_out_data = file_out_base + '_OUT2.dat'
+file_out_data = os.path.join(config.out_dir, file_out_data)
+
+file_out_fig = file_out_base + '_FIG2.png'
+file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
 
 #------------------------------------------------------------------------
