@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -213,12 +214,9 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     labels = ax4.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
 
-##    file_out_fig  = out_dir+data_day+data_hours+'_t'+\
-##                str('%0.0f' % (t_b)) +'s_'+ fq_str+'_fig.png'
-##    fig.savefig(file_out_fig, dpi=100)
-
-    file_out_fig  = out_dir+data_day+data_hours+'_t'+\
-                str('%0.0f' % (t_b)) +'s_'+ fq_str+'_fig.png'
+    file_out_fig = data_day + data_hours + '_t' +\
+                   str('%0.0f' % (t_b)) + 's_' + fq_str + '_fig.png'
+    file_out_fig = os.path.join(out_dir, file_out_fig)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
@@ -524,16 +522,9 @@ def bp_plot_pdf(grid1, grid_max, proj_pdf, x_eq, y_eq,z_eq, LTrig,
     labels = ax4.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
 
-##    file_out_fig  = out_dir+data_day+data_hours+'_t'+\
-##                str('%0.0f' % (t_b)) +'s_'+ fq_str+'_fig.png'
-##    fig.savefig(file_out_fig, dpi=100)
+    file_out_fig = data_day + data_hours + '_t' +\
+                   str('%0.0f' % (t_b)) + 's_' + fq_str + '_fig.png'
+    file_out_fig = os.path.join(out_dir, file_out_fig)
 
-    file_out_fig  = out_dir+data_day+data_hours+'_t'+\
-                str('%0.0f' % (t_b)) +'s_'+ fq_str+'_fig.png'
-##    fig.savefig(file_out_fig)
-##    
-##    plt.close('all')
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
-
-    
