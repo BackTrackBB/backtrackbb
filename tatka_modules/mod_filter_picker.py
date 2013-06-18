@@ -29,6 +29,19 @@ def make_LinFq(fq_1,fq_2,npts,dt,decimate,max_freq = 50.):
   f_out = f[f<=fq_2]
   return f_out[::-1]
 
+def make_LogFq(dT,Tf,fq_l,fq_m):
+  """
+  Calculates log spaced frequency array for MB filtering
+  """
+  Nb=int((np.ceil(np.log2(Tf/dT)))+1) ## number of central bands of the filters
+  
+  Tn = 2 ** (np.arange(0, Nb))* dT   # corner period Tn
+
+  freq = 1/Tn
+  f = freq[freq>=fq_l]
+  f_out = f[f<=fq_m]
+
+  return f_out[::-1]
 
 
 def MBfilter_CF(y,fq,dT,n_win,CF_type='envelope',var_w=True):
