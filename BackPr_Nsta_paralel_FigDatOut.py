@@ -23,7 +23,7 @@ if len(sys.argv) != 2:
 else:
     Config_file = sys.argv[1]
 if not os.path.isfile(Config_file):
-    print "File {0} does not exist".format(inp_file)
+    print "File {0} does not exist".format(Config_file)
     sys.exit(1)
 
 #---Input parameters for BProj run----------------------------------------
