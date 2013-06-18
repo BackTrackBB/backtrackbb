@@ -5,7 +5,6 @@ import numpy as np
 import scipy as sp
 from obspy.core import read
 import itertools
-import matplotlib.pyplot as plt
 from tatka_modules.mod_filter_picker import make_LinFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
 from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
@@ -13,7 +12,6 @@ from tatka_modules.grid_projection import sta_GRD_Proj
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.Config import Config_Input
 import cPickle as pickle
-##from time import time as _time
 from multiprocessing import Pool
 
 #-------------------------------------------------------------------------

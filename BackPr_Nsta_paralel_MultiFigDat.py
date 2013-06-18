@@ -3,7 +3,6 @@ import sys
 import os
 import numpy as np
 import scipy as sp
-import matplotlib.pyplot as plt
 from obspy.core import read
 import itertools
 from tatka_modules.mod_filter_picker import make_LinFq, MBfilter_CF
