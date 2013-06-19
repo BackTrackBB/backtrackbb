@@ -2,14 +2,14 @@
 ncpu = 2
 #
 #--station names---------------------------------------------------------
-#stations = MISH,TSMH,OOZH
-stations = MISH,IKTH,OOZH,TBEH,KWBH,YNDH,HIYH,TSYH,TSMH,UWAH,NAKH,SIKH,OOTH,IKKH,KNSH,TOHH,AKIH,INOH,NTHH,GHKH,SJOH,KRHH 
+#stations = N.MISH,N.TSMH,N.OOZH
+stations = N.MISH,N.IKTH,N.OOZH,N.TBEH,N.KWBH,N.YNDH,N.HIYH,N.TSYH,N.TSMH,N.UWAH,N.NAKH,N.SIKH,N.OOTH,N.IKKH,N.KNSH,N.TOHH,N.AKIH,N.INOH,N.NTHH,N.GHKH,N.SJOH,N.KRHH 
 #
 #--settings for input data files-----------------------------------------
-data_folder = '/home/tatka/Tremor_data/data/'
+data_dir = '/home/tatka/Tremor_data/data/'
 data_day = '120527'
 data_hours = '21'
-ch = 'E'
+component = 'E'
 wave_type = 'S'
 data_type = 'sac'
 grid_dir = '/home/tatka/Chile_data/nll/examples/nll_Shikoku/time/'
@@ -18,7 +18,7 @@ out_dir = 'out_run/'
 save_projGRID = False
 #
 #------------------------------------------------------------------------
-catalog_folder = 'Tremor_data/'
+catalog_dir = 'Tremor_data/'
 eq_file = 'JMA_Shikoku.dat'                          #earthquake location from JMA catalog (not used in this version)
 tremor_file = '_tremorlocation.dat'
 #------------------------------------------------------------------------

@@ -9,7 +9,7 @@ matplotlib.rcParams['pdf.fonttype'] = 42
 def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
         t_b, t_e, out_dir, data_day, data_hours, fq_str,
         extent_grd, extent_yz, extent_xz,
-        x_sta, y_sta,
+        coord_sta,
         Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
         st, scmap, lcc_min, lcc_max,
         sta, st_CF,
@@ -54,7 +54,10 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     cb1=fig.colorbar(hnd, cax=cbx1,orientation='horizontal')
     ax1.axis('tight')
     ax1.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
-    ax1.scatter(x_sta,y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
+    for sta in coord_sta:
+        x_sta, y_sta = coord_sta[sta]
+        ax1.scatter(x_sta, y_sta, marker='^', s=250, linewidths=1, c='k', alpha=0.79)
+        ax1.text(x_sta+2, y_sta+2, sta, fontsize=12,color='k')
 
     if grid_max[x_max,y_max,z_max] >= LTrig:
         ax1.scatter(grid1.x_array[x_max],grid1.y_array[y_max],
@@ -84,7 +87,10 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     cb11=fig.colorbar(hnd2, cax=cbx11,orientation='horizontal',
                       ticks=[LTrig, LTrig+(lcc_max-LTrig)/2,lcc_max])
     ax11.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
-    ax11.scatter(x_sta,y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
+    for sta in coord_sta:
+        x_sta, y_sta = coord_sta[sta]
+        ax11.scatter(x_sta, y_sta, marker='^', s=250, linewidths=1, c='k', alpha=0.79)
+        ax11.text(x_sta+2, y_sta+2, sta, fontsize=12,color='k')
 
     if grid_max[x_max,y_max,z_max] >= LTrig:
         ax11.scatter(grid1.x_array[x_max],grid1.y_array[y_max],
@@ -103,7 +109,10 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     if len(grid_max[grid_max>=LTrig])>1:  
         ax5.scatter(grid1.x_array[x_max],grid1.y_array[y_max],
                     marker='*', s = 200, linewidths=1,c='g')
-    ax5.scatter(x_sta,y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
+    for sta in coord_sta:
+        x_sta, y_sta = coord_sta[sta]
+        ax5.scatter(x_sta, y_sta, marker='^', s=250, linewidths=1, c='k', alpha=0.79)
+        ax5.text(x_sta+2, y_sta+2, sta, fontsize=12,color='k')
     ax5.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
     ax5.set_title('Areas of Stacked Normalized Local-CC >'+str(LTrig))
     ax5.axis('tight')
@@ -185,15 +194,13 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     ####
 
     ax4 = fig.add_axes([0.545,0.44,0.40,0.55])
-    for Record,CH_fct,ysta,xsta in zip(st, st_CF,y_sta,x_sta):
+    for Record, CH_fct in zip(st, st_CF):
+        sta = Record.stats.station
+        x_sta, y_sta = coord_sta[sta]
         if plot_waveforms:
-            ax4.plot(time,(Record.data/max(abs(Record.data)))*10+ysta,'k',alpha=0.4,rasterized=True)
-        note1=Record.id
-        ax4.plot(time_env,(CH_fct.data/max(abs(CH_fct.data)))*15+ysta,'k',rasterized=True)        
-        note2=Record.stats.station
-        ax4.text(max(time),ysta,note1,fontsize=10)
-        ax1.text(xsta+2,ysta+2, note2,fontsize=12,color='k')
-        ax11.text(xsta+2,ysta+2, note2,fontsize=12,color='k')
+            ax4.plot(time, (Record.data/max(abs(Record.data)))*10+y_sta, 'k', alpha=0.4, rasterized=True)
+        ax4.plot(time_env, (CH_fct.data/max(abs(CH_fct.data)))*15+y_sta, 'k', rasterized=True)        
+        ax4.text(max(time), y_sta, Record.id, fontsize=10)
 
     ax4.axvspan(t_b,t_e,facecolor='g',alpha=0.2)
     note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
@@ -222,7 +229,7 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     canvas.print_figure(file_out_fig)
     
     
-def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, x_sta, y_sta,
+def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, coord_sta,
                    x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
                    Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, data_day, data_hours,fq_1,fq_2,time_lag,
                    x_eq, y_eq, z_eq, x_jma, y_jma, z_jma, file_out_fig):
@@ -230,17 +237,17 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, x
     fig = figure.Figure(figsize=(18,17))
     ax4 = fig.add_axes([0.05,0.472,0.85,0.52])
 
-    for Record,CH_fct,ysta in zip(st, st_CF,y_sta):
-        ax4.plot(time_env,(CH_fct.data/max(abs(CH_fct.data)))*10+ysta,
-                 'k',rasterized=True)
+    for Record, CH_fct in zip(st, st_CF):
+        sta = Record.stats.station
+        x_sta, y_sta = coord_sta[sta]
+        ax4.plot(time_env, (CH_fct.data/max(abs(CH_fct.data)))*10+y_sta,
+                 'k', rasterized=True)
 
         if plot_waveforms:
-            ax4.plot(time,(Record.data/max(abs(Record.data)))*10+ysta,'k',
-                     alpha=0.4,rasterized=True)
+            ax4.plot(time, (Record.data/max(abs(Record.data)))*10+y_sta,
+                 'k', alpha=0.4, rasterized=True)
 
-        note1=Record.id
-        #note2=Record.stats.station  # Not used --C.S.
-        ax4.text(max(time),ysta,note1,fontsize=10)
+        ax4.text(max(time), y_sta, Record.id, fontsize=10)
 
     note=ch_function+' of MBFilter; Fq. range: '+str(np.round(fq_1))+\
             '-'+str(np.round(fq_2))+' Hz'
@@ -265,7 +272,10 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, x
 
     ax5 = fig.add_axes([0.22,0.19,0.4, 0.25])
     ax5.scatter(x_trig,y_trig,marker='*', s = 80, linewidths=0.5,c='g',alpha=0.7)    
-    ax5.scatter(x_sta,y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
+    for sta in coord_sta:
+        x_sta, y_sta = coord_sta[sta]
+        ax5.scatter(x_sta, y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
+        ax5.text(x_sta+2, y_sta+2, sta, fontsize=12,color='k')
     ax5.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='r')
     ax5.scatter(x_jma,y_jma,marker='o', s = 90, linewidths=1,c='m')
     ax5.axis('tight')
@@ -358,7 +368,7 @@ def bp_plot_pdf(grid1, grid_max, proj_pdf, x_eq, y_eq,z_eq, LTrig,
                    extent=extent_grd,cmap=scmap,
                    vmin=lcc_min,vmax=lcc_max,
                    rasterized=True)
-    cb1=plt.colorbar(hnd, cax=cbx1,orientation='horizontal')
+    cb1=ax1.colorbar(hnd, cax=cbx1,orientation='horizontal')
     ax1.axis('tight')
     ax1.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
     ax1.scatter(x_sta,y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
@@ -388,7 +398,7 @@ def bp_plot_pdf(grid1, grid_max, proj_pdf, x_eq, y_eq,z_eq, LTrig,
                        vmin=lcc_min,vmax=lcc_max,
                        rasterized=True)
     ax11.axis('tight')
-    cb11=plt.colorbar(hnd2, cax=cbx11,orientation='horizontal')
+    cb11=ax11.colorbar(hnd2, cax=cbx11,orientation='horizontal')
     ax11.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
     ax11.scatter(x_sta,y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
 
