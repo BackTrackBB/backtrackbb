@@ -44,12 +44,10 @@ sr_data = 50.
 sr_env = 50                                   #sampling rate of CF
 sm_lcc = 25                                   #smoothing parameter for LCC
 #--Parameters for the MBF analysis--------------------------------------
-Tf=1.                                       # min filter frequency for MB filter
-f_max = 50.
-fq1 = 2.0
-fq2 = 10.
-#d = 4000
-d = 1200
+f_min = 2.0
+f_max = 10.
+n_freq_bands = 8
+band_spacing = lin
 #------------------------------------------------------------------------
 cut_data = True
 delta_t = 25.

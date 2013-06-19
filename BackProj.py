@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 import itertools
 from tatka_modules.read_traces import read_traces
-from tatka_modules.mod_filter_picker import make_LinFq, MBfilter_CF
+from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
 from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
 from tatka_modules.grid_projection import sta_GRD_Proj
@@ -80,7 +80,10 @@ n_win_k=config.w_kurt_s /dt
 st_CF=st.copy()
 
 #---Calculating frequencies for MBFilter---------------------------------
-fq = make_LinFq(config.fq1,config.fq2,npts_d,dT,config.d)
+if config.band_spacing == 'lin':
+    fq = make_LinFq(config.f_min, config.f_max, dT, config.n_freq_bands)
+elif config.band_spacing == 'log':
+    fq = make_LogFq(config.f_min, config.f_max, dT, config.n_freq_bands)
 n1=0
 n2=len(fq)
 n22=len(fq)-1
