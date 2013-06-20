@@ -137,6 +137,10 @@ if location_jma:
 
 print 'starting BPmodule'
 
+# Create out_dir, if it doesn't exist
+if not os.path.exists(config.out_dir):
+    os.mkdir(config.out_dir)
+
 datestr = st[0].stats.starttime.strftime('%y%m%d%H')
 
 fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
