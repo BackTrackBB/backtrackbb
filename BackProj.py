@@ -58,12 +58,13 @@ if config.cut_data:
     st.trim(st[0].stats.starttime+0.2*config.delta_t*60.,
                         st[0].stats.starttime+1.0*config.delta_t*60.)
 
-#----decimate to 50Hz sampling-------------------------------------------
-for tr in st:
-    f_tr = tr.stats.sampling_rate
-    if f_tr > config.sr_data:
-        dec_ct = int(f_tr/config.sr_data)
-        st.decimate(dec_ct, strict_length=False, no_filter=True)
+#---- resample data -----------------------------------------------------
+if config.sampl_rate_data:
+    for tr in st:
+        f_tr = tr.stats.sampling_rate
+        if f_tr > config.sampl_rate_data:
+            dec_ct = int(f_tr/config.sampl_rate_data)
+            st.decimate(dec_ct, strict_length=False, no_filter=True)
 
 #---remove mean and trend------------------------------------------------
 st.detrend(type='constant')
@@ -74,7 +75,7 @@ dt=st[0].stats.delta
 fs_data = st[0].stats.sampling_rate
 dT=dt
 npts_d = st[0].stats.npts
-n_win_k=config.w_kurt_s /dt
+n_win_k = config.decay_const /dt
 
 st_CF=st.copy()
 
@@ -99,8 +100,11 @@ for Record,CH_fct in zip(st, st_CF):
         CH_fct.data = np.amax(env_rec,axis=0)
             
 #-----resampling envelopes if wanted------------------------------------
-if config.sr_env < fs_data:
-    st_CF.resample(config.sr_env)
+if config.sampl_rate_cf:
+    if config.sampl_rate_cf < fs_data:
+        st_CF.resample(config.sampl_rate_cf)
+else:
+    config.sampl_rate_cf = fs_data
     
 time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 dt_env=st_CF[0].stats.delta
@@ -147,7 +151,7 @@ fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
 file_out_base = '_'.join((
     datestr,
     str(len(fq)) + 'fq' + fq_str + 'hz',
-    str(config.w_kurt_s) + str(config.sr_env) + str(config.sm_lcc) + str(config.t_overlap),
+    str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
     config.ch_function,
     config.component,
     config.wave_type,
@@ -191,7 +195,7 @@ def run_BackProj(idd):
 
             proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, bb, ee, nn,
                                       fs_env,config.time_lag, sttime_env,
-                                      config.sm_lcc, nx, ny, nz)
+                                      config.smooth_lcc, nx, ny, nz)
             stack_grid += proj_grid
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
 

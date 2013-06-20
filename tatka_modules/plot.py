@@ -230,7 +230,7 @@ def bp_plot(grid1, proj_grid, comb_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
 
     file_out_fig = datestr + '_t' +\
-                   str('%0.0f' % (t_b)) + 's_' + fq_str + '_fig.png'
+                   str('%05.1f' % (t_b)) + 's_' + fq_str + '_fig.png'
     file_out_fig = os.path.join(out_dir, file_out_fig)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)

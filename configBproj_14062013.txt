@@ -24,7 +24,7 @@ tremor_file = '_tremorlocation.dat'
 #------------------------------------------------------------------------
 time_lag = 26.                              #defines max_lag for LCC in seconds
 maxSTA_distance = 80.                       #max interstation distance for LCC
-w_kurt_s=3.                                 #value of attenuation constant for recursive kurt/envelope in seconds
+decay_const = 3.                            #value of decay constant for recursive kurt/envelope in seconds
 ch_function = 'envelope'
 ##ch_function = 'kurtosis'
 win_type = False                            #if True - variable time window is used for MB_CF calculation
@@ -38,11 +38,9 @@ start_t = 876.
 ##end_t = 879.
 end_t = 877.
 #------------------------------------------------------------------------
-sr_data = 50.
-##sr_env = 1                                  #sampling rate of CF
-##sm_lcc = 1.2                                #smoothing parameter for LCC    
-sr_env = 50                                   #sampling rate of CF
-sm_lcc = 25                                   #smoothing parameter for LCC
+sampl_rate_data = 50.                         #sampling rate of data (optional for resampling)
+sampl_rate_cf = 50.                           #sampling rate of characteristic function (optional for resampling)
+smooth_lcc = 0.5                              #smoothing parameter for LCC
 #--Parameters for the MBF analysis--------------------------------------
 f_min = 2.0
 f_max = 10.

@@ -12,7 +12,7 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, beg, end, shift,
     sig1 = trace1.data[beg-shift:end+shift]/max(abs(trace1.data[beg-shift:end+shift]))
     sig2 = trace2.data[beg-shift:end+shift]/max(abs(trace2.data[beg-shift:end+shift]))
 
-    corr = LocalCC(sig1, sig2, fs_sampling, max_lag, start_time, sms=sigma)
+    corr = LocalCC(sig1, sig2, fs_sampling, max_lag, start_time, sigma)
     a = corr.smoothed_cc
     t_lag = corr.cc_time_lags
 

@@ -108,7 +108,9 @@ def local_CC(sig1,sig2,t_lag,fs):
      return c,h3,t_lag
 
 
-def local_CCr(sig1,sig2,t_lag,fs,sms):
+def local_CCr(sig1,sig2,t_lag,fs,sigma):
+    # Compute sigma in samples
+    sigma = int(sigma * fs)
     l_max = int(t_lag*fs)
     h3=np.zeros((2*l_max,len(sig1)),sig1.dtype)
     c = np.zeros((2*l_max,len(sig1)),sig1.dtype)
@@ -119,7 +121,7 @@ def local_CCr(sig1,sig2,t_lag,fs,sms):
         l_g = int(ceil(l/2.))
         h3[l+l_max]=(__shift2(sig1,l_f)*__shift2(sig2,-l_g) +\
                        __shift2(sig1,l_g)*__shift2(sig2,-l_f))/2
-        c[l+l_max]=Gaussian1D(h3[l+l_max], sms, padding=0)
+        c[l+l_max]=Gaussian1D(h3[l+l_max], sigma, padding=0)
 ###----------------check wich formula for h3 is correct--------------------
 ##########    h3[l+l_max]=(shift2(sig1,-l_f)*shift2(sig2,l_g) +\
 ##########           shift2(sig1,-l_g)*shift2(sig2,l_f))/2
