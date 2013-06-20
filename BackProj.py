@@ -271,7 +271,7 @@ f.close()
 
 #-plotting output--------------------------------------------------------
 plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, time,
-               stations, coord_sta,
+               coord_sta,
                x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
                Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
                fq[n1],fq[n22],config.time_lag,
