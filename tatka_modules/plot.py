@@ -39,8 +39,6 @@ def bp_plot(grid1, proj_grid, comb_sta,
         z_grid = z_max
         y_grid = y_max
         x_grid = x_max
-        print str(grid1.x_array[x_max])+'  '+str(grid1.y_array[y_max])+\
-              ' '+str(grid1.z_array[z_max])+'  '+str(t_b)+' '+str(t_e)       
     elif coord_eq:
         x_eq, y_eq, z_eq = coord_eq
         n_y = np.argwhere(grid1.y_array >= y_eq[0])[0][0]
