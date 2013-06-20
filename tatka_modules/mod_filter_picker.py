@@ -29,7 +29,7 @@ def make_LogFq(f_min, f_max, delta, nfreq):
     if f_max > f_ny:
         f_max = f_ny
 
-    freq = np.logspace(f_min, f_max, nfreq)
+    freq = np.logspace(np.log2(f_min), np.log2(f_max), nfreq, base=2)
     return freq[::-1]
 
 
