@@ -6,7 +6,8 @@ import pylab
 import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 
-def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
+def bp_plot(grid1, proj_grid, comb_sta,
+        coord_eq, LTrig,
         t_b, t_e, out_dir, datestr, fq_str,
         extent_grd, extent_yz, extent_xz,
         coord_sta,
@@ -31,29 +32,34 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     y_max = Max_grid_max[1][0]
     z_max = Max_grid_max[2][0]
 
-    n_y = np.argwhere(grid1.y_array >= y_eq[0])[0][0]
-    n_x = np.argwhere(grid1.x_array >= x_eq[0])[0][0]
-    n_z = np.argwhere(grid1.z_array >= z_eq)[0][0]
-
 #--plotting horizontal projection of the stacked grid----------------------
-    ax1 = fig.add_axes([0.03,0.635,0.4, 0.345])
+    ax1 = fig.add_axes([0.03, 0.635, 0.4, 0.345])
     cbx1 = fig.add_axes([0.03, 0.515, 0.4, 0.01])
     if grid_max[x_max,y_max,z_max] >= LTrig:
-        z_grid=z_max
-        y_grid=y_max
-        x_grid=x_max
+        z_grid = z_max
+        y_grid = y_max
+        x_grid = x_max
         print str(grid1.x_array[x_max])+'  '+str(grid1.y_array[y_max])+\
               ' '+str(grid1.z_array[z_max])+'  '+str(t_b)+' '+str(t_e)       
+    elif coord_eq:
+        x_eq, y_eq, z_eq = coord_eq
+        n_y = np.argwhere(grid1.y_array >= y_eq[0])[0][0]
+        n_x = np.argwhere(grid1.x_array >= x_eq[0])[0][0]
+        n_z = np.argwhere(grid1.z_array >= z_eq)[0][0]
+        z_grid = n_z
+        y_grid = n_y
+        x_grid = n_x
     else:
-        z_grid=n_z
-        y_grid=n_y
-        x_grid=n_x
+        x_grid = int(proj_grid.shape[0] / 2)
+        y_grid = int(proj_grid.shape[1] / 2)
+        z_grid = int(proj_grid.shape[2] / 2)
         
     hnd=ax1.imshow(np.flipud(np.transpose(grid_max[:,:,z_grid])),
                              extent=extent_grd,cmap=scmap,rasterized=True)
     cb1=fig.colorbar(hnd, cax=cbx1,orientation='horizontal')
     ax1.axis('tight')
-    ax1.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
+    if coord_eq:
+        ax1.scatter(coord_eq[0], coord_eq[1], marker='*', s = 300, linewidths=1,c='w')
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
         ax1.scatter(x_sta, y_sta, marker='^', s=250, linewidths=1, c='k', alpha=0.79)
@@ -86,7 +92,8 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     ax11.axis('tight')
     cb11=fig.colorbar(hnd2, cax=cbx11,orientation='horizontal',
                       ticks=[LTrig, LTrig+(lcc_max-LTrig)/2,lcc_max])
-    ax11.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
+    if coord_eq:
+        ax11.scatter(coord_eq[0], coord_eq[1], marker='*', s = 300, linewidths=1,c='w')
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
         ax11.scatter(x_sta, y_sta, marker='^', s=250, linewidths=1, c='k', alpha=0.79)
@@ -113,7 +120,8 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
         x_sta, y_sta = coord_sta[sta]
         ax5.scatter(x_sta, y_sta, marker='^', s=250, linewidths=1, c='k', alpha=0.79)
         ax5.text(x_sta+2, y_sta+2, sta, fontsize=12,color='k')
-    ax5.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='w')
+    if coord_eq:
+        ax5.scatter(coord_eq[0], coord_eq[1], marker='*', s = 300, linewidths=1,c='w')
     ax5.set_title('Areas of Stacked Normalized Local-CC >'+str(LTrig))
     ax5.axis('tight')
     ax5.set_xlim(Xmin,Xmax)
@@ -161,7 +169,7 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
 #--plotting vertical projections of the stacked grid
     ax3 = fig.add_axes([0.03, 0.54, 0.4,0.065])
     ax33 = fig.add_axes([0.03, 0.041, 0.4,0.065])
-    n_y = np.argwhere(grid1.y_array >= y_eq[0])[0]
+    #n_y = np.argwhere(grid1.y_array >= y_eq[0])[0] #--unused C.S.
     
     ax3.imshow(np.flipud(np.transpose(grid_max[:,y_grid,:])),
                      extent=extent_xz,cmap=scmap,rasterized=True)
@@ -232,7 +240,7 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
 def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, coord_sta,
                    x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
                    Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr, fq_1, fq_2,time_lag,
-                   x_eq, y_eq, z_eq, x_jma, y_jma, z_jma, file_out_fig):
+                   coord_eq, coord_jma, file_out_fig):
     
     fig = figure.Figure(figsize=(18,17))
     ax4 = fig.add_axes([0.05,0.472,0.85,0.52])
@@ -276,8 +284,10 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, c
         x_sta, y_sta = coord_sta[sta]
         ax5.scatter(x_sta, y_sta,marker='^', s = 250, linewidths=1,c='k',alpha=0.79)
         ax5.text(x_sta+2, y_sta+2, sta, fontsize=12,color='k')
-    ax5.scatter(x_eq,y_eq,marker='*', s = 300, linewidths=1,c='r')
-    ax5.scatter(x_jma,y_jma,marker='o', s = 90, linewidths=1,c='m')
+    if coord_eq:
+        ax5.scatter(coord_eq[0], coord_eq[1], marker='*', s=300, linewidths=1, c='r')
+    if coord_jma:
+        ax5.scatter(coord_jma[0], coord_jma[1], marker='o', s=90, linewidths=1, c='m')
     ax5.axis('tight')
     ax5.set_xlim(Xmin,Xmax)
     ax5.set_ylim(Ymin,Ymax)
@@ -292,8 +302,10 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, c
     ax6 = fig.add_axes([0.605,0.19,0.19, 0.25])
     ax6.scatter(z_trig,y_trig,marker='*', s = 80, linewidths=0.5,c='g',alpha=0.7)
     ax6.axis('tight')
-    ax6.scatter(z_eq,y_eq,marker='*', s = 300, linewidths=1,c='r')
-    ax6.scatter(z_jma,y_jma,marker='o', s = 90, linewidths=1,c='m')
+    if coord_eq:
+        ax6.scatter(coord_eq[2], coord_eq[1], marker='*', s=300, linewidths=1, c='r')
+    if coord_jma:
+        ax6.scatter(coord_jma[2], coord_jma[1], marker='o', s=90, linewidths=1, c='m')
     ax6.set_xlim(Zmin,Zmax)
     ax6.set_ylim(Ymin,Ymax)
     ax6.set_aspect('equal')
@@ -306,8 +318,10 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, c
     ax7 = fig.add_axes([0.22,0.027,0.4, 0.15])
     ax7.scatter(x_trig,z_trig,marker='*', s = 80, linewidths=0.5,c='g',alpha=0.7)
     ax7.axis('tight')
-    ax7.scatter(x_eq,z_eq,marker='*', s = 300, linewidths=1,c='r')
-    ax7.scatter(x_jma,z_jma,marker='o', s = 90, linewidths=1,c='m')
+    if coord_eq:
+        ax7.scatter(coord_eq[0], coord_eq[2], marker='*', s =300, linewidths=1, c='r')
+    if coord_jma:
+        ax7.scatter(coord_jma[0], coord_jma[2], marker='o', s=90, linewidths=1, c='m')
     ax7.set_xlim(Xmin,Xmax)
     ax7.set_ylim(Zmin,Zmax)
     ax7.set_ylim(ax7.get_ylim()[::-1])

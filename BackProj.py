@@ -34,11 +34,11 @@ t_bb=np.arange(config.start_t,config.end_t,config.t_overlap)
 print 'Number of time windows = ', len(t_bb)
 
 loc_infile = None
-location_JMA = None
+location_jma = None
 if config.catalog_dir:
     if config.data_day:
         loc_infile = os.path.join(config.catalog_dir, config.data_day+config.tremor_file)
-    location_JMA = os.path.join(config.catalog_dir, config.eq_file)
+    location_jma = os.path.join(config.catalog_dir, config.eq_file)
 #------------------------------------------------------------------------
 
 #--Reading grids of the theoretical travel-times-------------------------
@@ -125,11 +125,13 @@ Zmin = min(grid1.z_array)
 nx,ny,nz = np.shape(grid1.array)
 
 #----geographical coordinates of the eq's epicenter----------------------
+coord_eq = None
 if loc_infile:
-    x_eq, y_eq, z_eq = read_locationTremor(loc_infile,config.data_hours,
+    coord_eq = read_locationTremor(loc_infile,config.data_hours,
                                        config.lat_orig,config.lon_orig)
-if location_JMA:
-    x_jma,y_jma,z_jma = read_locationEQ(location_JMA, config.data_day,config.data_hours,
+coord_jma = None
+if location_jma:
+    coord_jma = read_locationEQ(location_jma, config.data_day,config.data_hours,
                                     config.lat_orig,config.lon_orig)
 #------------------------------------------------------------------------
 
@@ -190,7 +192,7 @@ def run_BackProj(idd):
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
 
     ## Plotting------------------------------------------------------------------
-    bp_plot(grid1, stack_grid/k, comb_sta, x_eq, y_eq,z_eq, config.Trigger,
+    bp_plot(grid1, stack_grid/k, comb_sta, coord_eq, config.Trigger,
             t_b, t_e, config.out_dir, datestr, fq_str,
             extent_grd, extent_yz, extent_xz,
             coord_sta,
@@ -265,4 +267,4 @@ plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, t
                x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
                Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
                fq[n1],fq[n22],config.time_lag,
-               x_eq, y_eq, z_eq, x_jma, y_jma, z_jma, file_out_fig)
+               coord_eq, coord_jma, file_out_fig)
