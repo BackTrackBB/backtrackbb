@@ -14,22 +14,27 @@ def read_traces(config):
     if config.data_format:
         kwargs['format'] = config.data_format
     
-    st = Stream()
+    tmpst = Stream()
     for filename in glob(os.path.join(basepath, '*')):
         try:
-            tmpst = read(filename, **kwargs)
+            tmpst += read(filename, **kwargs)
         except Exception:
             continue
 
-        # Retain only requested component:
-        tmpst = tmpst.select(component=config.component)
-        # Retain only requested stations:
-        for tr in tmpst:
-            if tr.stats.station in config.stations:
-                st.append(tr)
-                break
+    # Get the intersection between the list of available stations
+    # and the list of required stations:
+    tmpst_stations = [tr.stats.station for tr in tmpst]
+    stations = sorted(set(tmpst_stations) & set(config.stations))
 
-    print 'Number of stations in stream = ', len(st)
+    # Retain only requested component:
+    tmpst = tmpst.select(component=config.component)
+    # Retain only requested stations:
+    st = Stream()
+    for tr in tmpst:
+        if tr.stats.station in stations:
+            st.append(tr)
+
+    print 'Number of traces in stream = ', len(st)
 
     st.sort()
-    return st
+    return st, stations

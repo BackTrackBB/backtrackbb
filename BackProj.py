@@ -2,7 +2,6 @@
 import sys
 import os
 import numpy as np
-import scipy as sp
 import itertools
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
@@ -27,10 +26,10 @@ if not os.path.isfile(Config_file):
 #---Input parameters for BProj run----------------------------------------
 config = parse_config(Config_file)
 
-#------------------------------------------------------------------------
-sta=list(set(config.stations))
-n_sta = sp.arange(0,len(sta))
+#---Reading data---------------------------------------------------------
+st, stations = read_traces(config)
 
+#------------------------------------------------------------------------
 t_bb=np.arange(config.start_t,config.end_t,config.t_overlap)
 print 'Number of time windows = ', len(t_bb)
 
@@ -46,16 +45,13 @@ if config.catalog_dir:
 bname =[]
 GRD_sta = {}
 coord_sta = {}
-for station in sta:
+for station in stations:
     grid_files = '.'.join(('layer', config.wave_type, station, 'time'))
     grid_files = os.path.join(config.grid_dir, grid_files)
     bname.append(grid_files)
     grid = NLLGrid(grid_files)
     coord_sta[station] = (grid.sta_x, grid.sta_y)
     GRD_sta[station] = grid
-
-#---Reading data---------------------------------------------------------
-st = read_traces(config)
 
 #--- cut the data to the selected length dt------------------------------
 if config.cut_data:
@@ -160,7 +156,7 @@ file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
 
 #--------Defining number of station-pairs for calculating LCC------------
-comb_sta = list(itertools.combinations(sta, 2))
+comb_sta = list(itertools.combinations(stations, 2))
 
 #------------------------------------------------------------------------
 def run_BackProj(idd):
@@ -200,7 +196,7 @@ def run_BackProj(idd):
             coord_sta,
             Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
             st, config.scmap, 0.8*config.lcc_max, config.lcc_max,
-            sta, st_CF,
+            stations, st_CF,
             time, time_env, config.time_lag,
             config.plot_waveforms, fq,
             n1, n22)
@@ -265,7 +261,7 @@ f.close()
 
 #-plotting output--------------------------------------------------------
 plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, time,
-                           sta, coord_sta,
+               stations, coord_sta,
                x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
                Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
                fq[n1],fq[n22],config.time_lag,
