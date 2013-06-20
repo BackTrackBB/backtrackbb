@@ -32,11 +32,14 @@ sta=list(set(config.stations))
 n_sta = sp.arange(0,len(sta))
 
 t_bb=np.arange(config.start_t,config.end_t,config.t_overlap)
-print 'number of time windows=',len(t_bb)
+print 'Number of time windows = ', len(t_bb)
 
-if config.data_day:
-    loc_infile = os.path.join(config.catalog_dir, config.data_day+config.tremor_file)
-location_JMA = os.path.join(config.catalog_dir, config.eq_file)
+loc_infile = None
+location_JMA = None
+if config.catalog_dir:
+    if config.data_day:
+        loc_infile = os.path.join(config.catalog_dir, config.data_day+config.tremor_file)
+    location_JMA = os.path.join(config.catalog_dir, config.eq_file)
 #------------------------------------------------------------------------
 
 #--Reading grids of the theoretical travel-times-------------------------
@@ -126,18 +129,21 @@ Zmin = min(grid1.z_array)
 nx,ny,nz = np.shape(grid1.array)
 
 #----geographical coordinates of the eq's epicenter----------------------
-x_eq, y_eq, z_eq = read_locationTremor(loc_infile,config.data_hours,
+if loc_infile:
+    x_eq, y_eq, z_eq = read_locationTremor(loc_infile,config.data_hours,
                                        config.lat_orig,config.lon_orig)
-
-x_jma,y_jma,z_jma = read_locationEQ(location_JMA, config.data_day,config.data_hours,
+if location_JMA:
+    x_jma,y_jma,z_jma = read_locationEQ(location_JMA, config.data_day,config.data_hours,
                                     config.lat_orig,config.lon_orig)
 #------------------------------------------------------------------------
 
 print 'starting BPmodule'
 
+datestr = st[0].stats.starttime.strftime('%y%m%d%H')
+
 fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
 file_out_base = '_'.join((
-    config.data_day + config.data_hours,
+    datestr,
     str(len(fq)) + 'fq' + fq_str + 'hz',
     str(config.w_kurt_s) + str(config.sr_env) + str(config.sm_lcc) + str(config.t_overlap),
     config.ch_function,
@@ -189,7 +195,7 @@ def run_BackProj(idd):
 
     ## Plotting------------------------------------------------------------------
     bp_plot(grid1, stack_grid/k, comb_sta, x_eq, y_eq,z_eq, config.Trigger,
-            t_b, t_e, config.out_dir, config.data_day, config.data_hours, fq_str,
+            t_b, t_e, config.out_dir, datestr, fq_str,
             extent_grd, extent_yz, extent_xz,
             coord_sta,
             Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
@@ -261,6 +267,6 @@ f.close()
 plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, time,
                            sta, coord_sta,
                x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
-               Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, config.data_day, config.data_hours,
+               Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
                fq[n1],fq[n22],config.time_lag,
                x_eq, y_eq, z_eq, x_jma, y_jma, z_jma, file_out_fig)

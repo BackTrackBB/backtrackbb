@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 
 def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
-        t_b, t_e, out_dir, data_day, data_hours, fq_str,
+        t_b, t_e, out_dir, datestr, fq_str,
         extent_grd, extent_yz, extent_xz,
         coord_sta,
         Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
@@ -221,7 +221,7 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     labels = ax4.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
 
-    file_out_fig = data_day + data_hours + '_t' +\
+    file_out_fig = datestr + '_t' +\
                    str('%0.0f' % (t_b)) + 's_' + fq_str + '_fig.png'
     file_out_fig = os.path.join(out_dir, file_out_fig)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
@@ -231,7 +231,7 @@ def bp_plot(grid1, proj_grid, comb_sta, x_eq, y_eq,z_eq, LTrig,
     
 def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, coord_sta,
                    x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
-                   Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, data_day, data_hours,fq_1,fq_2,time_lag,
+                   Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr, fq_1, fq_2,time_lag,
                    x_eq, y_eq, z_eq, x_jma, y_jma, z_jma, file_out_fig):
     
     fig = figure.Figure(figsize=(18,17))
@@ -285,7 +285,7 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, c
     ax5.set_ylabel('Y[km]')
     labels = ax5.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
-    note='Day: '+data_day+',  Hour: '+data_hours
+    note='Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
     ax5.text(Xmin,Ymax,note,fontsize=15)
     #ax5.set_aspect('equal')
 
@@ -323,7 +323,7 @@ def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, sta, c
 
 
 def bp_plot_pdf(grid1, grid_max, proj_pdf, x_eq, y_eq,z_eq, LTrig,
-        t_b, t_e, out_dir, data_day, data_hours, fq_str,
+        t_b, t_e, out_dir, datestr, fq_str,
         extent_grd, extent_yz, extent_xz,
         x_sta, y_sta,
         Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
@@ -532,7 +532,7 @@ def bp_plot_pdf(grid1, grid_max, proj_pdf, x_eq, y_eq,z_eq, LTrig,
     labels = ax4.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
 
-    file_out_fig = data_day + data_hours + '_t' +\
+    file_out_fig = datestr + '_t' +\
                    str('%0.0f' % (t_b)) + 's_' + fq_str + '_fig.png'
     file_out_fig = os.path.join(out_dir, file_out_fig)
 
