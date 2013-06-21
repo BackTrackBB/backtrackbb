@@ -36,3 +36,10 @@ class LocalCC():
         self.smoothed_cc, self.cc  = local_CCr(self.in_signal1, self.in_signal2,
                                                self.max_time_lag,
                                                self.samp_rate, self.sigma)
+        lag, time = [int(n) for n in np.where(self.smoothed_cc == self.smoothed_cc.max())]
+
+        time = self.zero_time + time/self.samp_rate
+        lag = lag/self.samp_rate - self.max_time_lag
+
+        self.arrival1 = time - lag/2.
+        self.arrival2 = time + lag/2.

@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import itertools
+from collections import defaultdict
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
@@ -176,11 +177,11 @@ def run_BackProj(idd):
     stack_grid = np.zeros((nx,ny,nz),float)
     #stack_pdf = np.zeros((nx,ny,nz),float)
     
-    bb = int(t_b*fs_env)
-    ee = int(t_e*fs_env)
     nn = int(config.t_overlap)
     
     proj_grid = np.zeros((nx,ny,nz),float)
+
+    arrival_times = defaultdict(list)
     k=0
     for sta1, sta2 in comb_sta:
         proj_grid = np.zeros((nx,ny,nz),float)
@@ -193,9 +194,9 @@ def run_BackProj(idd):
         if d <= config.maxSTA_distance:
             k+=1
 
-            proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, bb, ee, nn,
+            proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
                                       fs_env,config.time_lag, sttime_env,
-                                      config.smooth_lcc, nx, ny, nz)
+                                      config.smooth_lcc, nx, ny, nz, arrival_times)
             stack_grid += proj_grid
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
 
@@ -225,18 +226,20 @@ def run_BackProj(idd):
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
     if Norm_grid[x_max,y_max,z_max] >= config.Trigger:
+        #for sta in sorted(arrival_times):
+        #    print sta, arrival_times[sta]
         
         out = str(grid1.x_array[x_max])+'  '+str(grid1.y_array[y_max])+\
               ' '+str(grid1.z_array[z_max])+'  '+str(t_b)+' '+str(t_e)
         print out
         
-        xx_trig =grid1.x_array[x_max]
+        xx_trig = grid1.x_array[x_max]
         yy_trig = grid1.y_array[y_max]
         zz_trig = grid1.z_array[z_max]
         begt_trigWin = t_b
         endt_trigWin = t_e
         centert_trigWin = t_b+config.time_lag/2
-        return xx_trig, yy_trig,zz_trig,begt_trigWin,endt_trigWin,centert_trigWin
+        return xx_trig, yy_trig, zz_trig, begt_trigWin, endt_trigWin, centert_trigWin
 #------end loop for BackProj---------------------------------------------
 
 x_trig=[]
