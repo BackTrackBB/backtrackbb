@@ -21,7 +21,9 @@ def local_CCr(signal1, signal2, t_lag, fs, sigma):
     if signal1.size != signal2.size:
         raise RuntimeError, 'Signals must have the same size'
 
-    lmax = int(t_lag*fs)
+    # Compute sigma in samples
+    sigma = int(sigma * fs)
+    lmax = int(t_lag * fs)
     cc_no_filt = np.zeros(2*lmax * len(signal1))
     cc = np.zeros(2*lmax * len(signal1))
     lib_rec_cc._local_CCr(

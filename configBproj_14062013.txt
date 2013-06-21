@@ -2,14 +2,14 @@
 ncpu = 2
 #
 #--station names---------------------------------------------------------
-#stations = MISH,TSMH,OOZH
-stations = MISH,IKTH,OOZH,TBEH,KWBH,YNDH,HIYH,TSYH,TSMH,UWAH,NAKH,SIKH,OOTH,IKKH,KNSH,TOHH,AKIH,INOH,NTHH,GHKH,SJOH,KRHH 
+#stations = N.MISH,N.TSMH,N.OOZH
+stations = N.MISH,N.IKTH,N.OOZH,N.TBEH,N.KWBH,N.YNDH,N.HIYH,N.TSYH,N.TSMH,N.UWAH,N.NAKH,N.SIKH,N.OOTH,N.IKKH,N.KNSH,N.TOHH,N.AKIH,N.INOH,N.NTHH,N.GHKH,N.SJOH,N.KRHH 
 #
 #--settings for input data files-----------------------------------------
-data_folder = '/home/tatka/Tremor_data/data/'
+data_dir = '/home/tatka/Tremor_data/data/'
 data_day = '120527'
 data_hours = '21'
-ch = 'E'
+component = 'E'
 wave_type = 'S'
 data_type = 'sac'
 grid_dir = '/home/tatka/Chile_data/nll/examples/nll_Shikoku/time/'
@@ -18,13 +18,13 @@ out_dir = 'out_run/'
 save_projGRID = False
 #
 #------------------------------------------------------------------------
-catalog_folder = 'Tremor_data/'
+catalog_dir = 'Tremor_data/'
 eq_file = 'JMA_Shikoku.dat'                          #earthquake location from JMA catalog (not used in this version)
 tremor_file = '_tremorlocation.dat'
 #------------------------------------------------------------------------
 time_lag = 26.                              #defines max_lag for LCC in seconds
 maxSTA_distance = 80.                       #max interstation distance for LCC
-w_kurt_s=3.                                 #value of attenuation constant for recursive kurt/envelope in seconds
+decay_const = 3.                            #value of decay constant for recursive kurt/envelope in seconds
 ch_function = 'envelope'
 ##ch_function = 'kurtosis'
 win_type = False                            #if True - variable time window is used for MB_CF calculation
@@ -38,18 +38,14 @@ start_t = 876.
 ##end_t = 879.
 end_t = 877.
 #------------------------------------------------------------------------
-sr_data = 50.
-##sr_env = 1                                  #sampling rate of CF
-##sm_lcc = 1.2                                #smoothing parameter for LCC    
-sr_env = 50                                   #sampling rate of CF
-sm_lcc = 25                                   #smoothing parameter for LCC
+sampl_rate_data = 50.                         #sampling rate of data (optional for resampling)
+sampl_rate_cf = 50.                           #sampling rate of characteristic function (optional for resampling)
+smooth_lcc = 0.5                              #smoothing parameter for LCC
 #--Parameters for the MBF analysis--------------------------------------
-Tf=1.                                       # min filter frequency for MB filter
-f_max = 50.
-fq1 = 2.0
-fq2 = 10.
-#d = 4000
-d = 1200
+f_min = 2.0
+f_max = 10.
+n_freq_bands = 8
+band_spacing = lin
 #------------------------------------------------------------------------
 cut_data = True
 delta_t = 25.

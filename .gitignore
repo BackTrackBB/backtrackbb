@@ -7,3 +7,6 @@ lib/
 
 # temporary files
 *.swp
+
+# other unnecessary files
+.directory

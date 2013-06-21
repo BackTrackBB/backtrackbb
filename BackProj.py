@@ -2,15 +2,14 @@
 import sys
 import os
 import numpy as np
-import scipy as sp
-from obspy.core import read
 import itertools
-from tatka_modules.mod_filter_picker import make_LinFq, MBfilter_CF
+from tatka_modules.read_traces import read_traces
+from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
 from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
 from tatka_modules.grid_projection import sta_GRD_Proj
 from tatka_modules.plot import bp_plot, plt_SummaryOut
-from tatka_modules.Config import Config_Input
+from tatka_modules.parse_config import parse_config
 import cPickle as pickle
 from multiprocessing import Pool
 
@@ -25,58 +24,47 @@ if not os.path.isfile(Config_file):
     sys.exit(1)
 
 #---Input parameters for BProj run----------------------------------------
-ConfigSpec_file = 'configspecBproj.txt'
-config = Config_Input(ConfigSpec_file,Config_file)
+config = parse_config(Config_file)
+
+#---Reading data---------------------------------------------------------
+st, stations = read_traces(config)
+
 #------------------------------------------------------------------------
-sta=list(set(config.stations))
-n_sta = sp.arange(0,len(sta))
-
 t_bb=np.arange(config.start_t,config.end_t,config.t_overlap)
-print 'number of time windows=',len(t_bb)
+print 'Number of time windows = ', len(t_bb)
 
-loc_infile = os.path.join(config.catalog_folder, config.data_day+config.tremor_file)
-location_JMA = os.path.join(config.catalog_folder, config.eq_file)
+loc_infile = None
+location_jma = None
+if config.catalog_dir:
+    if config.data_day:
+        loc_infile = os.path.join(config.catalog_dir, config.data_day+config.tremor_file)
+    location_jma = os.path.join(config.catalog_dir, config.eq_file)
 #------------------------------------------------------------------------
 
 #--Reading grids of the theoretical travel-times-------------------------
-x_sta=[]
-y_sta=[]
 bname =[]
-GRD_sta=[]
-for station in sta:
+GRD_sta = {}
+coord_sta = {}
+for station in stations:
     grid_files = '.'.join(('layer', config.wave_type, station, 'time'))
     grid_files = os.path.join(config.grid_dir, grid_files)
     bname.append(grid_files)
-    x_sta.append(NLLGrid(grid_files).sta_x)
-    y_sta.append(NLLGrid(grid_files).sta_y)
-    GRD_sta.append(NLLGrid(grid_files).array)
-
-x_sta=tuple(x_sta)
-y_sta=tuple(y_sta)
-GRD_sta=tuple(GRD_sta)
-
-#---Reading data---------------------------------------------------------
-comp = sta[:]
-comp[0] = '*'+sta[0]+'*'+config.ch+'*.'+config.data_type
-
-st = read(os.path.join(config.data_folder, config.data_day, config.data_hours, comp[0]))
-
-for i in xrange(1,len(sta)):
-    comp[i] = '*' + sta[i] + '*' + config.ch + '*.'+config.data_type
-    st += read(os.path.join(config.data_folder, config.data_day, config.data_hours, comp[i]))
-print 'No of stations in stream = ', len(st)
+    grid = NLLGrid(grid_files)
+    coord_sta[station] = (grid.sta_x, grid.sta_y)
+    GRD_sta[station] = grid
 
 #--- cut the data to the selected length dt------------------------------
 if config.cut_data:
     st.trim(st[0].stats.starttime+0.2*config.delta_t*60.,
                         st[0].stats.starttime+1.0*config.delta_t*60.)
 
-#----decimate to 50Hz sampling-------------------------------------------
-for tr in st:
-    f_tr = tr.stats.sampling_rate
-    if f_tr > config.sr_data:
-        dec_ct = int(f_tr/config.sr_data)
-        st.decimate(dec_ct, strict_length=False, no_filter=True)
+#---- resample data -----------------------------------------------------
+if config.sampl_rate_data:
+    for tr in st:
+        f_tr = tr.stats.sampling_rate
+        if f_tr > config.sampl_rate_data:
+            dec_ct = int(f_tr/config.sampl_rate_data)
+            st.decimate(dec_ct, strict_length=False, no_filter=True)
 
 #---remove mean and trend------------------------------------------------
 st.detrend(type='constant')
@@ -87,12 +75,15 @@ dt=st[0].stats.delta
 fs_data = st[0].stats.sampling_rate
 dT=dt
 npts_d = st[0].stats.npts
-n_win_k=config.w_kurt_s /dt
+n_win_k = config.decay_const /dt
 
 st_CF=st.copy()
 
 #---Calculating frequencies for MBFilter---------------------------------
-fq = make_LinFq(config.fq1,config.fq2,npts_d,dT,config.d)
+if config.band_spacing == 'lin':
+    fq = make_LinFq(config.f_min, config.f_max, dT, config.n_freq_bands)
+elif config.band_spacing == 'log':
+    fq = make_LogFq(config.f_min, config.f_max, dT, config.n_freq_bands)
 n1=0
 n2=len(fq)
 n22=len(fq)-1
@@ -109,8 +100,11 @@ for Record,CH_fct in zip(st, st_CF):
         CH_fct.data = np.amax(env_rec,axis=0)
             
 #-----resampling envelopes if wanted------------------------------------
-if config.sr_env < fs_data:
-    st_CF.resample(config.sr_env)
+if config.sampl_rate_cf:
+    if config.sampl_rate_cf < fs_data:
+        st_CF.resample(config.sampl_rate_cf)
+else:
+    config.sampl_rate_cf = fs_data
     
 time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 dt_env=st_CF[0].stats.delta
@@ -119,9 +113,6 @@ fs_env = st_CF[0].stats.sampling_rate
 sttime_env = st_CF[0].stats.starttime
 
 print 'frequencies for filtering in (Hz):',fq[n1:n2]
-
-#--------Defining number of station-pairs for calculating LCC------------
-comb_sta = list(itertools.combinations(sta,2))
 
 #---grid infromation-----------------------------------------------------
 grid1 = NLLGrid(bname[1])
@@ -138,22 +129,31 @@ Zmin = min(grid1.z_array)
 nx,ny,nz = np.shape(grid1.array)
 
 #----geographical coordinates of the eq's epicenter----------------------
-x_eq, y_eq, z_eq = read_locationTremor(loc_infile,config.data_hours,
+coord_eq = None
+if loc_infile:
+    coord_eq = read_locationTremor(loc_infile,config.data_hours,
                                        config.lat_orig,config.lon_orig)
-
-x_jma,y_jma,z_jma = read_locationEQ(location_JMA, config.data_day,config.data_hours,
+coord_jma = None
+if location_jma:
+    coord_jma = read_locationEQ(location_jma, config.data_day,config.data_hours,
                                     config.lat_orig,config.lon_orig)
 #------------------------------------------------------------------------
 
 print 'starting BPmodule'
 
+# Create out_dir, if it doesn't exist
+if not os.path.exists(config.out_dir):
+    os.mkdir(config.out_dir)
+
+datestr = st[0].stats.starttime.strftime('%y%m%d%H')
+
 fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
 file_out_base = '_'.join((
-    config.data_day + config.data_hours,
+    datestr,
     str(len(fq)) + 'fq' + fq_str + 'hz',
-    str(config.w_kurt_s) + str(config.sr_env) + str(config.sm_lcc) + str(config.t_overlap),
+    str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
     config.ch_function,
-    config.ch,
+    config.component,
     config.wave_type,
     'trig'+str(config.Trigger)
     ))
@@ -164,6 +164,9 @@ file_out_data = os.path.join(config.out_dir, file_out_data)
 file_out_fig = file_out_base + '_FIG2.png'
 file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
+
+#--------Defining number of station-pairs for calculating LCC------------
+comb_sta = list(itertools.combinations(stations, 2))
 
 #------------------------------------------------------------------------
 def run_BackProj(idd):
@@ -179,30 +182,31 @@ def run_BackProj(idd):
     
     proj_grid = np.zeros((nx,ny,nz),float)
     k=0
-    for l in xrange(len(comb_sta)):
+    for sta1, sta2 in comb_sta:
         proj_grid = np.zeros((nx,ny,nz),float)
-        id1 = sta.index(comb_sta[l][0])
-        id2 = sta.index(comb_sta[l][1])
+
+        x_sta1, y_sta1 = coord_sta[sta1]
+        x_sta2, y_sta2 = coord_sta[sta2]
         
-        d = np.sqrt((x_sta[id1]-x_sta[id2])**2+(y_sta[id1]-y_sta[id2])**2)
+        d = np.sqrt((x_sta1-x_sta2)**2+(y_sta1-y_sta2)**2)
         
         if d <= config.maxSTA_distance:
             k+=1
 
-            proj_grid = sta_GRD_Proj(st_CF, GRD_sta,sta, comb_sta, bb, ee, nn,
-                                      fs_env,config.time_lag,sttime_env,
-                                      config.sm_lcc,nx,ny,nz,l)
+            proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, bb, ee, nn,
+                                      fs_env,config.time_lag, sttime_env,
+                                      config.smooth_lcc, nx, ny, nz)
             stack_grid += proj_grid
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
 
     ## Plotting------------------------------------------------------------------
-    bp_plot(grid1, stack_grid/k, comb_sta, x_eq, y_eq,z_eq, config.Trigger,
-            t_b, t_e, config.out_dir, config.data_day, config.data_hours, fq_str,
+    bp_plot(grid1, stack_grid/k, comb_sta, coord_eq, config.Trigger,
+            t_b, t_e, config.out_dir, datestr, fq_str,
             extent_grd, extent_yz, extent_xz,
-            x_sta, y_sta,
+            coord_sta,
             Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
             st, config.scmap, 0.8*config.lcc_max, config.lcc_max,
-            sta, st_CF,
+            stations, st_CF,
             time, time_env, config.time_lag,
             config.plot_waveforms, fq,
             n1, n22)
@@ -267,8 +271,8 @@ f.close()
 
 #-plotting output--------------------------------------------------------
 plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, time,
-                           sta, x_sta, y_sta,
+               coord_sta,
                x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
-               Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, config.data_day, config.data_hours,
+               Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
                fq[n1],fq[n22],config.time_lag,
-               x_eq, y_eq, z_eq, x_jma, y_jma, z_jma, file_out_fig)
+               coord_eq, coord_jma, file_out_fig)
