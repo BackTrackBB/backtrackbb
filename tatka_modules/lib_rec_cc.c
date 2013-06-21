@@ -9,14 +9,13 @@ void _gausscoeff(double sigma, double *A, int *nA, double *B, int *nB)
     double q;
     double *b;
 
-    if (sigma < 0.5) {
-        perror("Sigma for Gaussian filter must be >0.5 samples\n");
-        exit(1);
-    }
     if (sigma > 0.5) {
         q = 0.98711*sigma - 0.96330; 
-    } else {
+    } else if (sigma == 0.5) {
         q = 3.97156 - 4.14554 * sqrt(1.0 - 0.26891*sigma);
+    } else {
+        perror("Sigma for Gaussian filter must be >=0.5 samples.\n");
+        exit(1);
     }
 
     b = (double *) malloc(4 * sizeof(double));
