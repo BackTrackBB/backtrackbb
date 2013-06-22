@@ -274,6 +274,8 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     file_out_fig = datestr + '_t' +\
                    str('%05.1f' % (t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
     file_out_fig = os.path.join(out_dir, file_out_fig)
+    if config.plot_format == 'pdf':
+        fig.patch.set_alpha(0.0)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
@@ -398,6 +400,8 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     ax3.axvline(t_bb[-1]+time_lag,linewidth=1, color='b',alpha=0.9)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
+    if config.plot_format == 'pdf':
+        fig.patch.set_alpha(0.0)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
