@@ -28,8 +28,10 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     fig = figure.Figure(figsize=(fig_size_x, fig_size_y))
     plot_xz_size = 25 #percent
     plot_yz_size = plot_xz_size / ratio
+    plot_cbar_size = 5 #percent
     xz_size = '%f %%' % plot_xz_size
     yz_size = '%f %%' % plot_yz_size
+    cb_size = '%f %%' % plot_cbar_size
     sta_smbl_size = 250 / ratio
     eq_smbl_size = 300 / ratio
     trig_smbl_size = 200 / ratio
@@ -95,6 +97,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     if grid_max[x_max,y_max,z_max] >= LTrig:
         ax1_xy.scatter(grid1.x_array[x_max],grid1.y_array[y_max],
                     marker='*', s=trig_smbl_size, linewidths=1,c='g')
+    ax1_xy.set_aspect('equal', 'datalim')
 
 #--ax1_yz
     ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
@@ -132,7 +135,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax1_xz.set_ylabel('Z[km]')
 
 #--ax1-color-bar
-    ax1_cb = divider1.append_axes('bottom', size='5%', pad=0.5)
+    ax1_cb = divider1.append_axes('bottom', size=cb_size, pad=0.5)
     cb1 = fig.colorbar(hnd, cax=ax1_cb, orientation='horizontal')
     cb1.set_label('Stacked Local-CC Amplitude')
 
@@ -164,6 +167,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     if grid_max[x_max,y_max,z_max] >= LTrig:
         ax2_xy.scatter(grid1.x_array[x_max],grid1.y_array[y_max],
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
+    ax2_xy.set_aspect('equal', 'datalim')
 
 #--ax2_yz
     ax2_yz = divider11.append_axes('right', size=yz_size, pad=0.05, sharey=ax2_xy)
@@ -205,7 +209,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax2_xz.set_ylabel('Z[km]')
 
 #--ax2-color-bar
-    cbx11 = divider11.append_axes('bottom', size='5%', pad=0.5)
+    cbx11 = divider11.append_axes('bottom', size=cb_size, pad=0.5)
     cb11=fig.colorbar(hnd2, cax=cbx11,orientation='horizontal',
                       ticks=[LTrig, LTrig+(lcc_max-LTrig)/2,lcc_max])
     cb11.set_label('Stacked Local-CC Amplitude')
@@ -297,8 +301,10 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     fig = figure.Figure(figsize=(fig_size_x, fig_size_y))
     plot_xz_size = 25 #percent
     plot_yz_size = plot_xz_size / ratio
+    plot_cbar_size = 5 #percent
     xz_size = '%f %%' % plot_xz_size
     yz_size = '%f %%' % plot_yz_size
+    cb_size = '%f %%' % plot_cbar_size
     sta_smbl_size = 250 / ratio
     eq_smbl_size = 300 / ratio
     trig_smbl_size = 80 / ratio
@@ -308,14 +314,14 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     ax1_xy = fig.add_subplot(221)
     divider1 = make_axes_locatable(ax1_xy)
     ax1_xy.axis('tight')
-    ax1_xy.set_xlim(Xmin,Xmax)
-    ax1_xy.set_ylim(Ymin,Ymax)
+    ax1_xy.set_xlim(Xmin, Xmax)
+    ax1_xy.set_ylim(Ymin, Ymax)
     ax1_xy.set_xlabel('X[km]')
     ax1_xy.set_ylabel('Y[km]')
     labels = ax1_xy.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
     note='Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
-    ax1_xy.text(Xmin,Ymax,note,fontsize=15)
+    ax1_xy.set_title(note, fontsize=15)
     ax1_xy.scatter(x_trig, y_trig,marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)    
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
@@ -327,6 +333,7 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
         ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='r')
     if coord_jma:
         ax1_xy.scatter(coord_jma[0], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
+    ax1_xy.set_aspect('equal', 'datalim')
 
 #--ax1_yz
     ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
@@ -334,6 +341,8 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     ax1_yz.set_xlim(Zmin,Zmax)
     ax1_yz.set_ylim(Ymin,Ymax)
     ax1_yz.set_xlabel('Z[km]')
+    labels = ax1_yz.get_xticklabels()
+    pylab.setp(labels, rotation=90, fontsize=12)
     labels = ax1_yz.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
     ax1_yz.yaxis.set_visible(False)
@@ -351,13 +360,17 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     ax1_xz.set_ylim(ax1_xz.get_ylim()[::-1])
     ax1_xz.set_xlabel('X[km]')
     ax1_xz.set_ylabel('Z[km]')
-    labels = ax1_xz.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
     ax1_xz.scatter(x_trig,z_trig,marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
     if coord_eq:
         ax1_xz.scatter(coord_eq[0], coord_eq[2], marker='*', s=eq_smbl_size, linewidths=1, c='r')
     if coord_jma:
         ax1_xz.scatter(coord_jma[0], coord_jma[2], marker='o', s=eq_smbl_size, linewidths=1, c='m')
+
+#--ax1-color-bar
+    # we create a color bar axis and then make it invisible,
+    # just to keep the same proportions of the other plots
+    ax1_cb = divider1.append_axes('bottom', size=cb_size, pad=0.5)
+    ax1_cb.set_visible(False)
 
 #--ax3: traces
     ax3 = fig.add_subplot(122)
