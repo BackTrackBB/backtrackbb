@@ -7,17 +7,20 @@ from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def bp_plot(grid1, proj_grid, comb_sta,
-        coord_eq, LTrig,
-        t_b, t_e, out_dir, datestr, fq_str,
+def bp_plot(config, grid1, proj_grid, comb_sta,
+        coord_eq, t_b, t_e, datestr, fq_str,
         extent_grd, extent_yz, extent_xz,
-        coord_sta,
-        Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
-        st, scmap, lcc_min, lcc_max,
-        sta, st_CF,
-        time, time_env, time_lag,
-        plot_waveforms, fq,
-        n1, n22):
+        coord_sta, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
+        st, sta, st_CF,
+        time, time_env,
+        fq, n1, n22):
+
+    LTrig = config.trigger
+    lcc_max = config.lcc_max
+    time_lag = config.time_lag
+    out_dir = config.out_dir
+    scmap = config.scmap
+    plot_waveforms = config.plot_waveforms
 
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
     fig_size_x = 18
@@ -276,10 +279,15 @@ def bp_plot(grid1, proj_grid, comb_sta,
     canvas.print_figure(file_out_fig)
     
     
-def plt_SummaryOut(st_CF, st, plot_waveforms, ch_function,time_env, time, coord_sta,
-                   x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
-                   Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr, fq_1, fq_2,time_lag,
+def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
+                   x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin, t_bb,
+                   Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
+                   fq_1, fq_2,
                    coord_eq, coord_jma, file_out_fig):
+
+    plot_waveforms = config.plot_waveforms
+    ch_function = config.ch_function
+    time_lag = config.time_lag
     
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
     fig_size_x = 18

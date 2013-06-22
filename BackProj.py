@@ -156,7 +156,7 @@ file_out_base = '_'.join((
     config.ch_function,
     config.component,
     config.wave_type,
-    'trig'+str(config.Trigger)
+    'trig'+str(config.trigger)
     ))
 
 file_out_data = file_out_base + '_OUT2.dat'
@@ -201,16 +201,13 @@ def run_BackProj(idd):
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
 
     ## Plotting------------------------------------------------------------------
-    bp_plot(grid1, stack_grid/k, comb_sta, coord_eq, config.Trigger,
-            t_b, t_e, config.out_dir, datestr, fq_str,
+    bp_plot(config, grid1, stack_grid/k, comb_sta,
+            coord_eq, t_b, t_e, datestr, fq_str,
             extent_grd, extent_yz, extent_xz,
-            coord_sta,
-            Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
-            st, config.scmap, 0.8*config.lcc_max, config.lcc_max,
-            stations, st_CF,
-            time, time_env, config.time_lag,
-            config.plot_waveforms, fq,
-            n1, n22)
+            coord_sta, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
+            st, stations, st_CF,
+            time, time_env,
+            fq, n1, n22)
     
     #Norm_grid= stack_grid/len(comb_sta)
     Norm_grid= stack_grid/k
@@ -225,7 +222,7 @@ def run_BackProj(idd):
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
-    if Norm_grid[x_max,y_max,z_max] >= config.Trigger:
+    if Norm_grid[x_max,y_max,z_max] >= config.trigger:
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
         
@@ -273,9 +270,8 @@ f = open(file_out_data,'w')
 f.close()
 
 #-plotting output--------------------------------------------------------
-plt_SummaryOut(st_CF, st, config.plot_waveforms, config.ch_function, time_env, time,
-               coord_sta,
-               x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin,t_bb,
+plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
+               x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin, t_bb,
                Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
-               fq[n1],fq[n22],config.time_lag,
+               fq[n1], fq[n22],
                coord_eq, coord_jma, file_out_fig)

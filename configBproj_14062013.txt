@@ -50,7 +50,7 @@ band_spacing = lin
 cut_data = True
 delta_t = 25.
 #------------------------------------------------------------------------
-Trigger = 0.85
+trigger = 0.85
 #lcc_max = 1.0
 lcc_max = 0.9
 #--geogr. coordinates for the origin of the coordinate system-----------
