@@ -162,7 +162,7 @@ file_out_base = '_'.join((
 file_out_data = file_out_base + '_OUT2.dat'
 file_out_data = os.path.join(config.out_dir, file_out_data)
 
-file_out_fig = file_out_base + '_FIG2.png'
+file_out_fig = file_out_base + '_FIG2.' + config.plot_format
 file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
 

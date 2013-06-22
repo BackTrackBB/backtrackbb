@@ -58,4 +58,5 @@ lat_orig = 33.618
 lon_orig = 132.988
 #--parameters for plotting----------------------------------------------
 plot_waveforms = True
-scmap ='jet'
+scmap = jet
+plot_format = png
