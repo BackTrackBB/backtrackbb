@@ -331,7 +331,6 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     ax1_yz.axis('tight')
     ax1_yz.set_xlim(Zmin,Zmax)
     ax1_yz.set_ylim(Ymin,Ymax)
-    ax1_yz.set_aspect('equal')
     ax1_yz.set_xlabel('Z[km]')
     labels = ax1_yz.get_yticklabels()
     pylab.setp(labels, rotation=90, fontsize=12)
