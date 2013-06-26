@@ -19,10 +19,12 @@ lib_rec_cc._local_CCr.restype = ctypes.c_void_p
 
 def local_CCr(signal1, signal2, t_lag, fs, sigma):
     if signal1.size != signal2.size:
-        raise RuntimeError, 'Signals must have the same size'
+        raise RuntimeError, 'Signals must have the same size.'
 
     # Compute sigma in samples
-    sigma = int(sigma * fs)
+    sigma *= fs
+    if sigma < 0.5:
+        raise RuntimeError, 'Sigma for Gaussian filter must be >=0.5 samples.'
     lmax = int(t_lag * fs)
     cc_no_filt = np.zeros(2*lmax * len(signal1))
     cc = np.zeros(2*lmax * len(signal1))
