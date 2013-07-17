@@ -22,15 +22,8 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     scmap = config.scmap
     plot_waveforms = config.plot_waveforms
 
-    fig_size_x = 8.267
-    fig_size_y = 11.692
-
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
-##    fig_size_x = 18
-##    fig_size_y = fig_size_x / ratio
-##    fig = figure.Figure(figsize=(fig_size_x, fig_size_y))
     fig = figure.Figure(figsize=(20, 20))
-##    plot_xz_size = 25 #percent
     plot_xz_size = ((Zmax - Zmin)/(Xmax - Xmin))*100
     plot_yz_size = plot_xz_size / ratio
     plot_cbar_size = 5 #percent
@@ -301,18 +294,16 @@ def plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
     time_lag = config.time_lag
     
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
-    fig_size_x = 18
-    fig_size_y = fig_size_x / ratio
-    fig = figure.Figure(figsize=(fig_size_x, fig_size_y))
-    plot_xz_size = 25 #percent
+    fig = figure.Figure(figsize=(20, 20))
+    plot_xz_size = ((Zmax - Zmin)/(Xmax - Xmin))*100
     plot_yz_size = plot_xz_size / ratio
     plot_cbar_size = 5 #percent
     xz_size = '%f %%' % plot_xz_size
     yz_size = '%f %%' % plot_yz_size
     cb_size = '%f %%' % plot_cbar_size
-    sta_smbl_size = 250 / ratio
-    eq_smbl_size = 300 / ratio
-    trig_smbl_size = 80 / ratio
+    sta_smbl_size = 150 / ratio
+    eq_smbl_size = 200 / ratio
+    trig_smbl_size = 200 / ratio
 
 
 #--ax1_xy
