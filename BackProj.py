@@ -43,7 +43,7 @@ if config.catalog_dir:
 #------------------------------------------------------------------------
 
 #--Reading grids of the theoretical travel-times-------------------------
-bname =[]
+bname = []
 GRD_sta = {}
 coord_sta = {}
 for station in stations:
@@ -116,18 +116,8 @@ sttime_env = st_CF[0].stats.starttime
 print 'frequencies for filtering in (Hz):',fq[n1:n2]
 
 #---grid infromation-----------------------------------------------------
-grid1 = NLLGrid(bname[1])
-grid1.init_xyz_arrays()
-extent_grd = grid1.get_xy_extent()
-extent_yz = grid1.get_yz_extent()
-extent_xz = (extent_grd[0],extent_grd[1],extent_yz[2],extent_yz[3])
-Xmax = max(grid1.x_array)
-Xmin = min(grid1.x_array)
-Ymax = max(grid1.y_array)
-Ymin = min(grid1.y_array)
-Zmax = max(grid1.z_array)
-Zmin = min(grid1.z_array)
-nx,ny,nz = np.shape(grid1.array)
+grid1 = GRD_sta.values()[0]
+nx, ny, nz = np.shape(grid1.array)
 
 #----geographical coordinates of the eq's epicenter----------------------
 coord_eq = None
@@ -171,8 +161,8 @@ comb_sta = list(itertools.combinations(stations, 2))
 
 #------------------------------------------------------------------------
 def run_BackProj(idd):
-    t_b=t_bb[idd]
-    t_e = t_b+config.time_lag
+    t_b = t_bb[idd]
+    t_e = t_b + config.time_lag
 
     stack_grid = np.zeros((nx,ny,nz),float)
     #stack_pdf = np.zeros((nx,ny,nz),float)
@@ -189,9 +179,9 @@ def run_BackProj(idd):
         x_sta1, y_sta1 = coord_sta[sta1]
         x_sta2, y_sta2 = coord_sta[sta2]
         
-        d = np.sqrt((x_sta1-x_sta2)**2+(y_sta1-y_sta2)**2)
+        distance = np.sqrt((x_sta1-x_sta2)**2+(y_sta1-y_sta2)**2)
         
-        if d <= config.maxSTA_distance:
+        if distance <= config.maxSTA_distance:
             k+=1
 
             proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
@@ -203,9 +193,7 @@ def run_BackProj(idd):
     ## Plotting------------------------------------------------------------------
     bp_plot(config, grid1, stack_grid/k, comb_sta,
             coord_eq, t_b, t_e, datestr, fq_str,
-            extent_grd, extent_yz, extent_xz,
-            coord_sta, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax,
-            st, stations, st_CF,
+            coord_sta, st, stations, st_CF,
             time, time_env,
             fq, n1, n22)
     
@@ -222,17 +210,16 @@ def run_BackProj(idd):
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
-    if Norm_grid[x_max,y_max,z_max] >= config.trigger:
+    if Norm_grid[x_max, y_max, z_max] >= config.trigger:
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
+
+        xx_trig, yy_trig, zz_trig = grid1.get_xyz(x_max, y_max, z_max)
         
-        out = str(grid1.x_array[x_max])+'  '+str(grid1.y_array[y_max])+\
-              ' '+str(grid1.z_array[z_max])+'  '+str(t_b)+' '+str(t_e)
+        out = str(xx_trig) + '  ' + str(yy_trig) + \
+              ' ' + str(zz_trig) + '  ' + str(t_b) + ' ' + str(t_e)
         print out
         
-        xx_trig = grid1.x_array[x_max]
-        yy_trig = grid1.y_array[y_max]
-        zz_trig = grid1.z_array[z_max]
         begt_trigWin = t_b
         endt_trigWin = t_e
         centert_trigWin = t_b+config.time_lag/2
@@ -247,7 +234,7 @@ end_trigWin=[]
 center_trigWin=[]
 
 #---running program------------------------------------------------------
-p=Pool(config.ncpu)  #defining number of jobs 
+p = Pool(config.ncpu)  #defining number of jobs 
 p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
 p.close()      #no more tasks
 p.join()       #wrap  up current tasks
@@ -270,8 +257,8 @@ f = open(file_out_data,'w')
 f.close()
 
 #-plotting output--------------------------------------------------------
-plt_SummaryOut(config, st_CF, st, time_env, time, coord_sta,
+plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
                x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin, t_bb,
-               Xmin, Xmax, Ymin, Ymax, Zmin, Zmax, datestr,
+               datestr,
                fq[n1], fq[n22],
                coord_eq, coord_jma, file_out_fig)
