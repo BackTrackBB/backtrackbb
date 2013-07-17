@@ -42,34 +42,31 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     lcc_min = LTrig
 
     Max_grid_max = np.where(grid_max == np.max(grid_max))
-    x_max = Max_grid_max[0][0]
-    y_max = Max_grid_max[1][0]
-    z_max = Max_grid_max[2][0]
-    xx_max, yy_max, zz_max = grid1.get_xyz(x_max, y_max, z_max)
+    i_max = Max_grid_max[0][0]
+    j_max = Max_grid_max[1][0]
+    k_max = Max_grid_max[2][0]
+    xx_max, yy_max, zz_max = grid1.get_xyz(i_max, j_max, k_max)
 
 #--ax1: stacked grid
 #--ax1_xy
     ax1_xy = fig.add_subplot(221)
     divider1 = make_axes_locatable(ax1_xy)
 
-    if grid_max[x_max, y_max, z_max] >= LTrig:
-        x_grid = x_max
-        y_grid = y_max
-        z_grid = z_max
+    if grid_max[i_max, j_max, k_max] >= LTrig:
+        i_grid = i_max
+        j_grid = j_max
+        k_grid = k_max
     elif coord_eq:
         x_eq, y_eq, z_eq = coord_eq
-        n_x, n_y, n_z = grid1.get_ijk(x_eq[0], y_eq[0], z_eq[0])
-        x_grid = n_x
-        y_grid = n_y
-        z_grid = n_z
+        i_grid, j_grid, k_grid = grid1.get_ijk(x_eq[0], y_eq[0], z_eq[0])
     else:
-        x_grid = int(proj_grid.shape[0] / 2)
-        y_grid = int(proj_grid.shape[1] / 2)
-        z_grid = int(proj_grid.shape[2] / 2)
+        i_grid = int(proj_grid.shape[0] / 2.)
+        j_grid = int(proj_grid.shape[1] / 2.)
+        k_grid = int(proj_grid.shape[2] / 2.)
 
-    xx_grid, yy_grid, zz_grid = grid1.get_xyz(x_grid, y_grid, z_grid)
+    xx_grid, yy_grid, zz_grid = grid1.get_xyz(i_grid, j_grid, k_grid)
 
-    hnd=ax1_xy.imshow(np.flipud(np.transpose(grid_max[:,:,z_grid])),
+    hnd=ax1_xy.imshow(np.flipud(np.transpose(grid_max[:,:,k_grid])),
                              extent=grid1.get_xy_extent(), cmap=scmap, rasterized=True)
     ax1_xy.axis('tight')
     ax1_xy.set_xlim(Xmin,Xmax)
@@ -92,17 +89,17 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)
 
-    if grid_max[x_max, y_max, z_max] >= LTrig:
+    if grid_max[i_max, j_max, k_max] >= LTrig:
         ax1_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1,c='g')
     ax1_xy.set_aspect('equal', 'datalim')
 
 #--ax1_yz
     ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
-    ax1_yz.imshow(np.flipud(grid_max[x_grid,:,:]),
+    ax1_yz.imshow(np.flipud(grid_max[i_grid,:,:]),
                      extent=grid1.get_zy_extent(), cmap=scmap, rasterized=True)
 
-    if grid_max[x_max, y_max, z_max] >= LTrig:
+    if grid_max[i_max, j_max, k_max] >= LTrig:
         ax1_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')                      
     ax1_yz.axis('tight')
@@ -117,10 +114,10 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax1_xz
     ax1_xz = divider1.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax1_xy)
-    ax1_xz.imshow(np.flipud(np.transpose(grid_max[:,y_grid,:])),
+    ax1_xz.imshow(np.flipud(np.transpose(grid_max[:,j_grid,:])),
                      extent=grid1.get_xz_extent(), cmap=scmap, rasterized=True)
 
-    if grid_max[x_max, y_max, z_max] >= LTrig:
+    if grid_max[i_max, j_max, k_max] >= LTrig:
         ax1_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')                      
 
@@ -143,7 +140,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 #--ax2_xy
     ax2_xy = fig.add_subplot(223)
     divider11 = make_axes_locatable(ax2_xy)
-    hnd2 = ax2_xy.imshow(np.flipud(np.transpose(grid_max[:,:,z_grid])),
+    hnd2 = ax2_xy.imshow(np.flipud(np.transpose(grid_max[:,:,k_grid])),
                        extent=grid1.get_xy_extent(), cmap=scmap2,
                        vmin=lcc_min, vmax=lcc_max,
                        rasterized=True)
@@ -162,19 +159,19 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         trans = ax2_xy.transData + ax2_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
-    if grid_max[x_max, y_max, z_max] >= LTrig:
+    if grid_max[i_max, j_max, k_max] >= LTrig:
         ax2_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax2_xy.set_aspect('equal', 'datalim')
 
 #--ax2_yz
     ax2_yz = divider11.append_axes('right', size=yz_size, pad=0.05, sharey=ax2_xy)
-    ax2_yz.imshow(np.flipud(grid_max[x_grid,:,:]),
+    ax2_yz.imshow(np.flipud(grid_max[i_grid,:,:]),
                       extent=grid1.get_zy_extent(), cmap=scmap2,
                       vmin=lcc_min, vmax=lcc_max,
                       rasterized=True)
 
-    if grid_max[x_max, y_max, z_max] >= LTrig:
+    if grid_max[i_max, j_max, k_max] >= LTrig:
         ax2_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g') 
 
@@ -190,12 +187,12 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax2_xz
     ax2_xz = divider11.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax2_xy)
-    ax2_xz.imshow(np.flipud(np.transpose(grid_max[:,y_grid,:])),
+    ax2_xz.imshow(np.flipud(np.transpose(grid_max[:,j_grid,:])),
                      extent=grid1.get_xz_extent(), cmap=scmap2,
                      vmin=lcc_min, vmax=lcc_max,
                      rasterized=True)
 
-    if grid_max[x_max, y_max, z_max] >= LTrig:
+    if grid_max[i_max, j_max, k_max] >= LTrig:
         ax2_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
@@ -297,10 +294,10 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     note='Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
     ax1_xy.set_title(note, fontsize=15)
-    ax1_xy.scatter(x_trig, y_trig,marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)    
+    ax1_xy.scatter(x_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)    
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
-        ax1_xy.scatter(x_sta, y_sta,marker='^', s=sta_smbl_size, linewidths=1,c='k',alpha=0.79)
+        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1,c='k',alpha=0.79)
         trans = ax1_xy.transData + ax1_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)

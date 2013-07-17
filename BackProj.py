@@ -201,20 +201,20 @@ def run_BackProj(idd):
     Norm_grid= stack_grid/k
 
     Max_NormGrid = np.where(Norm_grid == np.max(Norm_grid))
-    x_max = Max_NormGrid[0][0]
-    y_max = Max_NormGrid[1][0]
-    z_max = Max_NormGrid[2][0]
+    i_max = Max_NormGrid[0][0]
+    j_max = Max_NormGrid[1][0]
+    k_max = Max_NormGrid[2][0]
 
     if config.save_projGRID:
         print 'saving GRIDS with results'
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
-    if Norm_grid[x_max, y_max, z_max] >= config.trigger:
+    if Norm_grid[i_max, j_max, k_max] >= config.trigger:
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
 
-        xx_trig, yy_trig, zz_trig = grid1.get_xyz(x_max, y_max, z_max)
+        xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
         
         out = str(xx_trig) + '  ' + str(yy_trig) + \
               ' ' + str(zz_trig) + '  ' + str(t_b) + ' ' + str(t_e)
