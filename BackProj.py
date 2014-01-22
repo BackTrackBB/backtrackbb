@@ -4,6 +4,7 @@ import os
 import numpy as np
 import itertools
 from collections import defaultdict
+from tatka_modules.bp_types import Trigger
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
@@ -214,51 +215,23 @@ def run_BackProj(idd):
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
 
-        xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
-        
-        out = str(xx_trig) + '  ' + str(yy_trig) + \
-              ' ' + str(zz_trig) + '  ' + str(t_b) + ' ' + str(t_e)
-        print out
-        
-        begt_trigWin = t_b
-        endt_trigWin = t_e
-        centert_trigWin = t_b+config.time_lag/2
-        return xx_trig, yy_trig, zz_trig, begt_trigWin, endt_trigWin, centert_trigWin
+        trigger = Trigger()
+        trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
+        trigger.beg_win = t_b
+        trigger.end_win = t_e
+        trigger.center_win = t_b + config.time_lag/2.
+        print trigger
+
+        return trigger
 #------end loop for BackProj---------------------------------------------
 
 #---running program------------------------------------------------------
-p = Pool(config.ncpu)  #defining number of jobs 
+p = Pool(config.ncpu)  #defining number of jobs
 p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
 p.close()      #no more tasks
 p.join()       #wrap  up current tasks
 
-f_output = filter(None,p_outputs)
-
-#TODO: move this class to a better place
-class Trigger():
-    def __init__(self,
-                 x=None, y=None, z=None,
-                 beg_win=None, end_win=None,
-                 center_win=None):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.beg_win = beg_win
-        self.end_win = end_win
-        self.center_win = center_win
-
-    def __str__(self):
-        s = 'X %s ' % self.x
-        s += 'Y %s ' % self.y
-        s += 'Z %s ' % self.z
-        s += 'BEG %s ' % self.beg_win
-        s += 'END %s' % self.end_win
-        return s
-
-triggers = []
-for out in f_output:
-    trigger = Trigger(*out)
-    triggers.append(trigger)
+triggers = filter(None, p_outputs)
 
 #----------Outputs-------------------------------------------------------
 #writing output
