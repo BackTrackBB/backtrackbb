@@ -73,7 +73,7 @@ def MBfilter_CF(y,fq,dT,n_win,CF_type='envelope',var_w=True):
             ##CF[n] = meansq_rec(YN[n],n_win_mb)
 
             #module using C function
-            CF[n] = recursive_rms(YN[n],1/n_win_mb)
+            CF[n] = recursive_rms(YN[n],1./n_win_mb)
 
         if CF_type == 'hilbert':
             CF[n] = smooth(abs(sp.signal.hilbert(YN[n])),n_win_mb)
@@ -83,7 +83,7 @@ def MBfilter_CF(y,fq,dT,n_win,CF_type='envelope',var_w=True):
             ##CF[n] = recKurt_1(YN[n], n_win_mb)
 
             #module using C function
-            CF[n] = recursive_kurtosis(YN[n],1/n_win_mb)
+            CF[n] = recursive_kurtosis(YN[n],1./n_win_mb)
 
 #----------------------------------------------------------
     return YN, CF, Tn, Nb

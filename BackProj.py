@@ -76,7 +76,7 @@ dt=st[0].stats.delta
 fs_data = st[0].stats.sampling_rate
 dT=dt
 npts_d = st[0].stats.npts
-n_win_k = config.decay_const /dt
+n_win_k = int(config.decay_const/dt)
 
 st_CF=st.copy()
 
