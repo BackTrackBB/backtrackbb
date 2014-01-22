@@ -226,13 +226,6 @@ def run_BackProj(idd):
         return xx_trig, yy_trig, zz_trig, begt_trigWin, endt_trigWin, centert_trigWin
 #------end loop for BackProj---------------------------------------------
 
-x_trig=[]
-y_trig=[]
-z_trig=[]
-beg_trigWin=[]
-end_trigWin=[]
-center_trigWin=[]
-
 #---running program------------------------------------------------------
 p = Pool(config.ncpu)  #defining number of jobs 
 p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
@@ -241,24 +234,39 @@ p.join()       #wrap  up current tasks
 
 f_output = filter(None,p_outputs)
 
+#TODO: move this class to a better place
+class Trigger():
+    def __init__(self,
+                 x=None, y=None, z=None,
+                 beg_win=None, end_win=None,
+                 center_win=None):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.beg_win = beg_win
+        self.end_win = end_win
+        self.center_win = center_win
+
+    def __str__(self):
+        s = 'X %s ' % self.x
+        s += 'Y %s ' % self.y
+        s += 'Z %s ' % self.z
+        s += 'BEG %s ' % self.beg_win
+        s += 'END %s' % self.end_win
+        return s
+
+triggers = []
 for out in f_output:
-    x_trig.append(out[0])
-    y_trig.append(out[1])
-    z_trig.append(out[2])
-    beg_trigWin.append(out[3])
-    end_trigWin.append(out[4])
-    center_trigWin.append(out[5])
-    
+    trigger = Trigger(*out)
+    triggers.append(trigger)
+
 #----------Outputs-------------------------------------------------------
-#writting output
-f = open(file_out_data,'w')
-[f.write(str(x_trig[k])+' '+str(y_trig[k])+' '+str(z_trig[k])+' '+str(beg_trigWin[k])+' '+\
-         str(end_trigWin[k])+'\n')for k in xrange(len(beg_trigWin))]
-f.close()
+#writing output
+with open(file_out_data,'w') as f:
+    for trigger in triggers:
+        f.write(str(trigger) + '\n')
 
 #-plotting output--------------------------------------------------------
 plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
-               x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin, t_bb,
-               datestr,
-               fq[n1], fq[n22],
+               triggers, t_bb, datestr, fq[n1], fq[n22],
                coord_eq, coord_jma, file_out_fig)

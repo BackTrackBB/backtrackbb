@@ -259,9 +259,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     
     
 def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
-                   x_trig, y_trig, z_trig, beg_trigWin, end_trigWin, center_trigWin, t_bb,
-                   datestr,
-                   fq_1, fq_2,
+                   triggers, t_bb, datestr, fq_1, fq_2,
                    coord_eq, coord_jma, file_out_fig):
 
     plot_waveforms = config.plot_waveforms
@@ -281,6 +279,9 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     eq_smbl_size = 200 / ratio
     trig_smbl_size = 200 / ratio
 
+    x_trig = [ t.x for t in triggers ]
+    y_trig = [ t.y for t in triggers ]
+    z_trig = [ t.z for t in triggers ]
 
 #--ax1_xy
     ax1_xy = fig.add_subplot(221)
@@ -378,8 +379,9 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     ##[ax3.axvline(center_trigWin[m],linewidth=2, color='r',alpha=0.2)\
     ##     for m in xrange(len(beg_trigWin))]
 
-    [ax3.axvspan(beg_trigWin[m],end_trigWin[m],facecolor='r',alpha=0.1)\
-         for m in xrange(len(beg_trigWin))]
+    for t in triggers:
+        ax3.axvspan(t.beg_win, t.end_win,
+                    facecolor='r', alpha=0.1)
 
     ax3.axvline(t_bb[0],linewidth=1, color='b',alpha=0.9)
     ax3.axvline(t_bb[-1]+time_lag,linewidth=1, color='b',alpha=0.9)
