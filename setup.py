@@ -8,9 +8,13 @@ module3 = Extension('lib_rec_kurtosis',
                     sources = ['tatka_modules/lib_rec_kurtosis.c'])
 module4 = Extension('lib_rec_cc',
                     sources = ['tatka_modules/lib_rec_cc.c'])
+module5 = Extension('lib_map_project',
+                    sources = ['tatka_modules/map_project/util.c',
+                               'tatka_modules/map_project/map_project.c',
+                               'tatka_modules/map_project/coord_convert.c'])
 
 
 setup (name = 'PackageName',
        version = '1.0',
        description = 'This is a demo package',
-       ext_modules = [module1,module2,module3,module4])
+       ext_modules = [module1, module2, module3, module4, module5])

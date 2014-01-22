@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*- 
+# -*- coding: utf8 -*-
 
 import numpy as np
 from array import array
@@ -64,17 +64,23 @@ class NLLGrid():
 
         for line in lines:
             vals = line.split()
-            if len(vals) == 8:
-                if vals[0] == 'TRANSFORM':
-                    if vals[1] == 'NONE':
-                        self.proj_name = 'TRANS_NONE'
-                    if vals[1] == 'SIMPLE':
-                        self.proj_name = 'TRANS_SIMPLE'
-                        self.orig_lat = float(vals[3])
-                        self.orig_lon = float(vals[5])
-                        self.map_rot = float(vals[7])
-
-            if len(vals) == 4:
+            if vals[0] == 'TRANSFORM':
+                if vals[1] == 'NONE':
+                    self.proj_name = 'NONE'
+                if vals[1] == 'SIMPLE':
+                    self.proj_name = 'SIMPLE'
+                    self.orig_lat = float(vals[3])
+                    self.orig_lon = float(vals[5])
+                    self.map_rot = float(vals[7])
+                if vals[1] == 'LAMBERT':
+                    self.proj_name = 'LAMBERT'
+                    self.ellipsoid = vals[3]
+                    self.orig_lat = float(vals[5])
+                    self.orig_lon = float(vals[7])
+                    self.first_std_paral = float(vals[9])
+                    self.second_std_paral = float(vals[11])
+                    self.map_rot = float(vals[13])
+            else:
                 self.station = vals[0]
                 self.sta_x = float(vals[1])
                 self.sta_y = float(vals[2])
@@ -123,7 +129,7 @@ class NLLGrid():
         return self.get_extent()[0:2] + self.get_extent()[4:]
 
     def get_zx_extent(self):
-        return self.get_extent()[4:] + self.get_extent()[0:2] 
+        return self.get_extent()[4:] + self.get_extent()[0:2]
 
     def get_yz_extent(self):
         return self.get_extent()[2:]

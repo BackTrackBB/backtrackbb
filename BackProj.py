@@ -8,6 +8,7 @@ from tatka_modules.bp_types import Trigger
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
 from tatka_modules.NLLGrid import NLLGrid
+from tatka_modules.map_project import get_transform, rect2latlon
 from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
 from tatka_modules.grid_projection import sta_GRD_Proj
 from tatka_modules.plot import bp_plot, plt_SummaryOut
@@ -120,6 +121,14 @@ print 'frequencies for filtering in (Hz):',fq[n1:n2]
 grid1 = GRD_sta.values()[0]
 nx, ny, nz = np.shape(grid1.array)
 
+#---init map projection--------------------------------------------------
+get_transform(grid1.proj_name,
+              grid1.orig_lat, grid1.orig_lon,
+              grid1.first_std_paral,
+              grid1.second_std_paral,
+              grid1.map_rot,
+              grid1.ellipsoid)
+
 #----geographical coordinates of the eq's epicenter----------------------
 coord_eq = None
 if loc_infile:
@@ -220,6 +229,8 @@ def run_BackProj(idd):
         trigger.beg_win = t_b
         trigger.end_win = t_e
         trigger.center_win = t_b + config.time_lag/2.
+        trigger.lat, trigger.lon =\
+                rect2latlon(trigger.x, trigger.y)
         print trigger
 
         return trigger
