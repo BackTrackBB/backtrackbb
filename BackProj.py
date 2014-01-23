@@ -104,14 +104,14 @@ for Record,CH_fct in zip(st, st_CF):
         CH_fct.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
     if config.ch_function=='kurtosis':
         CH_fct.data = np.amax(env_rec,axis=0)
-            
+
 #-----resampling envelopes if wanted------------------------------------
 if config.sampl_rate_cf:
     if config.sampl_rate_cf < fs_data:
         st_CF.resample(config.sampl_rate_cf)
 else:
     config.sampl_rate_cf = fs_data
-    
+
 time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 dt_env=st_CF[0].stats.delta
 npts_e = st_CF[0].stats.npts
@@ -171,7 +171,7 @@ file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
 #--------Defining number of station-pairs for calculating LCC------------
 comb_sta = list(itertools.combinations(stations, 2))
-rec_start_time = st[0].stats.starttime 
+rec_start_time = st[0].stats.starttime
 #------------------------------------------------------------------------
 def run_BackProj(idd):
     t_b = t_bb[idd]
@@ -179,24 +179,24 @@ def run_BackProj(idd):
 
     stack_grid = np.zeros((nx,ny,nz),float)
     #stack_pdf = np.zeros((nx,ny,nz),float)
-    
+
     nn = int(config.t_overlap)
-    
+
     proj_grid = np.zeros((nx,ny,nz),float)
 
     arrival_times = defaultdict(list)
     trig_time = defaultdict(list)
     bp_trig_time = defaultdict(list)
-    
+
     k=0
     for sta1, sta2 in comb_sta:
         proj_grid = np.zeros((nx,ny,nz),float)
 
         x_sta1, y_sta1 = coord_sta[sta1]
         x_sta2, y_sta2 = coord_sta[sta2]
-        
+
         distance = np.sqrt((x_sta1-x_sta2)**2+(y_sta1-y_sta2)**2)
-        
+
         if distance <= config.maxSTA_distance:
             k+=1
 
@@ -205,7 +205,7 @@ def run_BackProj(idd):
                                       nx, ny, nz, arrival_times)
             stack_grid += proj_grid
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
-    
+
     #Norm_grid= stack_grid/len(comb_sta)
     Norm_grid= stack_grid/k
 
@@ -220,7 +220,7 @@ def run_BackProj(idd):
     else:
         start_tw = t_b
         end_tw = t_e
-        config.cut_start = 0.    
+        config.cut_start = 0.
 
     if config.save_projGRID:
         print 'saving GRIDS with results'
@@ -240,12 +240,12 @@ def run_BackProj(idd):
         trigger.lat, trigger.lon =\
                 rect2latlon(trigger.x, trigger.y)
 
-    ##------------------Origin time calculation------------------------------------------------------        
+    ##------------------Origin time calculation------------------------------------------------------
         bp_origin_time, bp_trig_time = TrOrig_time(config,stations,GRD_sta,xx_trig, yy_trig, zz_trig,
                                                   rec_start_time,arrival_times,trig_time)
-    
+
         trigger.origin_time = bp_origin_time
-    ##-----------------------------------------------------------------------------------------------        
+    ##-----------------------------------------------------------------------------------------------
         print trigger
 
     ## Plotting------------------------------------------------------------------
@@ -254,9 +254,9 @@ def run_BackProj(idd):
             coord_sta, st, stations, st_CF,
             time, time_env,
             fq, n1, n22,arrival_times,bp_trig_time)
-    
+
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
-        return trigger    
+        return trigger
 
 #------end loop for BackProj---------------------------------------------
 

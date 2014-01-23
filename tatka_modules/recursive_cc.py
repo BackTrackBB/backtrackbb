@@ -5,7 +5,7 @@ import scipy as sp
 ##
 
 def __gausscoeff(s):
-# Python implementation of the algorithm by Young&Vliet,1995     
+# Python implementation of the algorithm by Young&Vliet,1995
      if s < .5: raise ValueError, \
          'Sigma for Gaussian filter must be >0.5 samples'
      q = 0.98711*s - 0.96330 if s > 0.5 else 3.97156 \
@@ -16,10 +16,10 @@ def __gausscoeff(s):
      b[2] = -(1.4281*q**2 + 1.26661*q**3)
      b[3] = 0.422205*q**3
      B = 1.0 - ((b[1] + b[2] + b[3])/b[0])
-     
+
      # convert to a format compatible with lfilter's
      # difference equation
-     
+
      B = np.array([B])
      A = np.ones(4)
      A[1:] = -b[1:]/b[0]
@@ -100,7 +100,7 @@ def local_CC(sig1,sig2,t_lag,fs):
           h3[l+l_max]=(__shift2(sig1,l_f)*__shift2(sig2,-l_g) +\
                        __shift2(sig1,l_g)*__shift2(sig2,-l_f))/2
           c[l+l_max]=Gaussian1D(h3[l+l_max], 10, padding=0)
-          
+
 ###----------------not sure which formula for h3 is correct--------------------
 ##########    h3[l+l_max]=(shift2(sig1,-l_f)*shift2(sig2,l_g) +\
 ##########           shift2(sig1,-l_g)*shift2(sig2,l_f))/2

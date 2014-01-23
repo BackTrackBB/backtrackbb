@@ -101,7 +101,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
     if grid_max[i_max, j_max, k_max] >= LTrig:
         ax1_yz.scatter(zz_max, yy_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')                      
+                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax1_yz.axis('tight')
     ax1_yz.set_xlim(Zmin,Zmax)
     ax1_yz.set_ylim(Ymin,Ymax)
@@ -119,7 +119,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
     if grid_max[i_max, j_max, k_max] >= LTrig:
         ax1_xz.scatter(xx_max, zz_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')                      
+                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
     ax1_xz.axis('tight')
     ax1_xz.set_xlim(Xmin,Xmax)
@@ -173,7 +173,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
     if grid_max[i_max, j_max, k_max] >= LTrig:
         ax2_yz.scatter(zz_max, yy_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g') 
+                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
     ax2_yz.axis('tight')
     ax2_yz.set_xlim(Zmin,Zmax)
@@ -250,8 +250,8 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
                 ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
             #tt_time = trig_time[sta][2]
             ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
-            ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r') 
-    
+            ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
+
     ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start, facecolor='g', alpha=0.2)
     note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
             '-'+str(np.round(fq[n1]))+' Hz'
@@ -259,7 +259,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax3.set_title(note_t, fontsize=15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
-    
+
     file_out_fig = datestr + '_t' +\
                    str('%05.1f' % (config.cut_start+t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
     file_out_fig = os.path.join(out_dir, file_out_fig)
@@ -268,8 +268,8 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
-    
-    
+
+
 def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
                    triggers, t_bb, datestr, fq_1, fq_2,
                    coord_eq, coord_jma, file_out_fig):
@@ -277,7 +277,7 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     plot_waveforms = config.plot_waveforms
     ch_function = config.ch_function
     time_lag = config.time_lag
-    
+
     Xmin, Xmax, Ymin, Ymax, Zmin, Zmax = grid1.get_extent()
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
     fig = figure.Figure(figsize=(20, 20))
@@ -307,7 +307,7 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     note='Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
     ax1_xy.set_title(note, fontsize=15)
-    ax1_xy.scatter(x_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)    
+    ax1_xy.scatter(x_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
         ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1,c='k',alpha=0.79)

@@ -3,7 +3,7 @@ ncpu = 2
 #
 #--station names---------------------------------------------------------
 #stations = N.MISH,N.TSMH,N.OOZH
-stations = N.MISH,N.IKTH,N.OOZH,N.TBEH,N.KWBH,N.YNDH,N.HIYH,N.TSYH,N.TSMH,N.UWAH,N.NAKH,N.SIKH,N.OOTH,N.IKKH,N.KNSH,N.TOHH,N.AKIH,N.INOH,N.NTHH,N.GHKH,N.SJOH,N.KRHH 
+stations = N.MISH,N.IKTH,N.OOZH,N.TBEH,N.KWBH,N.YNDH,N.HIYH,N.TSYH,N.TSMH,N.UWAH,N.NAKH,N.SIKH,N.OOTH,N.IKKH,N.KNSH,N.TOHH,N.AKIH,N.INOH,N.NTHH,N.GHKH,N.SJOH,N.KRHH
 #
 #--settings for input data files-----------------------------------------
 data_dir = '/home/tatka/Tremor_data/data/'

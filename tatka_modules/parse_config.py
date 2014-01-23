@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*- 
+# -*- coding: utf8 -*-
 import sys
 import os
 from configobj import ConfigObj

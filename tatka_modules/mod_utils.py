@@ -14,7 +14,7 @@ def read_locationTremor(infile,hour,lat_or,lon_or,depth=35.):
         data = [float(x) for x in line.split()]
         for var , index in vardict.items() :
             epicenter[var].append(data[index])
-            
+
     XX = []
     YY = []
     ZZ = []
@@ -53,7 +53,7 @@ def read_locationEQ(infile,day,hours,lat_zero,lon_zero,depth=35.):
                str(int(epicenter['dd'][i]))
         if year == day and str(int(hh)) == hours:
             xeq, yeq = utlGeoKm(lon_zero,lat_zero,epicenter['lon_e'][i],
-                                epicenter['lat_e'][i]) 
+                                epicenter['lat_e'][i])
             xx.append(xeq)
             yy.append(yeq)
             zz.append(epicenter['depth_e'][i])

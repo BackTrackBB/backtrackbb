@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*- 
+# -*- coding: utf8 -*-
 import os
 from glob import glob
 from obspy.core import read, Stream
@@ -9,11 +9,11 @@ def read_traces(config):
         basepath = os.path.join(basepath, config.data_day)
         if config.data_hours:
             basepath = os.path.join(basepath, config.data_hours)
-    
+
     kwargs = {}
     if config.data_format:
         kwargs['format'] = config.data_format
-    
+
     tmpst = Stream()
     for filename in glob(os.path.join(basepath, '*')):
         try:

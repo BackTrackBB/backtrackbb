@@ -79,7 +79,3 @@ ax1.set_title('time grid: ' + grid1.station)
 ax2.set_title('time grid: ' + grid2.station)
 ax3.set_title('dif. time grid: ' + grid1.station+'-'+grid2.station)
 plt.show()
-
-
-
-            
