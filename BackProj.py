@@ -157,7 +157,7 @@ file_out_base = '_'.join((
     str(len(fq)) + 'fq' + fq_str + 'hz',
     str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
     config.ch_function,
-    config.component,
+    config.channel,
     config.wave_type,
     'trig'+str(config.trigger)
     ))

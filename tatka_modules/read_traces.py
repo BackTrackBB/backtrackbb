@@ -27,7 +27,7 @@ def read_traces(config):
     stations = sorted(set(tmpst_stations) & set(config.stations))
 
     # Retain only requested component:
-    tmpst = tmpst.select(component=config.component)
+    tmpst = tmpst.select(channel=config.channel)
     # Retain only requested stations:
     st = Stream()
     for tr in tmpst:
