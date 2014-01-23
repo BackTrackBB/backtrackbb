@@ -12,7 +12,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         coord_sta,
         st, sta, st_CF,
         time, time_env,
-        fq, n1, n22):
+        fq, n1, n22,arrival_times,trig_time):
 
     LTrig = config.trigger
     lcc_max = config.lcc_max
@@ -78,7 +78,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     tt1 = st[0].stats.starttime+t_b
     tt2 = st[0].stats.starttime+t_e
     ax1_xy.set_title('Date: '+str(tt1.date)+', Time: '+str(tt1.time)+\
-                  ' - '+str(tt2.time)+'  ('+str(t_b)+' - '+str(t_e)+'  sec),'+
+                  ' - '+str(tt2.time)+'  ('+str(t_b+config.cut_start)+' - '+str(t_e+config.cut_start)+'  sec),'+
                   ' depth='+str(int(zz_grid))+' [km]')
     if coord_eq:
         ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1,c='w')
@@ -213,7 +213,9 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax3: traces
     ax3 = fig.add_subplot(122)
-    ax3.set_xlim(0, max(time))
+    time += config.cut_start
+    time_env += config.cut_start
+    ax3.set_xlim(min(time), max(time))
     sta_y = [coord_sta[sta][1] for sta in coord_sta]
     ax3.set_ylim(min(sta_y), max(sta_y))
     ax3.set_xlabel('Time[sec]')
@@ -238,18 +240,28 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         ydata = invtrans.transform(xydata)[:,1]
         ax3.plot(time_env, ydata, 'k', rasterized=True)
         ax3.text(max(time), y_sta, Record.id, fontsize=10)
-    ax3.axvspan(t_b, t_e, facecolor='g', alpha=0.2)
+
+        ##        plotting vertical bars corresponding to LCCmax in given time window
+        if len(grid_max[grid_max >= LTrig]) > 1:
+            y_max = max(ydata)
+            y_min = 2 * min(ydata) - y_max
+            for p_times in arrival_times[sta]:
+                LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
+                ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
+            #tt_time = trig_time[sta][2]
+            ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
+            ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r') 
+    
+    ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start, facecolor='g', alpha=0.2)
     note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
             '-'+str(np.round(fq[n1]))+' Hz'
     #fq_str=str(np.round(fq[n1]))+'_'+str(np.round(fq[n22]))
     ax3.set_title(note_t, fontsize=15)
-    if len(grid_max[grid_max >= LTrig]) > 1:
-        ax3.axvline(t_b+time_lag/2,linewidth=4, color='r',alpha=0.15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
     
     file_out_fig = datestr + '_t' +\
-                   str('%05.1f' % (t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
+                   str('%05.1f' % (config.cut_start+t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
     file_out_fig = os.path.join(out_dir, file_out_fig)
     if config.plot_format == 'pdf':
         fig.patch.set_alpha(0.0)
@@ -347,7 +359,9 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
 
 #--ax3: traces
     ax3 = fig.add_subplot(122)
-    ax3.set_xlim(0, max(time))
+    time +=config.cut_start
+    time_env +=config.cut_start
+    ax3.set_xlim(min(time), max(time))
     sta_y = [coord_sta[sta][1] for sta in coord_sta]
     ax3.set_ylim(min(sta_y), max(sta_y))
     ax3.set_xlabel('Time[sec]')
@@ -383,8 +397,8 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
         ax3.axvspan(t.beg_win, t.end_win,
                     facecolor='r', alpha=0.1)
 
-    ax3.axvline(t_bb[0],linewidth=1, color='b',alpha=0.9)
-    ax3.axvline(t_bb[-1]+time_lag,linewidth=1, color='b',alpha=0.9)
+    ax3.axvline(t_bb[0]+config.cut_start,linewidth=1, color='b',alpha=0.9)
+    ax3.axvline(t_bb[-1]+time_lag+config.cut_start,linewidth=1, color='b',alpha=0.9)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
     if config.plot_format == 'pdf':

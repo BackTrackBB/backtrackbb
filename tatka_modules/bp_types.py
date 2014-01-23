@@ -14,6 +14,7 @@ class Trigger():
         self.center_win = center_win
         self.lat = None
         self.lon = None
+        self.origin_time = None
 
     def __str__(self):
         s = 'X %s ' % self.x
@@ -24,4 +25,6 @@ class Trigger():
         if (self.lat is not None and
             self.lon is not None):
             s += ' LAT %s LON %s' % (self.lat, self.lon)
+        if (self.origin_time is not None):
+            s += ' T_ORIG %s' % (self.origin_time)            
         return s

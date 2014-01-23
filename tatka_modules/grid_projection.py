@@ -4,8 +4,11 @@ from tatka_modules.LocalCC import LocalCC
 
 
 def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
-                 fs_sampling, max_lag, start_time, sigma,
+                 fs_sampling, start_time, config,
                  nnx, nny, nnz, arrival_times):
+
+    max_lag = config.time_lag
+    sigma = config.smooth_lcc
 
     beg = int(t_b * fs_sampling)
     end = int(t_e * fs_sampling)
@@ -16,7 +19,12 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
     sig2 = trace2.data[beg-shift:end+shift]/max(abs(trace2.data[beg-shift:end+shift]))
 
     corr = LocalCC(sig1, sig2, fs_sampling, max_lag, start_time+t_b, sigma)
-    a = corr.smoothed_cc
+
+    if config.do_smooth_lcc:
+        a = corr.smoothed_cc
+    else:
+        a = corr.cc
+    
     t_lag = corr.cc_time_lags
 
     arrival_times[sta1].append(corr.arrival1)

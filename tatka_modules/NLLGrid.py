@@ -111,6 +111,10 @@ class NLLGrid():
         j = int((y - self.y_orig) / self.dy)
         k = int((z - self.z_orig) / self.dz)
         return i, j, k
+    
+    def get_value(self, x, y, z):
+        i, j, k = self.get_ijk(x, y, z)
+        return self.array[i, j, k]    
 
     def get_extent(self):
         extent = (self.x_orig - self.dx / 2,

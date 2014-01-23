@@ -13,6 +13,7 @@ from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
 from tatka_modules.grid_projection import sta_GRD_Proj
 from tatka_modules.plot import bp_plot, plt_SummaryOut
 from tatka_modules.parse_config import parse_config
+from tatka_modules.mod_bp_TrigOrig_time import TrOrig_time
 import cPickle as pickle
 from multiprocessing import Pool
 
@@ -58,8 +59,10 @@ for station in stations:
 
 #--- cut the data to the selected length dt------------------------------
 if config.cut_data:
-    st.trim(st[0].stats.starttime+0.2*config.delta_t*60.,
-                        st[0].stats.starttime+1.0*config.delta_t*60.)
+    st.trim(st[0].stats.starttime+config.cut_start,
+            st[0].stats.starttime+config.cut_start+config.cut_delta)
+else:
+    config.cut_start = 0.
 
 #---- resample data -----------------------------------------------------
 if config.sampl_rate_data:
@@ -168,7 +171,7 @@ file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
 #--------Defining number of station-pairs for calculating LCC------------
 comb_sta = list(itertools.combinations(stations, 2))
-
+rec_start_time = st[0].stats.starttime 
 #------------------------------------------------------------------------
 def run_BackProj(idd):
     t_b = t_bb[idd]
@@ -182,6 +185,9 @@ def run_BackProj(idd):
     proj_grid = np.zeros((nx,ny,nz),float)
 
     arrival_times = defaultdict(list)
+    trig_time = defaultdict(list)
+    bp_trig_time = defaultdict(list)
+    
     k=0
     for sta1, sta2 in comb_sta:
         proj_grid = np.zeros((nx,ny,nz),float)
@@ -195,17 +201,10 @@ def run_BackProj(idd):
             k+=1
 
             proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
-                                      fs_env,config.time_lag, sttime_env,
-                                      config.smooth_lcc, nx, ny, nz, arrival_times)
+                                      fs_env,sttime_env,config,
+                                      nx, ny, nz, arrival_times)
             stack_grid += proj_grid
             #stack_pdf += 1/np.exp(((1-proj_grid)/proj_grid)**2)
-
-    ## Plotting------------------------------------------------------------------
-    bp_plot(config, grid1, stack_grid/k, comb_sta,
-            coord_eq, t_b, t_e, datestr, fq_str,
-            coord_sta, st, stations, st_CF,
-            time, time_env,
-            fq, n1, n22)
     
     #Norm_grid= stack_grid/len(comb_sta)
     Norm_grid= stack_grid/k
@@ -215,25 +214,50 @@ def run_BackProj(idd):
     j_max = Max_NormGrid[1][0]
     k_max = Max_NormGrid[2][0]
 
+    if config.cut_data:
+        start_tw = config.cut_start+t_b
+        end_tw = config.cut_start+t_e
+    else:
+        start_tw = t_b
+        end_tw = t_e
+        config.cut_start = 0.    
+
     if config.save_projGRID:
         print 'saving GRIDS with results'
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
+        xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
 
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
-        trigger.beg_win = t_b
-        trigger.end_win = t_e
-        trigger.center_win = t_b + config.time_lag/2.
+        trigger.beg_win = start_tw
+        trigger.end_win = end_tw
+        trigger.center_win = start_tw + config.time_lag/2.
         trigger.lat, trigger.lon =\
                 rect2latlon(trigger.x, trigger.y)
+
+    ##------------------Origin time calculation------------------------------------------------------        
+        bp_origin_time, bp_trig_time = TrOrig_time(config,stations,GRD_sta,xx_trig, yy_trig, zz_trig,
+                                                  rec_start_time,arrival_times,trig_time)
+    
+        trigger.origin_time = bp_origin_time
+    ##-----------------------------------------------------------------------------------------------        
         print trigger
 
-        return trigger
+    ## Plotting------------------------------------------------------------------
+    bp_plot(config, grid1, stack_grid/k, comb_sta,
+            coord_eq, t_b, t_e, datestr, fq_str,
+            coord_sta, st, stations, st_CF,
+            time, time_env,
+            fq, n1, n22,arrival_times,bp_trig_time)
+    
+    if Norm_grid[i_max, j_max, k_max] >= config.trigger:
+        return trigger    
+
 #------end loop for BackProj---------------------------------------------
 
 #---running program------------------------------------------------------
