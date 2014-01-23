@@ -1,0 +1,60 @@
+#--number of CPU's-------------------------------------------------------
+ncpu = 2
+#
+#--station names---------------------------------------------------------
+#stations = N.MISH,N.TSMH,N.OOZH
+stations = N.OOZH, N.IKKH, N.TOHH,N.MYKH, N.KWBH,N.UWAH,N.MISH,N.TBEH
+#stations = N.MISH,N.IKTH,N.OOZH,N.TBEH,N.KWBH,N.YNDH,N.HIYH,N.TSYH,N.TSMH,N.UWAH,N.NAKH,N.SIKH,N.OOTH,N.IKKH,N.KNSH,N.TOHH,N.AKIH,N.INOH,N.NTHH,N.GHKH,N.SJOH,N.KRHH 
+#
+#--settings for input data files-----------------------------------------
+data_dir = '/mnt/data/Tremor_Shikoku/Tremor_data/'
+data_day = '120531'
+data_hours = '19'
+component = 'U'
+wave_type = 'P'
+data_type = 'sac'
+grid_dir = '/home/tatka/Chile_data/nll/examples/nll_Shikoku/time/'
+#
+out_dir = 'out_run/'
+save_projGRID = False
+#
+#------------------------------------------------------------------------
+catalog_dir = 'Tremor_data/'
+eq_file = 'JMA_Shikoku.dat'                          #earthquake location from JMA catalog (not used in this version)
+tremor_file = '_tremorlocation.dat'
+#------------------------------------------------------------------------
+time_lag = 60.                              #defines max_lag for LCC in seconds
+maxSTA_distance = 100.                       #max interstation distance for LCC
+decay_const = 1.                            #value of decay constant for recursive kurt/envelope in seconds
+ch_function = 'kurtosis'
+win_type = False                            #if True - variable time window is used for MB_CF calculation
+#--Parameters for the sliding window------------------------------------
+t_overlap = 3.                                #shift of each following time window (in sec) in calc
+start_t = 2.
+end_t = 3.
+dt_min = 3.0
+#------------------------------------------------------------------------
+sampl_rate_data = 50.                         #sampling rate of data (optional for resampling)
+sampl_rate_cf = 50.                           #sampling rate of characteristic function (optional for resampling)
+do_smooth_lcc = False
+smooth_lcc = 0.5                              #smoothing parameter for LCC
+#--Parameters for the MBF analysis--------------------------------------
+f_min = 2.0
+f_max = 10.
+n_freq_bands = 8
+band_spacing = lin
+#------------------------------------------------------------------------
+cut_data = True
+cut_start = 110.                    #time(in seconds)from the begining of the records from which to start cutting the traces 
+cut_delta = 65.                    #length of the records(in seconds)
+#------------------------------------------------------------------------
+trigger = 0.8
+#lcc_max = 1.0
+lcc_max = 0.9
+#--geogr. coordinates for the origin of the coordinate system-----------
+lat_orig = 33.618
+lon_orig = 132.988
+#--parameters for plotting----------------------------------------------
+plot_waveforms = True
+scmap = jet
+plot_format = png
