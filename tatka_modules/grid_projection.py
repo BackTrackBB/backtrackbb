@@ -24,7 +24,7 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
         a = corr.smoothed_cc
     else:
         a = corr.cc
-    
+
     t_lag = corr.cc_time_lags
 
     arrival_times[sta1].append(corr.arrival1)
@@ -32,7 +32,7 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
 
     ## Max value of local_cc in given window
     local_cc = np.amax(a[:,shift+1:shift+1+end], axis=1)
-##    local_cc = np.amax(a,axis=1)
+    ##local_cc = np.amax(a,axis=1)
 
     ## Projecting LCC for the station pair on the grid of theoretical t_times
     ## Check which of the functions for the interpolations is faster?
@@ -45,4 +45,3 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
     stationPair_projGrid = function((tt_array2 - tt_array1).flatten()).reshape(nnx, nny, nnz)
 
     return stationPair_projGrid
-    
