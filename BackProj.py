@@ -249,7 +249,7 @@ def run_BackProj(idd):
         print trigger
 
     ## Plotting------------------------------------------------------------------
-    bp_plot(config, grid1, stack_grid/k, comb_sta,
+    bp_plot(config, grid1, Norm_grid, comb_sta,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,
