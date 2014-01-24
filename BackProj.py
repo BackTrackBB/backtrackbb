@@ -227,6 +227,7 @@ def run_BackProj(idd):
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
+    trigger = None
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
         xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
         #for sta in sorted(arrival_times):
@@ -234,6 +235,7 @@ def run_BackProj(idd):
 
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
+        trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
         trigger.beg_win = start_tw
         trigger.end_win = end_tw
         trigger.center_win = start_tw + config.time_lag/2.
@@ -253,10 +255,10 @@ def run_BackProj(idd):
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,
-            fq, n1, n22,arrival_times,bp_trig_time)
+            fq, n1, n22, arrival_times, bp_trig_time,
+            trigger)
 
-    if Norm_grid[i_max, j_max, k_max] >= config.trigger:
-        return trigger
+    return trigger
 
 #------end loop for BackProj---------------------------------------------
 

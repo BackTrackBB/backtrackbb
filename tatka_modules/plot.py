@@ -12,11 +12,11 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         coord_sta,
         st, sta, st_CF,
         time, time_env,
-        fq, n1, n22,arrival_times,trig_time):
+        fq, n1, n22, arrival_times, trig_time,
+        trigger):
 
     LTrig = config.trigger
     lcc_max = config.lcc_max
-    time_lag = config.time_lag
     out_dir = config.out_dir
     scmap = config.scmap
     plot_waveforms = config.plot_waveforms
@@ -41,18 +41,16 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     scmap2.set_under('w', LTrig)
     lcc_min = LTrig
 
-    Max_grid_max = np.where(grid_max == np.max(grid_max))
-    i_max = Max_grid_max[0][0]
-    j_max = Max_grid_max[1][0]
-    k_max = Max_grid_max[2][0]
-    xx_max, yy_max, zz_max = grid1.get_xyz(i_max, j_max, k_max)
+    if trigger is not None:
+        i_max, j_max, k_max = map(int, (trigger.i, trigger.j, trigger.k))
+        xx_max, yy_max, zz_max = trigger.x, trigger.y, trigger.z
 
 #--ax1: stacked grid
 #--ax1_xy
     ax1_xy = fig.add_subplot(221)
     divider1 = make_axes_locatable(ax1_xy)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         i_grid = i_max
         j_grid = j_max
         k_grid = k_max
@@ -89,7 +87,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax1_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1,c='g')
     ax1_xy.set_aspect('equal', 'datalim')
@@ -99,7 +97,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax1_yz.imshow(np.flipud(grid_max[i_grid,:,:]),
                      extent=grid1.get_zy_extent(), cmap=scmap, rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax1_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax1_yz.axis('tight')
@@ -117,7 +115,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax1_xz.imshow(np.flipud(np.transpose(grid_max[:,j_grid,:])),
                      extent=grid1.get_xz_extent(), cmap=scmap, rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax1_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
@@ -159,7 +157,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         trans = ax2_xy.transData + ax2_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax2_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax2_xy.set_aspect('equal', 'datalim')
@@ -171,7 +169,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
                       vmin=lcc_min, vmax=lcc_max,
                       rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax2_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
@@ -192,7 +190,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
                      vmin=lcc_min, vmax=lcc_max,
                      rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax2_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
