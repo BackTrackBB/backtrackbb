@@ -4,6 +4,7 @@ import os
 import numpy as np
 import itertools
 from collections import defaultdict
+from scipy.ndimage.interpolation import zoom
 from tatka_modules.bp_types import Trigger
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
@@ -229,6 +230,23 @@ def run_BackProj(idd):
 
     trigger = None
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
+        if config.max_subdivide is not None:
+            #We "zoom" the grid in a region close to the maximum
+            zoom_factor = float(config.max_subdivide)
+            #TODO: slicing will not work if the maximum
+            #is close to the grid edge!
+            slice_factor = 4 #this is hardcoded, for now
+            sf = int(slice_factor)
+            slice_grid = Norm_grid[i_max-sf:i_max+sf,
+                                   j_max-sf:j_max+sf,
+                                   k_max-sf:k_max+sf]
+            zoom_slice_grid = zoom(slice_grid, zoom_factor)
+            zoom_i_max, zoom_j_max, zoom_k_max =\
+                    [a[0]/zoom_factor
+                     for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
+            i_max = zoom_i_max + i_max-sf
+            j_max = zoom_j_max + j_max-sf
+            k_max = zoom_k_max + k_max-sf
         xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
