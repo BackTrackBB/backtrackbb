@@ -83,7 +83,8 @@ fs_data = st[0].stats.sampling_rate
 dT=dt
 npts_d = st[0].stats.npts
 n_win_k = int(config.decay_const/dt)
-sigma_gauss = nt(n_win_k/4)
+sigma_gauss = int(n_win_k/4)         # so far fixed to n_win_k/4,
+                                     # can be added to control file as a separate variable            
 st_CF=st.copy()
 
 #---Calculating frequencies for MBFilter---------------------------------
