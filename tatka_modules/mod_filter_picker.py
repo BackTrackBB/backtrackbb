@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 from obspy.signal.util import smooth
+from scipy.signal import gaussian
 #from obspy.signal.invsim import cosTaper
 from rec_filter import recursive_filter
 from rec_rms import recursive_rms
@@ -87,3 +88,14 @@ def MBfilter_CF(y,fq,dT,n_win,CF_type='envelope',var_w=True):
 
 #----------------------------------------------------------
     return YN, CF, Tn, Nb
+
+def GaussConv(data_in,sigma):
+    derivative_data = np.zeros(len(data_in),float)
+    for i in xrange(0,len(data_in)-1):
+        derivative_data[i] = data_in[i+1]-data_in[i]
+    
+    derivative_data [derivative_data< 0] = 0
+    gauss_window = gaussian(len(derivative_data),sigma)
+    CF_gaussian = np.convolve(derivative_data, gauss_window,mode='same')
+    
+    return CF_gaussian
