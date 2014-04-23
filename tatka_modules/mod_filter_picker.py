@@ -33,12 +33,15 @@ def make_LogFq(f_min, f_max, delta, nfreq):
     return freq[::-1]
 
 
-def MBfilter_CF(y,fq,dT,n_win,CF_type='envelope',var_w=True):
+def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
     for each band.
     """
+    tr = st.select(component='Z')[0]
+    y = tr.data
+    dT = tr.stats.delta
     Nb = len(fq)
     Tn = 1/fq
     wn = Tn/(2*np.pi)         #wn=Tn/(2*pi)- time constant

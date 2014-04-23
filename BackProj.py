@@ -95,10 +95,13 @@ n2=len(fq)
 n22=len(fq)-1
 
 #----MB filtering and calculating Summary characteristic functions:------
-for Record,CH_fct in zip(st, st_CF):
-    HP2,env_rec,Tn2, Nb2 = MBfilter_CF( Record.data, fq, dT, n_win_k,
-                                       CF_type = config.ch_function, var_w = config.win_type )
-    CF=env_rec[n1:n2]
+for station in stations:
+    st_select = st.select(station=station)
+    CH_fct = st_CF.select(station=station)[0]
+    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, fq, n_win_k,
+                                         CF_type=config.ch_function,
+                                         var_w=config.win_type)
+    CF = env_rec[n1:n2]
 
     if config.ch_function=='envelope':
         CH_fct.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
