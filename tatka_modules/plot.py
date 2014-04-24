@@ -224,13 +224,14 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
-    for Record, CH_fct in zip(st, st_CF):
-        sta = Record.stats.station
+    for sta in set(tr.stats.station for tr in st):
+        tr = st.select(station=sta, component='Z')[0]
+        CH_fct = st_CF.select(station=sta)[0]
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # Project signal to Axes coordinates:
-            signal = Record.data/abs(Record.max())*0.05 + y_sta_ax
+            signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
@@ -239,7 +240,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         xydata = np.dstack((np.zeros_like(signal), signal))[0]
         ydata = invtrans.transform(xydata)[:,1]
         ax3.plot(time_env, ydata, 'k', rasterized=True)
-        ax3.text(max(time), y_sta, Record.id, fontsize=10)
+        ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
         ##        plotting vertical bars corresponding to LCCmax in given time window
         if len(grid_max[grid_max >= LTrig]) > 1:
@@ -370,13 +371,14 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
-    for Record, CH_fct in zip(st, st_CF):
-        sta = Record.stats.station
+    for sta in set(tr.stats.station for tr in st):
+        tr = st.select(station=sta, component='Z')[0]
+        CH_fct = st_CF.select(station=sta)[0]
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # Project signal to Axes coordinates:
-            signal = Record.data/abs(Record.max())*0.05 + y_sta_ax
+            signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
@@ -385,7 +387,7 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
         xydata = np.dstack((np.zeros_like(signal), signal))[0]
         ydata = invtrans.transform(xydata)[:,1]
         ax3.plot(time_env, ydata, 'k', rasterized=True)
-        ax3.text(max(time), y_sta, Record.id, fontsize=10)
+        ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
     note=ch_function+' of MBFilter; Fq. range: '+str(np.round(fq_1))+\
             '-'+str(np.round(fq_2))+' Hz'
