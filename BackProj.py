@@ -6,7 +6,7 @@ import itertools
 from collections import defaultdict
 from tatka_modules.bp_types import Trigger
 from tatka_modules.read_traces import read_traces
-from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF
+from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF, GaussConv
 from tatka_modules.NLLGrid import NLLGrid
 from tatka_modules.map_project import get_transform, rect2latlon
 from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
@@ -79,10 +79,10 @@ st.detrend(type='linear')
 time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
 dt=st[0].stats.delta
 fs_data = st[0].stats.sampling_rate
-dT=dt
+dT = dt
 npts_d = st[0].stats.npts
 n_win_k = int(config.decay_const/dt)
-
+sigma_gauss = int(n_win_k/4) 
 st_CF=st.copy()
 
 #---Calculating frequencies for MBFilter---------------------------------
@@ -106,8 +106,10 @@ for station in stations:
     if config.ch_function=='envelope':
         CH_fct.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
     if config.ch_function=='kurtosis':
-        CH_fct.data = np.amax(env_rec,axis=0)
-
+        #CH_fct.data = np.amax(env_rec,axis=0)
+        kurt_argmax = np.amax(env_rec,axis=0)
+        CH_fct.data = GaussConv(kurt_argmax, sigma_gauss)
+        
 #-----resampling envelopes if wanted------------------------------------
 if config.sampl_rate_cf:
     if config.sampl_rate_cf < fs_data:

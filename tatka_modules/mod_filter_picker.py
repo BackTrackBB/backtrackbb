@@ -6,6 +6,7 @@ from rec_filter import recursive_filter
 from rec_rms import recursive_rms
 from rec_kurtosis import recursive_kurtosis
 from RosenbergerAlgorithm import rosenberger
+from scipy.signal import gaussian
 #------------------------------------------------------------------------------------------------------------
 
 
@@ -149,6 +150,18 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
 
 #----------------------------------------------------------
     return YN1, CF, Tn, Nb
+
+def GaussConv(data_in,sigma):
+    derivative_data = np.zeros(len(data_in),float)
+    for i in xrange(0,len(data_in)-1):
+        derivative_data[i] = data_in[i+1]-data_in[i]
+    
+    derivative_data [derivative_data< 0] = 0
+    gauss_window = gaussian(len(derivative_data),sigma)
+    CF_gaussian = np.convolve(derivative_data, gauss_window,mode='same')
+    
+    return CF_gaussian
+
 
 
 if __name__ == '__main__':
