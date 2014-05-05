@@ -35,7 +35,9 @@ def make_LogFq(f_min, f_max, delta, nfreq):
     return freq[::-1]
 
 
-def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
+def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True, 
+                C_kurtosis=0.01, order1=4, order2=2, power2=2,
+                C_rosenberger=0.99):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
@@ -49,7 +51,6 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
     wn = Tn/(2*np.pi)         #wn=Tn/(2*pi)- time constant
     CN_HP = wn/(wn+dT)        # hight-pass filter constant
     CN_LP = dT/(wn+dT)        # low-pass filter constant
-
     b = n_win*dT/Tn[int(Nb/2+1)]
     y = y - y.mean()
 
@@ -91,8 +92,7 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
                 ##CF[n] = recKurt_1(YN1[n], n_win_mb)
 
                 #module using C function
-                #TODO Add the window parameter
-                CF[n] = recursive_kurtosis(YN1[n], 0.1, 0.01, 4, 2, 2)
+                CF[n] = recursive_kurtosis(YN1[n], C_kurtosis, 0.001, 4, 2, 2) 
 
 # More than 3 components------------------------------------------------------------------------
     else:
@@ -130,9 +130,8 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
             YN3[n] = recursive_filter(dy3, CN_HP[n], CN_LP[n])
 
             print 'Rosenberger in process {}/{}'.format(n+1,Nb)
-            #TODO: parametrize rosenberger window size (0.9)
-            filtered_dataP, filtered_dataS, U = rosenberger(YN2[n], YN3[n], YN1[n], 0.9)
-            print 'Rosenberger done'
+            filtered_dataP, filtered_dataS, U = rosenberger(YN2[n], YN3[n], YN1[n], C_rosenberger)
+            
 
             if var_w:
                 n_win_mb = (b*Tn[n]/dT)
@@ -145,8 +144,7 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True):
                 ##CF[n] = recKurt_1(YN[n], n_win_mb)
 
                 #module using C function
-                #TODO: parametrize Kurtosis window size (0.08)
-                CF[n,2:] = recursive_kurtosis(filtered_dataP[0,:], 0.2, 0.001, 4, 2, 2) #put a parameter here !!!
+                CF[n,2:] = recursive_kurtosis(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2) 
 
 #----------------------------------------------------------
     return YN1, CF, Tn, Nb

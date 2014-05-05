@@ -100,7 +100,9 @@ for station in stations:
     CH_fct = st_CF.select(station=station)[0]
     HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, fq, n_win_k,
                                          CF_type=config.ch_function,
-                                         var_w=config.win_type)
+                                         var_w=config.win_type, C_kurtosis=0.01, 
+                                         order1=4, order2=2, power2=2)
+                                                                            
     CF = env_rec[n1:n2]
 
     if config.ch_function=='envelope':
