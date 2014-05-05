@@ -4,6 +4,7 @@ import os
 import numpy as np
 import itertools
 from collections import defaultdict
+from scipy.ndimage.interpolation import zoom
 from tatka_modules.bp_types import Trigger
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, MBfilter_CF, GaussConv
@@ -234,13 +235,32 @@ def run_BackProj(idd):
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
 
+    trigger = None
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
+        if config.max_subdivide is not None:
+            #We "zoom" the grid in a region close to the maximum
+            zoom_factor = float(config.max_subdivide)
+            #TODO: slicing will not work if the maximum
+            #is close to the grid edge!
+            slice_factor = 4 #this is hardcoded, for now
+            sf = int(slice_factor)
+            slice_grid = Norm_grid[i_max-sf:i_max+sf,
+                                   j_max-sf:j_max+sf,
+                                   k_max-sf:k_max+sf]
+            zoom_slice_grid = zoom(slice_grid, zoom_factor)
+            zoom_i_max, zoom_j_max, zoom_k_max =\
+                    [a[0]/zoom_factor
+                     for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
+            i_max = zoom_i_max + i_max-sf
+            j_max = zoom_j_max + j_max-sf
+            k_max = zoom_k_max + k_max-sf
         xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
         #for sta in sorted(arrival_times):
         #    print sta, arrival_times[sta]
 
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
+        trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
         trigger.beg_win = start_tw
         trigger.end_win = end_tw
         trigger.center_win = start_tw + config.time_lag/2.
@@ -256,14 +276,14 @@ def run_BackProj(idd):
         print trigger
 
     ## Plotting------------------------------------------------------------------
-    bp_plot(config, grid1, stack_grid/k, comb_sta,
+    bp_plot(config, grid1, Norm_grid, comb_sta,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,
-            fq, n1, n22,arrival_times,bp_trig_time)
+            fq, n1, n22, arrival_times, bp_trig_time,
+            trigger)
 
-    if Norm_grid[i_max, j_max, k_max] >= config.trigger:
-        return trigger
+    return trigger
 
 #------end loop for BackProj---------------------------------------------
 
@@ -272,6 +292,13 @@ p = Pool(config.ncpu)  #defining number of jobs
 p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
 p.close()      #no more tasks
 p.join()       #wrap  up current tasks
+
+# Uncomment the following lines
+# (and comment the previous ones)
+# for serial execution (useful for debugging)
+#p_outputs=[]
+#for idd in xrange(len(t_bb)):
+#    p_outputs.append(run_BackProj(idd))
 
 triggers = filter(None, p_outputs)
 
