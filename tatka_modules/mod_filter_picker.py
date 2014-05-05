@@ -151,9 +151,7 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
 
 def GaussConv(data_in,sigma):
     derivative_data = np.zeros(len(data_in),float)
-    for i in xrange(0,len(data_in)-1):
-        derivative_data[i] = data_in[i+1]-data_in[i]
-    
+    derivative_data = np.diff(data_in)
     derivative_data [derivative_data< 0] = 0
     gauss_window = gaussian(len(derivative_data),sigma)
     CF_gaussian = np.convolve(derivative_data, gauss_window,mode='same')
@@ -204,7 +202,7 @@ if __name__ == '__main__':
     for n in range(Nb):
         ax1 = fig1.add_subplot(Nb+1, 1, n+1)
         ax2 = fig2.add_subplot(Nb+1, 1, n+1)
-	    #ax2.set_ylim((0, max2))
+        #ax2.set_ylim((0, max2))
         ax1.plot(YN[n])
         ax2.plot(CF[n])
 
