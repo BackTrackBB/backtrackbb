@@ -96,12 +96,14 @@ n2=len(fq)
 n22=len(fq)-1
 
 #----MB filtering and calculating Summary characteristic functions:------
-for station in stations:
+for i,station in enumerate(stations):
     st_select = st.select(station=station)
     CH_fct = st_CF.select(station=station)[0]
+
+    print('Creating characteristic function: station No {}/{}'.format(i+1,len(stations)))
     HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, fq, n_win_k,
                                          CF_type=config.ch_function,
-                                         var_w=config.win_type, C_kurtosis=0.01, 
+                                         var_w=config.win_type, C_kurtosis=0.05, 
                                          order1=4, order2=2, power2=2)
                                                                             
     CF = env_rec[n1:n2]

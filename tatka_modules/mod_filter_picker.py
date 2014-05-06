@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+import sys
 from obspy.signal.util import smooth
 #from obspy.signal.invsim import cosTaper
 from rec_filter import recursive_filter
@@ -129,7 +130,10 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
             YN2[n] = recursive_filter(dy2, CN_HP[n], CN_LP[n])
             YN3[n] = recursive_filter(dy3, CN_HP[n], CN_LP[n])
 
-            print 'Rosenberger in process {}/{}'.format(n+1,Nb)
+           
+            print 'Rosenberger in process {}/{}\r'.format(n+1,Nb),
+            sys.stdout.flush()
+            
             filtered_dataP, filtered_dataS, U = rosenberger(YN2[n], YN3[n], YN1[n], C_rosenberger)
             
 
