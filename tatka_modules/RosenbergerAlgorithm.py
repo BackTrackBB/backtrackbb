@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf8 -*-
 # Wavefield separation (P and non-P) based on polarization analysis.
 #
