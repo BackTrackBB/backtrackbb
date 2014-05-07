@@ -86,7 +86,7 @@ dT = dt
 npts_d = st[0].stats.npts
 n_win_k = int(config.decay_const/dt)
 sigma_gauss = int(n_win_k/4)         # so far fixed to n_win_k/4,
-                                     # can be added to control file as a separate variable            
+                                     # can be added to control file as a separate variable
 st_CF=st.copy()
 
 #---Calculating frequencies for MBFilter---------------------------------
@@ -106,16 +106,16 @@ for i,station in enumerate(stations):
     print('Creating characteristic function: station No {}/{}'.format(i+1,len(stations)))
     HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, fq, n_win_k,
                                          CF_type=config.ch_function,
-                                         var_w=config.win_type, C_kurtosis=0.05, 
+                                         var_w=config.win_type, C_kurtosis=0.05,
                                          order1=4, order2=2, power2=2)
-                                                                            
+
     CF = env_rec[n1:n2]
 
     if config.ch_function=='envelope':
         CH_fct.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
     if config.ch_function=='kurtosis':
 ##        CH_fct.data = np.amax(env_rec,axis=0)
-        kurt_argmax = np.amax(env_rec,axis=0)            
+        kurt_argmax = np.amax(env_rec,axis=0)
         CH_fct.data = GaussConv(kurt_argmax,sigma_gauss)
 
 #-----resampling CF if wanted-------------------------------------------
@@ -148,12 +148,12 @@ get_transform(grid1.proj_name,
 #----geographical coordinates of the eq's epicenter----------------------
 coord_eq = None
 if loc_infile:
-    coord_eq = read_locationTremor(loc_infile,config.data_hours,
-                                       config.lat_orig,config.lon_orig)
+    coord_eq = read_locationTremor(loc_infile, config.data_hours,
+                                       config.lat_orig, config.lon_orig)
 coord_jma = None
 if location_jma:
-    coord_jma = read_locationEQ(location_jma, config.data_day,config.data_hours,
-                                    config.lat_orig,config.lon_orig)
+    coord_jma = read_locationEQ(location_jma, config.data_day, config.data_hours,
+                                    config.lat_orig, config.lon_orig)
 #------------------------------------------------------------------------
 
 print 'starting BPmodule'
@@ -192,9 +192,9 @@ def run_BackProj(idd):
     Mtau = []
     t_b = t_bb[idd]
     t_e = t_b + config.time_lag
-    
+
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate    
+    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
     stack_grid = np.zeros((nx,ny,nz),float)
     proj_grid = np.zeros((nx,ny,nz),float)
@@ -226,8 +226,8 @@ def run_BackProj(idd):
                 tau_max = 0.
 
             proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
-                                      fs_env,sttime_env,config,
-                                      nx, ny, nz, arrival_times,tau_max)
+                                      fs_env, sttime_env, config,
+                                      nx, ny, nz, arrival_times, tau_max)
             stack_grid += proj_grid
 
     Norm_grid= stack_grid/k
@@ -239,17 +239,15 @@ def run_BackProj(idd):
 
     if config.cut_data:
         start_tw = config.cut_start+t_b
-##        end_tw = config.cut_start+t_e
     else:
         start_tw = t_b
-##        end_tw = t_e
         config.cut_start = 0.
 
     if config.save_projGRID:
         print 'saving GRIDS with results'
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
-        
+
     trigger = None
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
         if config.max_subdivide is not None:
@@ -274,7 +272,7 @@ def run_BackProj(idd):
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
-        trigger.max_grid = np.round(np.max(Norm_grid),4) 
+        trigger.max_grid = np.round(np.max(Norm_grid),4)
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + max_time_lag
         trigger.center_win = start_tw + max_time_lag/2.
@@ -282,8 +280,9 @@ def run_BackProj(idd):
                 rect2latlon(trigger.x, trigger.y)
 
     ##------------------Origin time calculation------------------------------------------------------
-        bp_origin_time, bp_trig_time = TrOrig_time(config,stations,GRD_sta,xx_trig, yy_trig, zz_trig,
-                                                  rec_start_time,arrival_times,trig_time)
+        bp_origin_time, bp_trig_time =\
+                TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
+                            rec_start_time, arrival_times, trig_time)
 
         trigger.origin_time = bp_origin_time
     ##-----------------------------------------------------------------------------------------------
@@ -294,7 +293,7 @@ def run_BackProj(idd):
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,
-            fq, n1, n22,trigger,arrival_times,bp_trig_time,Mtau)
+            fq, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
 
     return trigger
 
