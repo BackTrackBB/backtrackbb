@@ -9,7 +9,7 @@ void _recursive_filter(const double *signal, double *filt_signal, int npts, floa
     double filterH2 = 0;
     double filterL1 = 0;
     double filterL2 = 0;
-    
+
     for (i=0; i<npts; i++) {
         filterH1_0 = filterH1;
         filterH1 = C_HP * (filterH1 + signal[i]);
