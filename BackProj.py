@@ -300,17 +300,10 @@ def run_BackProj(idd):
 
 #------end loop for BackProj---------------------------------------------
 #---running program------------------------------------------------------
-##p = Pool(config.ncpu)  #defining number of jobs
-##p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
-##p.close()      #no more tasks
-##p.join()       #wrap  up current tasks
-
-# Uncomment the following lines
-# (and comment the previous ones)
-# for serial execution (useful for debugging)
-p_outputs=[]
-for idd in xrange(len(t_bb)):
-    p_outputs.append(run_BackProj(idd))
+p = Pool(config.ncpu)  #defining number of jobs
+p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
+p.close()      #no more tasks
+p.join()       #wrap  up current tasks
 
 # Uncomment the following lines
 # (and comment the previous ones)
