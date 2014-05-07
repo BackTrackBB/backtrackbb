@@ -37,10 +37,14 @@ def TrOrig_time(config,stations,GRD_sta,xx_trig, yy_trig, zz_trig,
             if trig_time[sta][3] <= dt_min:
                 mm += 1
                 orig_time += trig_time[sta][0] - trig_time[sta][1]
-        bp_origin_time = rec_start_time + orig_time/mm - config.cut_start
+        if mm!=0:
+            bp_origin_time = rec_start_time + orig_time/mm - config.cut_start
         
-        for sta in stations:
-            trig_time[sta][2] = 0.
-            trig_time[sta][2] = orig_time/mm+trig_time[sta][1]
+            for sta in stations:
+                trig_time[sta][2] = 0.
+                trig_time[sta][2] = orig_time/mm+trig_time[sta][1]
+        else:
+            bp_origin_time = 999.9
+            trig_time = defaultdict(list)
 
     return bp_origin_time, trig_time
