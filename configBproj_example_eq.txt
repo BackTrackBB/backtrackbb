@@ -24,14 +24,15 @@ eq_file = 'JMA_Shikoku.dat'                          #earthquake location from J
 tremor_file = '_tremorlocation.dat'
 #------------------------------------------------------------------------
 time_lag = 60.                              #defines max_lag for LCC in seconds
+varWin_stationPair = True
 maxSTA_distance = 100.                       #max interstation distance for LCC
 decay_const = 1.                            #value of decay constant for recursive kurt/envelope in seconds
 ch_function = 'kurtosis'
 win_type = False                            #if True - variable time window is used for MB_CF calculation
 #--Parameters for the sliding window------------------------------------
 t_overlap = 3.                                #shift of each following time window (in sec) in calc
-start_t = 2.
-end_t = 3.
+start_t = 8.
+end_t = 9.
 dt_min = 3.0
 #------------------------------------------------------------------------
 sampl_rate_data = 50.                         #sampling rate of data (optional for resampling)

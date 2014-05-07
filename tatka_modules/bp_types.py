@@ -4,7 +4,7 @@
 class Trigger():
     def __init__(self,
                  x=None, y=None, z=None,
-                 i=None, j=None, k=None,
+                 i=None, j=None, k=None, max_grid = None,
                  beg_win=None, end_win=None,
                  center_win=None):
         self.x = x
@@ -13,6 +13,7 @@ class Trigger():
         self.i = i
         self.j = j
         self.k = k
+        self.max_grid = max_grid
         self.beg_win = beg_win
         self.end_win = end_win
         self.center_win = center_win
@@ -24,8 +25,9 @@ class Trigger():
         s = 'X %s ' % self.x
         s += 'Y %s ' % self.y
         s += 'Z %s ' % self.z
+        s += 'MaxStack %s ' % (self.max_grid)
         s += 'BEG %s ' % self.beg_win
-        s += 'END %s' % self.end_win
+        s += 'END %s ' % self.end_win
         if (self.lat is not None and
             self.lon is not None):
             s += ' LAT %s LON %s' % (self.lat, self.lon)

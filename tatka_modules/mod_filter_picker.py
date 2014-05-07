@@ -2,12 +2,12 @@ import numpy as np
 import scipy as sp
 import sys
 from obspy.signal.util import smooth
+from scipy.signal import gaussian
 #from obspy.signal.invsim import cosTaper
 from rec_filter import recursive_filter
 from rec_rms import recursive_rms
 from rec_kurtosis import recursive_kurtosis
 from RosenbergerAlgorithm import rosenberger
-from scipy.signal import gaussian
 
 
 def make_LinFq(f_min, f_max, delta, nfreq):

@@ -5,9 +5,12 @@ from tatka_modules.LocalCC import LocalCC
 
 def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
                  fs_sampling, start_time, config,
-                 nnx, nny, nnz, arrival_times):
+                 nnx, nny, nnz, arrival_times,tau_max=0.):
 
     max_lag = config.time_lag
+    if tau_max!=0.:
+        max_lag = tau_max
+##        print 'max_lag', max_lag
     sigma = config.smooth_lcc
 
     beg = int(t_b * fs_sampling)

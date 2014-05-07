@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pylab
+from collections import defaultdict
 import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 from matplotlib import figure
@@ -8,12 +9,12 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def bp_plot(config, grid1, proj_grid, comb_sta,
-        coord_eq, t_b, t_e, datestr, fq_str,
-        coord_sta,
-        st, sta, st_CF,
-        time, time_env,
-        fq, n1, n22, arrival_times, trig_time,
-        trigger):
+            coord_eq, t_b, t_e, datestr, fq_str,
+            coord_sta,
+            st, sta, st_CF,
+            time, time_env,
+            fq, n1, n22,trigger,arrival_times=defaultdict(list),
+            trig_time=defaultdict(list),Mtau = 'none'):
 
     LTrig = config.trigger
     lcc_max = config.lcc_max
@@ -240,18 +241,37 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         ax3.plot(time_env, ydata, 'k', rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
+####        ##        plotting vertical bars corresponding to LCCmax in given time window
+####        if len(grid_max[grid_max >= LTrig]) > 1:
+####            y_max = max(ydata)
+####            y_min = 2 * min(ydata) - y_max
+####            for p_times in arrival_times[sta]:
+####                LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
+####                ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
+####            #tt_time = trig_time[sta][2]
+####            ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
+####            ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
+####
+####    ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start, facecolor='g', alpha=0.2)
         ##        plotting vertical bars corresponding to LCCmax in given time window
-        if len(grid_max[grid_max >= LTrig]) > 1:
+        if trigger is not None:
             y_max = max(ydata)
             y_min = 2 * min(ydata) - y_max
-            for p_times in arrival_times[sta]:
-                LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
-                ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
-            #tt_time = trig_time[sta][2]
-            ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
-            ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
+            if len(trig_time) > 0:
+                for p_times in arrival_times[sta]:
+                    LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
+                    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
+                ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
+                ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
 
-    ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start, facecolor='g', alpha=0.2)
+    if Mtau != 'none':
+        for tt in Mtau:
+            ax3.axvspan(t_b+config.cut_start, t_b+tt+config.cut_start,
+                        facecolor='g', alpha=0.1)
+    else:        
+        ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start,
+                    facecolor='g', alpha=0.1)          
+    
     note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
             '-'+str(np.round(fq[n1]))+' Hz'
     #fq_str=str(np.round(fq[n1]))+'_'+str(np.round(fq[n22]))
