@@ -30,7 +30,8 @@ if not os.path.isfile(Config_file):
 
 #---Input parameters for BProj run----------------------------------------
 config = parse_config(Config_file)
-
+var_twin = config.varWin_stationPair
+print 'use of var time window for location:', var_twin
 #---Reading data---------------------------------------------------------
 st, stations = read_traces(config)
 
@@ -109,7 +110,7 @@ for Record,CH_fct in zip(st, st_CF):
         kurt_argmax = np.amax(env_rec,axis=0)            
         CH_fct.data = GaussConv(kurt_argmax,sigma_gauss)
 
-#-----resampling envelopes if wanted------------------------------------
+#-----resampling CF if wanted-------------------------------------------
 if config.sampl_rate_cf:
     if config.sampl_rate_cf < fs_data:
         st_CF.resample(config.sampl_rate_cf)
@@ -177,19 +178,23 @@ file_out_fig = os.path.join(config.out_dir, file_out_fig)
 comb_sta = list(itertools.combinations(stations, 2))
 rec_start_time = st[0].stats.starttime
 #------------------------------------------------------------------------
+max_time_lag = config.time_lag
+#------------------------------------------------------------------------
 def run_BackProj(idd):
+    Mtau = []
     t_b = t_bb[idd]
     t_e = t_b + config.time_lag
+    
+    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
+    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate    
 
     stack_grid = np.zeros((nx,ny,nz),float)
-
-    nn = int(config.t_overlap)
-
     proj_grid = np.zeros((nx,ny,nz),float)
-
     arrival_times = defaultdict(list)
     trig_time = defaultdict(list)
     bp_trig_time = defaultdict(list)
+
+    nn = int(config.t_overlap)
 
     k=0
     for sta1, sta2 in comb_sta:
@@ -202,10 +207,19 @@ def run_BackProj(idd):
 
         if distance <= config.maxSTA_distance:
             k+=1
+            if var_twin:
+                tau_max = GRD_sta[sta1].get_value(GRD_sta[sta2].sta_x,
+                                                  GRD_sta[sta2].sta_y,
+                                                  GRD_sta[sta2].sta_z)
+                Mtau.append(np.round(tau_max,1))
+                t_e = t_b + np.round(tau_max,1)
+            else:
+                Mtau = 'none'
+                tau_max = 0.
 
             proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
                                       fs_env,sttime_env,config,
-                                      nx, ny, nz, arrival_times)
+                                      nx, ny, nz, arrival_times,tau_max)
             stack_grid += proj_grid
 
     Norm_grid= stack_grid/k
@@ -217,27 +231,28 @@ def run_BackProj(idd):
 
     if config.cut_data:
         start_tw = config.cut_start+t_b
-        end_tw = config.cut_start+t_e
+##        end_tw = config.cut_start+t_e
     else:
         start_tw = t_b
-        end_tw = t_e
+##        end_tw = t_e
         config.cut_start = 0.
 
     if config.save_projGRID:
         print 'saving GRIDS with results'
         out_file = "out_grid/out_"+str(t_b)+".pkl"
         pickle.dump(Norm_grid, open(out_file, "wb"))
-
+        
+    trigger = None
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
         xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
-        #for sta in sorted(arrival_times):
-        #    print sta, arrival_times[sta]
 
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
+        trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
+        trigger.max_grid = np.round(np.max(Norm_grid),4) 
         trigger.beg_win = start_tw
-        trigger.end_win = end_tw
-        trigger.center_win = start_tw + config.time_lag/2.
+        trigger.end_win = start_tw + max_time_lag
+        trigger.center_win = start_tw + max_time_lag/2.
         trigger.lat, trigger.lon =\
                 rect2latlon(trigger.x, trigger.y)
 
@@ -254,18 +269,24 @@ def run_BackProj(idd):
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,
-            fq, n1, n22,arrival_times,bp_trig_time)
+            fq, n1, n22,trigger,arrival_times,bp_trig_time,Mtau)
 
     if Norm_grid[i_max, j_max, k_max] >= config.trigger:
         return trigger
 
 #------end loop for BackProj---------------------------------------------
-
 #---running program------------------------------------------------------
-p = Pool(config.ncpu)  #defining number of jobs
-p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
-p.close()      #no more tasks
-p.join()       #wrap  up current tasks
+##p = Pool(config.ncpu)  #defining number of jobs
+##p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
+##p.close()      #no more tasks
+##p.join()       #wrap  up current tasks
+
+# Uncomment the following lines
+# (and comment the previous ones)
+# for serial execution (useful for debugging)
+p_outputs=[]
+for idd in xrange(len(t_bb)):
+    p_outputs.append(run_BackProj(idd))
 
 triggers = filter(None, p_outputs)
 
