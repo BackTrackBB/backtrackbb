@@ -12,10 +12,10 @@ lib_rec_kurtosis._recursive_kurtosis.argtypes = [
         ndpointer(ctypes.c_double),
         ctypes.c_int,
         ctypes.c_float,
-	ctypes.c_float,
-	ctypes.c_int,
-	ctypes.c_int,
-	ctypes.c_float
+        ctypes.c_float,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_float
         ]
 lib_rec_kurtosis._recursive_kurtosis.restype = ctypes.c_void_p
 
