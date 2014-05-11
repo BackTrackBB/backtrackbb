@@ -6,7 +6,7 @@ from scipy.signal import gaussian
 #from obspy.signal.invsim import cosTaper
 from rec_filter import recursive_filter
 from rec_rms import recursive_rms
-from rec_kurtosis import recursive_kurtosis
+from rec_hos import recursive_hos
 #from RosenbergerAlgorithm import rosenberger
 from rosenberger import rosenberger
 
@@ -89,7 +89,7 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
                 ##CF[n] = recKurt_1(YN1[n], n_win_mb)
 
                 #module using C function
-                CF[n] = recursive_kurtosis(YN1[n], C_kurtosis, 0.001, 4, 2, 2)
+                CF[n] = recursive_hos(YN1[n], C_kurtosis, 0.001, 4, 2, 2)
 
     # More than 3 components
     else:
@@ -140,7 +140,7 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
                 ##CF[n] = recKurt_1(YN[n], n_win_mb)
 
                 #module using C function
-                CF[n] = recursive_kurtosis(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2)
+                CF[n] = recursive_hos(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2)
 
     return YN1, CF, Tn, Nb
 
@@ -156,7 +156,7 @@ def GaussConv(data_in, sigma):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    from generate_signal import *
+    from generate_signal import generate_signal_noise2, generate_signal_expSin
     from obspy.core import read, Trace, Stream
 
     #if arguments, read the file
@@ -200,6 +200,6 @@ if __name__ == '__main__':
         ax2.plot(CF[n])
 
     ax1.plot(signal, 'g')
-    ax2.plot(recursive_kurtosis(signal, 0.1, 0.001, 4, 2, 2),'g')
+    ax2.plot(recursive_hos(signal, 0.1, 0.001, 4, 2, 2),'g')
 
     plt.show()
