@@ -139,7 +139,7 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
                 ##CF[n] = recKurt_1(YN[n], n_win_mb)
 
                 #module using C function
-                CF[n,2:] = recursive_kurtosis(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2)
+                CF[n] = recursive_kurtosis(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2)
 
     return YN1, CF, Tn, Nb
 

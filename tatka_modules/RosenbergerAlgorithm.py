@@ -55,25 +55,23 @@ def rosenberger(dataX, dataY, dataZ, lambda_):
     D = np.diagflat(D)
     U = U[:,0:2]
 
-    save_U = np.zeros(len(dataX)-2)
+    save_U = np.zeros(len(dataX))
     save_U[0] = abs(U[0,0])
 
-    # Initialysing two matrix (what is the assumption here?)
-    Dp = np.zeros((3, len(dataX)-2))
-    Ds = np.zeros((3, len(dataX)-2))
-
+    Dp = np.zeros((3, len(dataX)))
+    Ds = np.zeros((3, len(dataX)))
     Dp[:,0] = abs(U[0, 0]) * A[:,2]
     Ds[:,0] = (1 - abs(U[0,0])) * A[:,2]
 
     # Loop over all the values
-    for i in range(0, A.shape[1]-3):
-        d = A[:,i+3]
+    for i in range(1, A.shape[1]):
+        d = A[:,i]
         U, D = _update_(U, D, d, lambda_)
 
-        Dp[:,i+1] = abs(U[0,0]) * d
-        Ds[:,i+1] = (1-abs(U[0,0])) * d
+        Dp[:,i] = abs(U[0,0]) * d
+        Ds[:,i] = (1-abs(U[0,0])) * d
 
-        save_U[i+1] = abs(U[0,0])
+        save_U[i] = abs(U[0,0])
 
     return Dp, Ds, save_U
 
@@ -109,18 +107,18 @@ def main():
     ax3.set_ylim((-maxval, maxval))
 
     ax1.plot(time, st[2].data, color='gray')
-    ax1.plot(time[2:], data_P[1], color='blue')
-    ax1.plot(time[2:], data_S[1], color='red')
+    ax1.plot(time, data_P[1], color='blue')
+    ax1.plot(time, data_S[1], color='red')
     ax1.legend([st[2].stats.channel, 'P', 'S'])
 
     ax2.plot(time, st[1].data, color='gray')
-    ax2.plot(time[2:], data_P[2], color='blue')
-    ax2.plot(time[2:], data_S[2], color='red')
+    ax2.plot(time, data_P[2], color='blue')
+    ax2.plot(time, data_S[2], color='red')
     ax2.legend([st[1].stats.channel, 'P', 'S'])
 
     ax3.plot(time, st[0].data, color='gray')
-    ax3.plot(time[2:], data_P[0], color='blue')
-    ax3.plot(time[2:], data_S[0], color='red')
+    ax3.plot(time, data_P[0], color='blue')
+    ax3.plot(time, data_S[0], color='red')
     ax3.legend([st[0].stats.channel, 'P', 'S'])
 
     plt.show()
