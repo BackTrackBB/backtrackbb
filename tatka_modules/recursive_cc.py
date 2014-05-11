@@ -2,7 +2,7 @@ from scipy.signal import lfilter
 from math import floor, ceil
 import numpy as np
 import scipy as sp
-##
+
 
 def __gausscoeff(s):
 # Python implementation of the algorithm by Young&Vliet,1995
@@ -66,8 +66,8 @@ def __shift(array, lag):
           return np.concatenate((pad, array[:-lag]))
      else:
           return np.concatenate((array[-lag:], pad))
-##
-##
+
+
 def __shift2(array, lag):
      if lag==0:
           return array
@@ -78,7 +78,6 @@ def __shift2(array, lag):
           ret[:lag] = array[-lag:]
      return ret
 
-##
 
 def local_CC(sig1,sig2,t_lag,fs):
      """

@@ -1,16 +1,15 @@
 import numpy as np
 import scipy as sp
-from tatka_modules.LocalCC import LocalCC
+from LocalCC import LocalCC
 
 
 def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
                  fs_sampling, start_time, config,
-                 nnx, nny, nnz, arrival_times,tau_max=0.):
+                 nnx, nny, nnz, arrival_times, tau_max=None):
 
     max_lag = config.time_lag
-    if tau_max!=0.:
+    if tau_max is not None:
         max_lag = tau_max
-##        print 'max_lag', max_lag
     sigma = config.smooth_lcc
 
     beg = int(t_b * fs_sampling)

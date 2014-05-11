@@ -268,10 +268,10 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         for tt in Mtau:
             ax3.axvspan(t_b+config.cut_start, t_b+tt+config.cut_start,
                         facecolor='g', alpha=0.1)
-    else:        
+    else:
         ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start,
-                    facecolor='g', alpha=0.1)          
-    
+                    facecolor='g', alpha=0.1)
+
     note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
             '-'+str(np.round(fq[n1]))+' Hz'
     #fq_str=str(np.round(fq[n1]))+'_'+str(np.round(fq[n22]))
