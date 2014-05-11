@@ -12,9 +12,15 @@ module5 = Extension('lib_map_project',
                     sources = ['tatka_modules/map_project/util.c',
                                'tatka_modules/map_project/map_project.c',
                                'tatka_modules/map_project/coord_convert.c'])
+module6 = Extension('lib_rosenberger',
+                    sources = ['tatka_modules/c_libs/rosenberger/IA_Kdiag.c',
+                               'tatka_modules/c_libs/rosenberger/IA_Err.c',
+                               'tatka_modules/c_libs/rosenberger/IA_Ealloc.c',
+                               'tatka_modules/c_libs/rosenberger/IA_R2upd.c',
+                               'tatka_modules/c_libs/rosenberger/rosenberger.c'])
 
 
 setup (name = 'PackageName',
        version = '1.0',
        description = 'This is a demo package',
-       ext_modules = [module1, module2, module3, module4, module5])
+       ext_modules = [module1, module2, module3, module4, module5, module6])

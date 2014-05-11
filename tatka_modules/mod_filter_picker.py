@@ -7,7 +7,8 @@ from scipy.signal import gaussian
 from rec_filter import recursive_filter
 from rec_rms import recursive_rms
 from rec_kurtosis import recursive_kurtosis
-from RosenbergerAlgorithm import rosenberger
+#from RosenbergerAlgorithm import rosenberger
+from rosenberger import rosenberger
 
 
 def make_LinFq(f_min, f_max, delta, nfreq):
