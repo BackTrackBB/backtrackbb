@@ -3,21 +3,25 @@ import ctypes
 from numpy.ctypeslib import ndpointer
 import numpy as np
 
+
 libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_rec_cc.so')
 lib_rec_cc = ctypes.CDLL(libpath)
 
 lib_rec_cc._local_CCr.argtypes = [
-        ndpointer(ctypes.c_double),
-        ndpointer(ctypes.c_double),
+        ndpointer(dtype=np.float64),
+        ndpointer(dtype=np.float64),
         ctypes.c_int,
-        ndpointer(ctypes.c_double),
-        ndpointer(ctypes.c_double),
+        ndpointer(dtype=np.float64),
+        ndpointer(dtype=np.float64),
         ctypes.c_int,
         ctypes.c_double
         ]
 lib_rec_cc._local_CCr.restype = ctypes.c_void_p
 
+
 def local_CCr(signal1, signal2, t_lag, fs, sigma):
+    signal1 = np.array(signal1, dtype=np.float64)
+    signal2 = np.array(signal2, dtype=np.float64)
     if signal1.size != signal2.size:
         raise RuntimeError, 'Signals must have the same size.'
 
@@ -33,6 +37,7 @@ def local_CCr(signal1, signal2, t_lag, fs, sigma):
             cc_no_filt, cc, lmax,
             sigma)
     return cc.reshape(2*lmax, len(signal1)), cc_no_filt.reshape(2*lmax, len(signal1))
+
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt

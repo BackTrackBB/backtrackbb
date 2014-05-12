@@ -10,7 +10,7 @@ void _gausscoeff(double sigma, double *A, int *nA, double *B, int *nB)
     double *b;
 
     if (sigma > 0.5) {
-        q = 0.98711*sigma - 0.96330; 
+        q = 0.98711*sigma - 0.96330;
     } else if (sigma == 0.5) {
         q = 3.97156 - 4.14554 * sqrt(1.0 - 0.26891*sigma);
     } else {
@@ -25,16 +25,17 @@ void _gausscoeff(double sigma, double *A, int *nA, double *B, int *nB)
     b[3] = 0.422205*pow(q, 3);
 
     B[0] = 1.0 - ((b[1] + b[2] + b[3])/b[0]);
-     
+
     A[0] = 1;
     for (i=1; i<4; i++) {
-        A[i] = -b[i]/b[0]; 
+        A[i] = -b[i]/b[0];
     }
 
     *nA = 4;
     *nB = 1;
     free(b);
 }
+
 
 void _lfilter(const double *signal, double *filt_signal, int npts,
              const double *A, int nA, const double *B, int nB)
@@ -44,18 +45,19 @@ void _lfilter(const double *signal, double *filt_signal, int npts,
     int n, na, nb;
 
     for (n=0; n<npts; n++) {
-        filt_signal[n] = 0; 
+        filt_signal[n] = 0;
         for (nb=0; nb<nB; nb++) {
             if (nb > n) break;
-            filt_signal[n] += B[nb] * signal[n-nb]; 
+            filt_signal[n] += B[nb] * signal[n-nb];
         }
         for (na=1; na<nA; na++) {
             if (na > n) break;
-            filt_signal[n] -= A[na] * filt_signal[n-na]; 
+            filt_signal[n] -= A[na] * filt_signal[n-na];
         }
         filt_signal[n] /= A[0];
     }
 }
+
 
 void _reverse(const double *signal, double *rev_signal, int npts)
 {
@@ -64,7 +66,7 @@ void _reverse(const double *signal, double *rev_signal, int npts)
 
     for (n=0; n<npts; n++)
         rev_signal[n] = signal[n];
-    
+
     end = npts - 1;
     for (n = 0; n < npts/2; n++) {
         tmp = rev_signal[n];
@@ -73,6 +75,7 @@ void _reverse(const double *signal, double *rev_signal, int npts)
         end--;
     }
 }
+
 
 void _Gaussian1D(const double *signal, double *filt_signal, int npts, double sigma)
 {
@@ -91,9 +94,9 @@ void _Gaussian1D(const double *signal, double *filt_signal, int npts, double sig
 
     rev_filt_signal = (double *) malloc(npts * sizeof(double));
 
-    _lfilter(signal, filt_signal, npts, A, nA, B, nB); 
+    _lfilter(signal, filt_signal, npts, A, nA, B, nB);
     _reverse(filt_signal, rev_filt_signal, npts);
-    _lfilter(rev_filt_signal, filt_signal, npts, A, nA, B, nB); 
+    _lfilter(rev_filt_signal, filt_signal, npts, A, nA, B, nB);
     _reverse(filt_signal, rev_filt_signal, npts);
     for (n=0; n<npts; n++)
         filt_signal[n] = rev_filt_signal[n];
@@ -102,6 +105,7 @@ void _Gaussian1D(const double *signal, double *filt_signal, int npts, double sig
     free(B);
     free(rev_filt_signal);
 }
+
 
 void _local_CCr(const double *signal1, const double *signal2, int npts,
         double *cc_no_filt, double *cc, int lmax,

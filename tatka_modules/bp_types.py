@@ -4,7 +4,8 @@
 class Trigger():
     def __init__(self,
                  x=None, y=None, z=None,
-                 i=None, j=None, k=None,max_grid = None,
+                 i=None, j=None, k=None,
+                 max_grid=None,
                  beg_win=None, end_win=None,
                  center_win=None):
         self.x = x

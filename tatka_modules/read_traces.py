@@ -22,21 +22,15 @@ def read_traces(config):
             continue
 
     # Get the intersection between the list of available stations
-    # and the list of required stations:
-    st_out = Stream()
-    for config.channel in config.channel:
-        tmpst_stations = [tr.stats.station for tr in tmpst
-                          if tr.stats.channel == config.channel]
-        stations = sorted(set(tmpst_stations) & set(config.stations))
+    # and the list of requested stations:
+    tmpst_stations = [tr.stats.station for tr in tmpst.select(channel=config.channel)]
+    stations = sorted(set(tmpst_stations) & set(config.stations))
 
-        # Retain only requested component and stations:
-        st = Stream(tr for tr in tmpst
-                    if tr.stats.channel == config.channel
-                    and tr.stats.station in stations)
-        st_out += st
-    print 'Number of traces in stream = ', len(st_out)
-    sta_tmp = [tr.stats.station for tr in st_out]
-    stations = sorted(set(sta_tmp) & set(config.stations))
-    st_out.sort()
+    # Retain only requested channel and stations:
+    st = Stream(tr for tr in tmpst.select(channel=config.channel)
+                if tr.stats.station in stations)
 
-    return st_out, stations
+    print 'Number of traces in stream = ', len(st)
+
+    st.sort()
+    return st, stations

@@ -22,7 +22,6 @@ class LocalCC():
         self.sigma = sigma
         self.define_param()
         self.local_cc()
-        
 
     def define_param(self):
         self.len_in_signal = len(self.in_signal1)

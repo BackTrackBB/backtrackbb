@@ -18,7 +18,6 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
     LTrig = config.trigger
     lcc_max = config.lcc_max
-    time_lag = config.time_lag
     out_dir = config.out_dir
     scmap = config.scmap
     plot_waveforms = config.plot_waveforms
@@ -43,18 +42,16 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     scmap2.set_under('w', LTrig)
     lcc_min = LTrig
 
-    Max_grid_max = np.where(grid_max == np.max(grid_max))
-    i_max = Max_grid_max[0][0]
-    j_max = Max_grid_max[1][0]
-    k_max = Max_grid_max[2][0]
-    xx_max, yy_max, zz_max = grid1.get_xyz(i_max, j_max, k_max)
+    if trigger is not None:
+        i_max, j_max, k_max = map(int, (trigger.i, trigger.j, trigger.k))
+        xx_max, yy_max, zz_max = trigger.x, trigger.y, trigger.z
 
 #--ax1: stacked grid
 #--ax1_xy
     ax1_xy = fig.add_subplot(221)
     divider1 = make_axes_locatable(ax1_xy)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         i_grid = i_max
         j_grid = j_max
         k_grid = k_max
@@ -91,7 +88,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax1_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1,c='g')
     ax1_xy.set_aspect('equal', 'datalim')
@@ -101,7 +98,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax1_yz.imshow(np.flipud(grid_max[i_grid,:,:]),
                      extent=grid1.get_zy_extent(), cmap=scmap, rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax1_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax1_yz.axis('tight')
@@ -119,7 +116,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     ax1_xz.imshow(np.flipud(np.transpose(grid_max[:,j_grid,:])),
                      extent=grid1.get_xz_extent(), cmap=scmap, rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax1_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
@@ -161,7 +158,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         trans = ax2_xy.transData + ax2_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax2_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax2_xy.set_aspect('equal', 'datalim')
@@ -173,7 +170,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
                       vmin=lcc_min, vmax=lcc_max,
                       rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax2_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
@@ -194,7 +191,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
                      vmin=lcc_min, vmax=lcc_max,
                      rasterized=True)
 
-    if grid_max[i_max, j_max, k_max] >= LTrig:
+    if trigger is not None:
         ax2_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
@@ -226,13 +223,14 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
-    for Record, CH_fct in zip(st, st_CF):
-        sta = Record.stats.station
+    for sta in set(tr.stats.station for tr in st):
+        tr = st.select(station=sta, component='Z')[0]
+        CH_fct = st_CF.select(station=sta)[0]
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # Project signal to Axes coordinates:
-            signal = Record.data/abs(Record.max())*0.05 + y_sta_ax
+            signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
@@ -241,7 +239,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         xydata = np.dstack((np.zeros_like(signal), signal))[0]
         ydata = invtrans.transform(xydata)[:,1]
         ax3.plot(time_env, ydata, 'k', rasterized=True)
-        ax3.text(max(time), y_sta, Record.id, fontsize=10)
+        ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
 ####        ##        plotting vertical bars corresponding to LCCmax in given time window
 ####        if len(grid_max[grid_max >= LTrig]) > 1:
@@ -270,10 +268,10 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         for tt in Mtau:
             ax3.axvspan(t_b+config.cut_start, t_b+tt+config.cut_start,
                         facecolor='g', alpha=0.1)
-    else:        
+    else:
         ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start,
-                    facecolor='g', alpha=0.1)          
-    
+                    facecolor='g', alpha=0.1)
+
     note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
             '-'+str(np.round(fq[n1]))+' Hz'
     #fq_str=str(np.round(fq[n1]))+'_'+str(np.round(fq[n22]))
@@ -391,13 +389,14 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
-    for Record, CH_fct in zip(st, st_CF):
-        sta = Record.stats.station
+    for sta in set(tr.stats.station for tr in st):
+        tr = st.select(station=sta, component='Z')[0]
+        CH_fct = st_CF.select(station=sta)[0]
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # Project signal to Axes coordinates:
-            signal = Record.data/abs(Record.max())*0.05 + y_sta_ax
+            signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
@@ -406,7 +405,7 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
         xydata = np.dstack((np.zeros_like(signal), signal))[0]
         ydata = invtrans.transform(xydata)[:,1]
         ax3.plot(time_env, ydata, 'k', rasterized=True)
-        ax3.text(max(time), y_sta, Record.id, fontsize=10)
+        ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
     note=ch_function+' of MBFilter; Fq. range: '+str(np.round(fq_1))+\
             '-'+str(np.round(fq_2))+' Hz'
