@@ -7,11 +7,11 @@ from collections import defaultdict
 from scipy.ndimage.interpolation import zoom
 from tatka_modules.bp_types import Trigger
 from tatka_modules.read_traces import read_traces
-from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq, \
-     MBfilter_CF,GaussConv
+from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq,\
+     MBfilter_CF, GaussConv
 from tatka_modules.NLLGrid import NLLGrid
 from tatka_modules.map_project import get_transform, rect2latlon
-from tatka_modules.mod_utils import read_locationTremor,read_locationEQ
+from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.grid_projection import sta_GRD_Proj
 from tatka_modules.plot import bp_plot, plt_SummaryOut
 from tatka_modules.parse_config import parse_config
@@ -78,46 +78,48 @@ if config.sampl_rate_data:
 #---remove mean and trend------------------------------------------------
 st.detrend(type='constant')
 st.detrend(type='linear')
+
 #---Some simple parameters from trace------------------------------------
 time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-dt=st[0].stats.delta
+delta = st[0].stats.delta
 fs_data = st[0].stats.sampling_rate
-dT = dt
 npts_d = st[0].stats.npts
-n_win_k = int(config.decay_const/dt)
-sigma_gauss = int(n_win_k/4)         # so far fixed to n_win_k/4,
-                                     # can be added to control file as a separate variable
-st_CF=st.copy()
+decay_const = config.decay_const
+if config.rosenberger_decay_const is not None:
+    rosenberger_decay_const = config.rosenberger_decay_const
+else:
+    rosenberger_decay_const = config.decay_const
+sigma_gauss = int(decay_const/delta/4) # so far fixed
+                                       # can be added to control file as a separate variable
 
 #---Calculating frequencies for MBFilter---------------------------------
 if config.band_spacing == 'lin':
-    fq = make_LinFq(config.f_min, config.f_max, dT, config.n_freq_bands)
+    frequencies = make_LinFq(config.f_min, config.f_max, delta, config.n_freq_bands)
 elif config.band_spacing == 'log':
-    fq = make_LogFq(config.f_min, config.f_max, dT, config.n_freq_bands)
-n1=0
-n2=len(fq)
-n22=len(fq)-1
+    frequencies = make_LogFq(config.f_min, config.f_max, delta, config.n_freq_bands)
+n1 = 0
+n2 = len(frequencies)
+n22 = len(frequencies) - 1
 
 #----MB filtering and calculating Summary characteristic functions:------
-for i,station in enumerate(stations):
+st_CF = st.copy()
+for i, station in enumerate(stations):
     st_select = st.select(station=station)
-    CH_fct = st_CF.select(station=station)[0]
+    CF_tr = st_CF.select(station=station)[0]
 
-    print('Creating characteristic function: station No {}/{}'.format(i+1,len(stations)))
-    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, fq, n_win_k,
+    print('Creating characteristic function: station No {}/{}'.format(i+1, len(stations)))
+    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies, var_w=config.win_type,
                                          CF_type=config.ch_function,
-                                         var_w=config.win_type, C_kurtosis=config.C_kurtosis,
-                                         C_rosenberger=config.C_rosenberger, order1=4, 
-                                         order2=2, power2=2)
+                                         CF_decay_win=decay_const,
+                                         rosenberger_decay_win=rosenberger_decay_const)
 
     CF = env_rec[n1:n2]
 
     if config.ch_function=='envelope':
-        CH_fct.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
+        CF_tr.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
     if config.ch_function=='kurtosis':
-##        CH_fct.data = np.amax(env_rec,axis=0)
         kurt_argmax = np.amax(env_rec,axis=0)
-        CH_fct.data = GaussConv(kurt_argmax,sigma_gauss)
+        CF_tr.data = GaussConv(kurt_argmax, sigma_gauss)
 
 #-----resampling CF if wanted-------------------------------------------
 if config.sampl_rate_cf:
@@ -132,7 +134,7 @@ npts_e = st_CF[0].stats.npts
 fs_env = st_CF[0].stats.sampling_rate
 sttime_env = st_CF[0].stats.starttime
 
-print 'frequencies for filtering in (Hz):',fq[n1:n2]
+print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
 
 #---grid infromation-----------------------------------------------------
 grid1 = GRD_sta.values()[0]
@@ -165,10 +167,10 @@ if not os.path.exists(config.out_dir):
 
 datestr = st[0].stats.starttime.strftime('%y%m%d%H')
 
-fq_str=str(np.round(fq[n1])) + '_' + str(np.round(fq[n22]))
+fq_str = str(np.round(frequencies[n1])) + '_' + str(np.round(frequencies[n22]))
 file_out_base = '_'.join((
     datestr,
-    str(len(fq)) + 'fq' + fq_str + 'hz',
+    str(len(frequencies)) + 'fq' + fq_str + 'hz',
     str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
     config.ch_function,
     config.channel,
@@ -231,7 +233,7 @@ def run_BackProj(idd):
                                       nx, ny, nz, arrival_times, tau_max)
             stack_grid += proj_grid
 
-    Norm_grid= stack_grid/k
+    Norm_grid = stack_grid/k
 
     Max_NormGrid = np.where(Norm_grid == np.max(Norm_grid))
     i_max = Max_NormGrid[0][0]
@@ -294,23 +296,23 @@ def run_BackProj(idd):
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,
-            fq, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
+            frequencies, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
 
     return trigger
 
 #------end loop for BackProj---------------------------------------------
 #---running program------------------------------------------------------
-#p = Pool(config.ncpu)  #defining number of jobs
-#p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
-#p.close()      #no more tasks
-#p.join()       #wrap  up current tasks
+p = Pool(config.ncpu)  #defining number of jobs
+p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
+p.close()      #no more tasks
+p.join()       #wrap  up current tasks
 
 # Uncomment the following lines
 # (and comment the previous ones)
 # for serial execution (useful for debugging)
-p_outputs=[]
-for idd in xrange(len(t_bb)):
-    p_outputs.append(run_BackProj(idd))
+#p_outputs=[]
+#for idd in xrange(len(t_bb)):
+#    p_outputs.append(run_BackProj(idd))
 
 triggers = filter(None, p_outputs)
 
@@ -322,5 +324,5 @@ with open(file_out_data,'w') as f:
 
 #-plotting output--------------------------------------------------------
 plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
-               triggers, t_bb, datestr, fq[n1], fq[n22],
+               triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
                coord_eq, coord_jma, file_out_fig)
