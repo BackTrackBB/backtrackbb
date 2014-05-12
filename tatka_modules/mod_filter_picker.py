@@ -34,8 +34,8 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 
 
 def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
-                C_kurtosis=0.01, order1=4, order2=2, power2=2,
-                C_rosenberger=0.99):
+                C_kurtosis=0.1, C_rosenberger=0.1, order1=4, order2=2, power2=2,
+                ):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
@@ -135,11 +135,10 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
             else:
                 n_win_mb = n_win
 
-            if CF_type == 'kurtosis':
-                #module using python functions
-                ##CF[n] = recKurt_1(YN[n], n_win_mb)
+            if CF_type == 'envelope':
+                CF[n] = recursive_rms(YN1[n],1./n_win_mb)
 
-                #module using C function
+            if CF_type == 'kurtosis':
                 CF[n] = recursive_hos(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2)
 
     return YN1, CF, Tn, Nb

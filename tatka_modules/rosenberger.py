@@ -37,11 +37,17 @@ lib_rosenberger.rosenberger.restype = ctypes.c_void_p
 
 
 def rosenberger(dataX, dataY, dataZ,
-                lambda_, delta=0.0, proj=False, rl_filter=False):
+                lambda_, delta=1, proj=False, rl_filter=False):
     """
        Separates P and non-P wavefield from 3-component data
        and returns it as two set of 3-component traces.
     """
+
+    try:
+        lambda_ = float(lambda_)
+    except ValueError:
+        print 'C_rosenberger should be a double'
+    
     dataX = np.array(dataX, dtype=np.float64)
     dataY = np.array(dataY, dtype=np.float64)
     dataZ = np.array(dataZ, dtype=np.float64)

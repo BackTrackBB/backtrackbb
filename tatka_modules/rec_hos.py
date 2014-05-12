@@ -31,6 +31,12 @@ def recursive_hos(signal, C_WIN, sigma_min, order1, order2, power2):
     """
         Recursive computation of higher-horder statistics.
     """
+
+    try:
+        C_WIN = float(C_WIN)
+    except ValueError:
+        print 'C_rosenberger should be a double'
+
     hos_signal = np.zeros(len(signal))
     lib_rec_hos._recursive_hos(
             signal, hos_signal, signal.size, sigma_min, C_WIN, order1, order2, power2)
