@@ -148,8 +148,8 @@ void subtrack2(const IA_Dvect *x, IA_Dvect *pw, IA_Dvect *sw,
 
     /* construct update matrix K */
     memset(*K, 0, 9*sizeof(double));
-    K[0][0] = lambda*P->S[0][0];
-    K[1][1] = lambda*P->S[1][1];
+    K[0][0] = (1-lambda)*P->S[0][0];
+    K[1][1] = (1-lambda)*P->S[1][1];
     K[0][2] = m[0];
     K[1][2] = m[1];
     K[2][2] = norm_p;

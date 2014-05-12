@@ -33,9 +33,11 @@ def make_LogFq(f_min, f_max, delta, nfreq):
     return freq[::-1]
 
 
-def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
-                C_kurtosis=0.01, order1=4, order2=2, power2=2,
-                C_rosenberger=0.99):
+def MBfilter_CF(st, frequencies, var_w=True,
+                CF_type='envelope', CF_decay_win=1.0,
+                order1=4, order2=2, power2=2,
+                rosenberger_decay_win=1.0
+                ):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
@@ -43,21 +45,20 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
     """
     tr = st.select(component='Z')[0]
     y = tr.data
-    dT = tr.stats.delta
-    Nb = len(fq)
-    Tn = 1./fq
-    wn = Tn/(2*np.pi)         #wn=Tn/(2*pi)- time constant
-    CN_HP = wn/(wn+dT)        # hight-pass filter constant
-    CN_LP = dT/(wn+dT)        # low-pass filter constant
-    b = n_win * dT/Tn[int(Nb/2 + 1)]
+    delta = tr.stats.delta
+    Nb = len(frequencies)
+    Tn = 1./frequencies
+    wn = Tn/(2*np.pi)
+    CN_HP = wn/(wn+delta)        # high-pass filter constant
+    CN_LP = delta/(wn+delta)        # low-pass filter constant
+    CF_decay_nsmps = int(CF_decay_win / delta)
+    rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
+    b = CF_decay_nsmps * delta/Tn[int(Nb/2 + 1)]
     y = y - y.mean()
 
     # Less than 3 components
     if len(st) < 3:
-        y[0] = np.mean(y[0:n_win])
-
-        #taper=cosTaper(len(y),p=0.1)
-        #y=y*taper
+        y[0] = np.mean(y[0:CF_decay_nsmps])
 
         # derivative
         dy = np.gradient(y)
@@ -69,27 +70,19 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
             YN1[n] = recursive_filter(dy, CN_HP[n], CN_LP[n])
 
             if var_w:
-                n_win_mb = (b*Tn[n]/dT)
-                #print n_win_mb, n_win
+                CF_decay_nsmps_mb = b * Tn[n]/delta
             else:
-                n_win_mb = n_win
+                CF_decay_nsmps_mb = CF_decay_nsmps
 
             if CF_type == 'envelope':
-                #module using python functions
-                ##CF[n] = meansq_rec(YN1[n],n_win_mb)
-
-                #module using C function
-                CF[n] = recursive_rms(YN1[n],1./n_win_mb)
+                CF[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb)
 
             if CF_type == 'hilbert':
-                CF[n] = smooth(abs(sp.signal.hilbert(YN1[n])),n_win_mb)
+                CF[n] = smooth(abs(sp.signal.hilbert(YN1[n])), CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
-                #module using python functions
-                ##CF[n] = recKurt_1(YN1[n], n_win_mb)
-
-                #module using C function
-                CF[n] = recursive_hos(YN1[n], C_kurtosis, 0.001, 4, 2, 2)
+                CF[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
+                                      0.001, order1, order2, power2)
 
     # More than 3 components
     else:
@@ -100,13 +93,10 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
         y3 = tr3.data
 
         y2 = y2 - y2.mean()
-        y2[0] = np.mean(y2[0:n_win])
+        y2[0] = np.mean(y2[0:CF_decay_nsmps])
 
         y3 = y3 - y3.mean()
-        y3[0] = np.mean(y3[0:n_win])
-
-        #taper=cosTaper(len(y),p=0.1)
-        #y=y*taper
+        y3[0] = np.mean(y3[0:CF_decay_nsmps])
 
         # derivative
         dy1 = np.gradient(y)
@@ -127,20 +117,20 @@ def MBfilter_CF(st, fq, n_win, CF_type='envelope', var_w=True,
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
 
-            filtered_dataP, filtered_dataS, U = rosenberger(YN2[n], YN3[n], YN1[n], C_rosenberger)
+            filtered_dataP, filtered_dataS, U =\
+                    rosenberger(YN2[n], YN3[n], YN1[n], 1./rosenberger_decay_nsmps)
 
             if var_w:
-                n_win_mb = (b*Tn[n]/dT)
-                #print n_win_mb, n_win
+                CF_decay_nsmps_mb = b * Tn[n]/delta
             else:
-                n_win_mb = n_win
+                CF_decay_nsmps_mb = CF_decay_nsmps
+
+            if CF_type == 'envelope':
+                CF[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
-                #module using python functions
-                ##CF[n] = recKurt_1(YN[n], n_win_mb)
-
-                #module using C function
-                CF[n] = recursive_hos(filtered_dataP[0,:], C_kurtosis, 0.001, 4, 2, 2)
+                CF[n] = recursive_hos(filtered_dataP[0,:], 1./CF_decay_nsmps_mb,
+                                      0.001, order1, order2, power2)
 
     return YN1, CF, Tn, Nb
 
@@ -171,22 +161,24 @@ if __name__ == '__main__':
         pass
     else:
         noise = generate_signal_noise2(1000, 0.05)
-        signal = generate_signal_expSin(300,0.005,0.5,noise,0.5,500,0.05,1)
+        signal = generate_signal_expSin(300, 0.005, 0.5, noise, 0.5, 500, 0.05, 1)
 
-    # sampling frequency
-    if 'data' in locals():
-        delta = data[0].stats.sampling_rate
-    else:
-        delta = 0.01
-    print 'Sampling frequency = {}'.format(delta)
+    # sampling interval
+    #TODO: fix code below
+    #if 'data' in locals():
+    #    delta = data[0].stats.sampling_rate
+    #else:
+    delta = 0.01
+    print 'Sampling interval = {}'.format(delta)
 
     tr = Trace(signal)
     tr.stats.delta = delta
     tr.stats.channel = 'HHZ'
     st = Stream(tr)
 
-    fq = make_LinFq(1, 40, delta, 8)
-    YN, CF, Tn, Nb = MBfilter_CF(st, fq, 20, CF_type='kurtosis', var_w=False)
+    frequencies = make_LinFq(1, 40, delta, 8)
+    YN, CF, Tn, Nb = MBfilter_CF(st, frequencies, var_w=False,
+                                 CF_type='kurtosis', CF_decay_win=0.1)
 
     fig1 = plt.figure()
     fig2 = plt.figure()
