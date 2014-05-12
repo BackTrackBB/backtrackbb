@@ -72,7 +72,7 @@ if config.sampl_rate_data:
         f_tr = tr.stats.sampling_rate
         if f_tr > config.sampl_rate_data:
             dec_ct = int(f_tr/config.sampl_rate_data)
-            st.decimate(dec_ct, strict_length=False, no_filter=True)
+            tr.decimate(dec_ct, strict_length=False, no_filter=True)
 
 #---remove mean and trend------------------------------------------------
 st.detrend(type='constant')
