@@ -223,7 +223,7 @@ def run_BackProj(idd):
                 t_e = t_b + np.round(tau_max,1)
             else:
                 Mtau = 'none'
-                tau_max = 0.
+                tau_max = None
 
             proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
                                       fs_env, sttime_env, config,
@@ -299,17 +299,17 @@ def run_BackProj(idd):
 
 #------end loop for BackProj---------------------------------------------
 #---running program------------------------------------------------------
-p = Pool(config.ncpu)  #defining number of jobs
-p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
-p.close()      #no more tasks
-p.join()       #wrap  up current tasks
+#p = Pool(config.ncpu)  #defining number of jobs
+#p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
+#p.close()      #no more tasks
+#p.join()       #wrap  up current tasks
 
 # Uncomment the following lines
 # (and comment the previous ones)
 # for serial execution (useful for debugging)
-#p_outputs=[]
-#for idd in xrange(len(t_bb)):
-#    p_outputs.append(run_BackProj(idd))
+p_outputs=[]
+for idd in xrange(len(t_bb)):
+    p_outputs.append(run_BackProj(idd))
 
 triggers = filter(None, p_outputs)
 
