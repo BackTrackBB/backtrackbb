@@ -60,14 +60,11 @@ def MBfilter_CF(st, frequencies, var_w=True,
         y = y - y.mean()
         y[0] = np.mean(y[0:CF_decay_nsmps])
 
-        # derivative
-        dy = np.gradient(y)
-
         YN1 = np.zeros((Nb, len(y)), float)
         CF = np.zeros((Nb, len(y)), float)
 
         for n in xrange(Nb):
-            YN1[n] = recursive_filter(dy, CN_HP[n], CN_LP[n])
+            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n])
 
             if var_w:
                 CF_decay_nsmps_mb = b * Tn[n]/delta
@@ -103,11 +100,6 @@ def MBfilter_CF(st, frequencies, var_w=True,
         y3 = y3 - y3.mean()
         y3[0] = np.mean(y3[0:CF_decay_nsmps])
 
-        # derivative
-        dy1 = np.gradient(y1)
-        dy2 = np.gradient(y2)
-        dy3 = np.gradient(y3)
-
         # Initializing arrays
         YN1 = np.zeros((Nb, len(y1)), float)
         YN2 = np.zeros((Nb, len(y1)), float)
@@ -115,9 +107,9 @@ def MBfilter_CF(st, frequencies, var_w=True,
         CF = np.zeros((Nb, len(y1)), float)
 
         for n in xrange(Nb):
-            YN1[n] = recursive_filter(dy1, CN_HP[n], CN_LP[n])
-            YN2[n] = recursive_filter(dy2, CN_HP[n], CN_LP[n])
-            YN3[n] = recursive_filter(dy3, CN_HP[n], CN_LP[n])
+            YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n])
+            YN2[n] = recursive_filter(y2, CN_HP[n], CN_LP[n])
+            YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n])
 
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
@@ -141,7 +133,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
 
 
 def GaussConv(data_in, sigma):
-    derivative_data = np.diff(data_in)
+    derivative_data = np.gradient(data_in)
     derivative_data[derivative_data < 0] = 0
     gauss_window = gaussian(len(derivative_data), sigma)
     CF_gaussian = np.convolve(derivative_data, gauss_window, mode='same')
