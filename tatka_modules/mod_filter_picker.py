@@ -36,7 +36,7 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 def MBfilter_CF(st, frequencies, var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
                 order1=4, order2=2, power2=2,
-                rosenberger_decay_win=1.0):
+                rosenberger_decay_win=1.0, wave_type='P', full_output=False):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
@@ -61,7 +61,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
         y[0] = np.mean(y[0:CF_decay_nsmps])
 
         YN1 = np.zeros((Nb, len(y)), float)
-        CF = np.zeros((Nb, len(y)), float)
+        CF1 = np.zeros((Nb, len(y)), float)
 
         for n in xrange(Nb):
             YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n])
@@ -72,13 +72,13 @@ def MBfilter_CF(st, frequencies, var_w=True,
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
             if CF_type == 'envelope':
-                CF[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb)
+                CF1[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb)
 
             if CF_type == 'hilbert':
-                CF[n] = smooth(abs(sp.signal.hilbert(YN1[n])), CF_decay_nsmps_mb)
+                CF1[n] = smooth(abs(sp.signal.hilbert(YN1[n])), CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
-                CF[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
+                CF1[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
                                       0.001, order1, order2, power2)
 
     # More than 3 components
@@ -104,7 +104,12 @@ def MBfilter_CF(st, frequencies, var_w=True,
         YN1 = np.zeros((Nb, len(y1)), float)
         YN2 = np.zeros((Nb, len(y1)), float)
         YN3 = np.zeros((Nb, len(y1)), float)
-        CF = np.zeros((Nb, len(y1)), float)
+        CF1 = np.zeros((Nb, len(y1)), float)
+
+        if full_output==True:
+            CF2 = np.zeros((Nb, len(y1)), float)
+            filteredDataP = np.zeros((Nb, len(y1)), float)
+            filteredDataS = np.zeros((Nb, len(y1)), float)
 
         for n in xrange(Nb):
             YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n])
@@ -117,19 +122,43 @@ def MBfilter_CF(st, frequencies, var_w=True,
             filtered_dataP, filtered_dataS, U =\
                     rosenberger(YN2[n], YN3[n], YN1[n], 1./rosenberger_decay_nsmps)
 
+            if full_output==True:
+                filteredDataP[n] = filtered_dataP[0,:]
+                filteredDataS[n] = filtered_dataS[0,:]
+
             if var_w:
                 CF_decay_nsmps_mb = b * Tn[n]/delta
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
             if CF_type == 'envelope':
-                CF[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb)
+                if wave_type == 'P':
+                    CF1[n] = recursive_rms(filtered_dataP[0,:], 1./CF_decay_nsmps_mb)
+                    if full_output==True:
+                        CF2[n] = recursive_rms(filtered_dataS[1,:], 1./CF_decay_nsmps_mb)
+                else:
+                    CF1[n] = recursive_rms(filtered_dataS[0,:], 1./CF_decay_nsmps_mb)
+                    if full_output==True:
+                        CF2[n] = recursive_rms(filtered_dataP[1,:], 1./CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
-                CF[n] = recursive_hos(filtered_dataP[0,:], 1./CF_decay_nsmps_mb,
-                                      0.001, order1, order2, power2)
+                if wave_type == 'P':
+                    CF1[n] = recursive_hos(filtered_dataP[0,:], 1./CF_decay_nsmps_mb,
+                                          0.001, order1, order2, power2)
+                    if full_output==True:
+                        CF2[n] = recursive_hos(filtered_dataS[1,:], 1./CF_decay_nsmps_mb,
+                                          0.001, order1, order2, power2)
+                else:
+                    CF1[n] = recursive_hos(filtered_dataS[0,:], 1./CF_decay_nsmps_mb,
+                                          0.001, order1, order2, power2)
+                    if full_output==True:
+                        CF2[n] = recursive_hos(filtered_dataP[1,:], 1./CF_decay_nsmps_mb,
+                                          0.001, order1, order2, power2)
 
-    return YN1, CF, Tn, Nb
+    if full_output==False:
+        return YN1, CF1, Tn, Nb
+    else:
+        return YN1, CF1, CF2, Tn, Nb, filteredDataP, filteredDataS
 
 
 def GaussConv(data_in, sigma):

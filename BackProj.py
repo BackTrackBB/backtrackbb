@@ -108,10 +108,12 @@ for i, station in enumerate(stations):
     CF_tr = st_CF.select(station=station)[0]
 
     print('Creating characteristic function: station No {}/{}'.format(i+1, len(stations)))
-    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies, var_w=config.win_type,
+    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies, 
+                                         var_w=config.win_type,
                                          CF_type=config.ch_function,
                                          CF_decay_win=decay_const,
-                                         rosenberger_decay_win=rosenberger_decay_const)
+                                         rosenberger_decay_win=rosenberger_decay_const,
+                                         wave_type=config.wave_type)
 
     CF = env_rec[n1:n2]
 
