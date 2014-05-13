@@ -36,16 +36,13 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 def MBfilter_CF(st, frequencies, var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
                 order1=4, order2=2, power2=2,
-                rosenberger_decay_win=1.0
-                ):
+                rosenberger_decay_win=1.0):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
     for each band.
     """
-    tr = st.select(component='Z')[0]
-    y = tr.data
-    delta = tr.stats.delta
+    delta = st[0].stats.delta
     Nb = len(frequencies)
     Tn = 1./frequencies
     wn = Tn/(2*np.pi)
@@ -54,10 +51,13 @@ def MBfilter_CF(st, frequencies, var_w=True,
     CF_decay_nsmps = int(CF_decay_win / delta)
     rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
     b = CF_decay_nsmps * delta/Tn[int(Nb/2 + 1)]
-    y = y - y.mean()
 
     # Less than 3 components
     if len(st) < 3:
+        # Use just the first trace in stream
+        tr = st[0]
+        y = tr.data
+        y = y - y.mean()
         y[0] = np.mean(y[0:CF_decay_nsmps])
 
         # derivative
@@ -86,28 +86,33 @@ def MBfilter_CF(st, frequencies, var_w=True,
 
     # More than 3 components
     else:
+        # We assume that component names are: Z, E, N
+        #TODO: generalize this
+        tr1 = st.select(component='Z')[0]
         tr2 = st.select(component='E')[0]
         tr3 = st.select(component='N')[0]
 
+        y1 = tr1.data
         y2 = tr2.data
         y3 = tr3.data
 
+        y1 = y1 - y1.mean()
+        y1[0] = np.mean(y1[0:CF_decay_nsmps])
         y2 = y2 - y2.mean()
         y2[0] = np.mean(y2[0:CF_decay_nsmps])
-
         y3 = y3 - y3.mean()
         y3[0] = np.mean(y3[0:CF_decay_nsmps])
 
         # derivative
-        dy1 = np.gradient(y)
+        dy1 = np.gradient(y1)
         dy2 = np.gradient(y2)
         dy3 = np.gradient(y3)
 
         # Initializing arrays
-        YN1 = np.zeros((Nb, len(y)), float)
-        YN2 = np.zeros((Nb, len(y)), float)
-        YN3 = np.zeros((Nb, len(y)), float)
-        CF = np.zeros((Nb, len(y)), float)
+        YN1 = np.zeros((Nb, len(y1)), float)
+        YN2 = np.zeros((Nb, len(y1)), float)
+        YN3 = np.zeros((Nb, len(y1)), float)
+        CF = np.zeros((Nb, len(y1)), float)
 
         for n in xrange(Nb):
             YN1[n] = recursive_filter(dy1, CN_HP[n], CN_LP[n])
@@ -136,7 +141,6 @@ def MBfilter_CF(st, frequencies, var_w=True,
 
 
 def GaussConv(data_in, sigma):
-    derivative_data = np.zeros(len(data_in), float)
     derivative_data = np.diff(data_in)
     derivative_data[derivative_data < 0] = 0
     gauss_window = gaussian(len(derivative_data), sigma)
