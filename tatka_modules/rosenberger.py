@@ -85,7 +85,7 @@ def main():
     window = 0.5 #seconds
     samples = window / st[0].stats.delta
     # Compute the accumulation parameter lambda_
-    lambda_ = math.exp(math.log(0.05) / samples)
+    lambda_ = 1 - math.exp(math.log(0.05) / samples)
     data_P, data_S, U = rosenberger(st[2].data, st[1].data, st[0].data, lambda_)
 
     fig = plt.figure()
