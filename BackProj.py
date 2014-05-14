@@ -108,10 +108,12 @@ for i, station in enumerate(stations):
     CF_tr = st_CF.select(station=station)[0]
 
     print('Creating characteristic function: station No {}/{}'.format(i+1, len(stations)))
-    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies, var_w=config.win_type,
+    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies, 
+                                         var_w=config.win_type,
                                          CF_type=config.ch_function,
                                          CF_decay_win=decay_const,
-                                         rosenberger_decay_win=rosenberger_decay_const)
+                                         rosenberger_decay_win=rosenberger_decay_const,
+                                         wave_type=config.wave_type)
 
     CF = env_rec[n1:n2]
 
@@ -301,18 +303,21 @@ def run_BackProj(idd):
     return trigger
 
 #------end loop for BackProj---------------------------------------------
-#---running program------------------------------------------------------
-p = Pool(config.ncpu)  #defining number of jobs
-p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
-p.close()      #no more tasks
-p.join()       #wrap  up current tasks
 
-# Uncomment the following lines
-# (and comment the previous ones)
-# for serial execution (useful for debugging)
-#p_outputs=[]
-#for idd in xrange(len(t_bb)):
-#    p_outputs.append(run_BackProj(idd))
+#---running program------------------------------------------------------
+if config.ncpu > 1:
+    # parallel execution
+    print 'Running on %d threads' % config.ncpu
+    p = Pool(config.ncpu)  #defining number of jobs
+    p_outputs = p.map(run_BackProj,xrange(len(t_bb)))
+    p.close()      #no more tasks
+    p.join()       #wrap  up current tasks
+else:
+    # serial execution (useful for debugging)
+    print 'Running on 1 thread'
+    p_outputs = []
+    for idd in xrange(len(t_bb)):
+        p_outputs.append(run_BackProj(idd))
 
 triggers = filter(None, p_outputs)
 
