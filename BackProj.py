@@ -105,10 +105,10 @@ n22 = len(frequencies) - 1
 st_CF = st.copy()
 for i, station in enumerate(stations):
     st_select = st.select(station=station)
-    CF_tr = st_CF.select(station=station)[0]
+    tr_CF = st_CF.select(station=station)[0]
 
     print('Creating characteristic function: station No {}/{}'.format(i+1, len(stations)))
-    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies, 
+    HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies,
                                          var_w=config.win_type,
                                          CF_type=config.ch_function,
                                          CF_decay_win=decay_const,
@@ -118,10 +118,10 @@ for i, station in enumerate(stations):
     CF = env_rec[n1:n2]
 
     if config.ch_function=='envelope':
-        CF_tr.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
+        tr_CF.data = np.sqrt(np.power(CF, 2).mean(axis=0))
     if config.ch_function=='kurtosis':
         kurt_argmax = np.amax(env_rec,axis=0)
-        CF_tr.data = GaussConv(kurt_argmax, sigma_gauss)
+        tr_CF.data = GaussConv(kurt_argmax, sigma_gauss)
 
 #-----resampling CF if wanted-------------------------------------------
 if config.sampl_rate_cf:
