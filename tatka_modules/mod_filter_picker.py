@@ -124,7 +124,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
 
             if full_output==True:
                 filteredDataP[n] = filtered_dataP[0,:]
-                filteredDataS[n] = filtered_dataS[0,:]
+                filteredDataS[n] = filtered_dataS[1,:]
 
             if var_w:
                 CF_decay_nsmps_mb = b * Tn[n]/delta
@@ -137,9 +137,9 @@ def MBfilter_CF(st, frequencies, var_w=True,
                     if full_output==True:
                         CF2[n] = recursive_rms(filtered_dataS[1,:], 1./CF_decay_nsmps_mb)
                 else:
-                    CF1[n] = recursive_rms(filtered_dataS[0,:], 1./CF_decay_nsmps_mb)
+                    CF1[n] = recursive_rms(filtered_dataS[1,:], 1./CF_decay_nsmps_mb)
                     if full_output==True:
-                        CF2[n] = recursive_rms(filtered_dataP[1,:], 1./CF_decay_nsmps_mb)
+                        CF2[n] = recursive_rms(filtered_dataP[0,:], 1./CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
                 if wave_type == 'P':
@@ -149,10 +149,10 @@ def MBfilter_CF(st, frequencies, var_w=True,
                         CF2[n] = recursive_hos(filtered_dataS[1,:], 1./CF_decay_nsmps_mb,
                                           0.001, order1, order2, power2)
                 else:
-                    CF1[n] = recursive_hos(filtered_dataS[0,:], 1./CF_decay_nsmps_mb,
+                    CF1[n] = recursive_hos(filtered_dataS[1,:], 1./CF_decay_nsmps_mb,
                                           0.001, order1, order2, power2)
                     if full_output==True:
-                        CF2[n] = recursive_hos(filtered_dataP[1,:], 1./CF_decay_nsmps_mb,
+                        CF2[n] = recursive_hos(filtered_dataP[0,:], 1./CF_decay_nsmps_mb,
                                           0.001, order1, order2, power2)
 
     if full_output==False:
