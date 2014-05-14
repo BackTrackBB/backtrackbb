@@ -118,7 +118,7 @@ for i, station in enumerate(stations):
     CF = env_rec[n1:n2]
 
     if config.ch_function=='envelope':
-        tr_CF.data = np.sqrt((np.sum(CF, axis=0)**2)/len(Tn2[n1:n2]))
+        tr_CF.data = np.sqrt(np.power(CF, 2).mean(axis=0))
     if config.ch_function=='kurtosis':
         kurt_argmax = np.amax(env_rec,axis=0)
         tr_CF.data = GaussConv(kurt_argmax, sigma_gauss)
