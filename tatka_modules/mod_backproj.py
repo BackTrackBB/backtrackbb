@@ -30,7 +30,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     grid1 = GRD_sta.values()[0]
     nx, ny, nz = np.shape(grid1.array)
     stack_grid = np.zeros((nx,ny,nz),float)
-    proj_grid = np.zeros((nx,ny,nz),float)
     arrival_times = defaultdict(list)
     trig_time = defaultdict(list)
     bp_trig_time = defaultdict(list)
@@ -40,14 +39,11 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     fs_env = st_CF[0].stats.sampling_rate
     sttime_env = st_CF[0].stats.starttime
 
-    comb_sta = list(itertools.combinations(stations, 2))
     rec_start_time = st[0].stats.starttime
 
     k = 0
     Mtau = []
-    for sta1, sta2 in comb_sta:
-        proj_grid = np.zeros((nx,ny,nz),float)
-
+    for sta1, sta2 in itertools.combinations(stations, 2):
         x_sta1, y_sta1 = coord_sta[sta1]
         x_sta2, y_sta2 = coord_sta[sta2]
 
@@ -65,17 +61,16 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 Mtau = 'none'
                 tau_max = None
 
-            proj_grid = sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
-                                      fs_env, sttime_env, config,
-                                      nx, ny, nz, arrival_times, tau_max)
-            stack_grid += proj_grid
+            stack_grid += sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
+                                       fs_env, sttime_env, config,
+                                       nx, ny, nz, arrival_times, tau_max)
 
-    Norm_grid = stack_grid / k
+    stack_grid /= k
 
-    Max_NormGrid = np.where(Norm_grid == np.max(Norm_grid))
-    i_max = Max_NormGrid[0][0]
-    j_max = Max_NormGrid[1][0]
-    k_max = Max_NormGrid[2][0]
+    max_stack_grid = np.where(stack_grid == np.max(stack_grid))
+    i_max = max_stack_grid[0][0]
+    j_max = max_stack_grid[1][0]
+    k_max = max_stack_grid[2][0]
 
     if config.cut_data:
         start_tw = config.cut_start + t_b
@@ -86,10 +81,10 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     if config.save_projGRID:
         print 'saving GRIDS with results'
         out_file = os.path.join('out_grid', 'out_' + str(t_b) + '.pkl')
-        pickle.dump(Norm_grid, open(out_file, "wb"))
+        pickle.dump(stack_grid, open(out_file, "wb"))
 
     trigger = None
-    if Norm_grid[i_max, j_max, k_max] >= config.trigger:
+    if stack_grid[i_max, j_max, k_max] >= config.trigger:
         if config.max_subdivide is not None:
             #We "zoom" the grid in a region close to the maximum
             zoom_factor = float(config.max_subdivide)
@@ -97,9 +92,9 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
             #is close to the grid edge!
             slice_factor = 4 #this is hardcoded, for now
             sf = int(slice_factor)
-            slice_grid = Norm_grid[i_max-sf:i_max+sf,
-                                   j_max-sf:j_max+sf,
-                                   k_max-sf:k_max+sf]
+            slice_grid = stack_grid[i_max-sf:i_max+sf,
+                                    j_max-sf:j_max+sf,
+                                    k_max-sf:k_max+sf]
             zoom_slice_grid = zoom(slice_grid, zoom_factor)
             zoom_i_max, zoom_j_max, zoom_k_max =\
                     [a[0]/zoom_factor
@@ -112,7 +107,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
-        trigger.max_grid = np.round(np.max(Norm_grid),4)
+        trigger.max_grid = np.round(np.max(stack_grid), 4)
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + config.time_lag
         trigger.center_win = start_tw + config.time_lag/2.
@@ -133,7 +128,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     n22 = len(frequencies) - 1
     fq_str = str(np.round(frequencies[n1])) + '_' + str(np.round(frequencies[n22]))
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
-    bp_plot(config, grid1, Norm_grid, comb_sta,
+    bp_plot(config, grid1, stack_grid,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,

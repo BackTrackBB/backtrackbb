@@ -42,3 +42,9 @@ class LocalCC():
 
         self.arrival1 = time - lag/2.
         self.arrival2 = time + lag/2.
+
+    def __del__(self):
+        del(self.smoothed_cc)
+        del(self.cc)
+        del(self.in_signal1)
+        del(self.in_signal2)

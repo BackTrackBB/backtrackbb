@@ -31,6 +31,8 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
 
     arrival_times[sta1].append(corr.arrival1)
     arrival_times[sta2].append(corr.arrival2)
+    #this should save some memory
+    del corr
 
     ## Max value of local_cc in given window
     local_cc = np.amax(a[:,shift+1:shift+1+end], axis=1)
