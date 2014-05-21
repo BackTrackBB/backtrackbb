@@ -77,11 +77,12 @@ void _reverse(const double *signal, double *rev_signal, int npts)
 }
 
 
-void _Gaussian1D(const double *signal, double *filt_signal, int npts, double sigma)
+void _Gaussian1D(double *signal, int npts, double sigma)
 {
+    // signal is overwritten
     double *A=NULL, *B=NULL;
     int n, nA, nB;
-    double *rev_filt_signal;
+    double *rev_filt_signal, *filt_signal;
 
     if (npts < 4) {
         perror("Signal too short\n");
@@ -93,34 +94,34 @@ void _Gaussian1D(const double *signal, double *filt_signal, int npts, double sig
     _gausscoeff(sigma, A, &nA, B, &nB);
 
     rev_filt_signal = (double *) malloc(npts * sizeof(double));
+    filt_signal = (double *) malloc(npts * sizeof(double));
 
     _lfilter(signal, filt_signal, npts, A, nA, B, nB);
     _reverse(filt_signal, rev_filt_signal, npts);
     _lfilter(rev_filt_signal, filt_signal, npts, A, nA, B, nB);
     _reverse(filt_signal, rev_filt_signal, npts);
     for (n=0; n<npts; n++)
-        filt_signal[n] = rev_filt_signal[n];
+        signal[n] = rev_filt_signal[n];
 
     free(A);
     free(B);
     free(rev_filt_signal);
+    free(filt_signal);
 }
 
 
 void _local_CCr(const double *signal1, const double *signal2, int npts,
-        double *cc_no_filt, double *cc, int lmax,
-        double sigma)
+                double *cc, int lmax, double sigma)
 {
     int n;
     int l, l_f, l_g;
-    double *_cc, *_cc_no_filt;
+    double *_cc;
     double shift1_1, shift2_2, shift1_2, shift2_1;
 
     for (l=-lmax; l<lmax; l++) {
         l_f = (int) floor(l/2.);
         l_g = (int) ceil(l/2.);
 
-        _cc_no_filt = &cc_no_filt[npts*(l+lmax)];
         _cc = &cc[npts*(l+lmax)];
 
         for(n=0; n<npts; n++) {
@@ -140,8 +141,9 @@ void _local_CCr(const double *signal1, const double *signal2, int npts,
                shift2_1 = signal2[n + l_f];
             else
                shift2_1 = 0;
-            _cc_no_filt[n] = 0.5 * (shift1_1 * shift2_2 + shift1_2 * shift2_1);
+            _cc[n] = 0.5 * (shift1_1 * shift2_2 + shift1_2 * shift2_1);
         }
-        _Gaussian1D(_cc_no_filt, _cc, npts, sigma);
+        if (sigma > 0)
+            _Gaussian1D(_cc, npts, sigma);
     }
 }

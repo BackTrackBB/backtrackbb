@@ -1,50 +1,28 @@
 import numpy as np
 import scipy as sp
-#from recursive_cc import local_CCr          #Python version
-from rec_cc import local_CCr                 #C version
+from rec_cc import local_CCr
 
-class LocalCC():
-    '''
-    '''
-    len_in_signal = int(0)
-    n_lags = int(0)
-    time_in_signal = None
-    cc_time_lags = None
-    smoothed_cc = None
-    cc = None
-    def __init__(self, in_signal1=None, in_signal2=None, samp_rate=None,
-                 max_time_lag=None, zero_time=None, sigma=None):
-        self.in_signal1 = in_signal1
-        self.in_signal2 = in_signal2
-        self.samp_rate = samp_rate
-        self.max_time_lag = max_time_lag
-        self.zero_time = zero_time
-        self.sigma = sigma
-        self.define_param()
-        self.local_cc()
 
-    def define_param(self):
-        self.len_in_signal = len(self.in_signal1)
-        self.time_in_signal = np.arange(self.len_in_signal) / self.samp_rate
-        self.n_lags = 2*int(self.max_time_lag * self.samp_rate)
-        self.cc_time_lags = sp.linspace(-self.n_lags/2/self.samp_rate,
-                                         self.n_lags/2/self.samp_rate,
-                                         self.n_lags, endpoint=True)
+def LocalCC(in_signal1, in_signal2, samp_rate, max_time_lag, zero_time, config):
 
-    def local_cc(self):
-        self.smoothed_cc, self.cc  = local_CCr(self.in_signal1, self.in_signal2,
-                                               self.max_time_lag,
-                                               self.samp_rate, self.sigma)
-        lag, time = [int(n) for n in np.where(self.smoothed_cc == self.smoothed_cc.max())]
+    if config.do_smooth_lcc:
+        sigma = config.smooth_lcc
+    else:
+        sigma = None
 
-        time = self.zero_time + time/self.samp_rate
-        lag = lag/self.samp_rate - self.max_time_lag
+    n_lags = 2 * int(max_time_lag * samp_rate)
+    cc_time_lags = sp.linspace(-n_lags/2/samp_rate,
+                                n_lags/2/samp_rate,
+                                n_lags, endpoint=True)
+    cc = local_CCr(in_signal1, in_signal2,
+                   max_time_lag, samp_rate, sigma)
 
-        self.arrival1 = time - lag/2.
-        self.arrival2 = time + lag/2.
+    lag, time = np.unravel_index(cc.argmax(), cc.shape)
 
-    def __del__(self):
-        del(self.smoothed_cc)
-        del(self.cc)
-        del(self.in_signal1)
-        del(self.in_signal2)
+    time = zero_time + time/samp_rate
+    lag = lag/samp_rate - max_time_lag
+
+    arrival1 = time - lag/2.
+    arrival2 = time + lag/2.
+
+    return cc_time_lags, cc, arrival1, arrival2

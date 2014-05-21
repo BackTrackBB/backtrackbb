@@ -64,7 +64,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
             stack_grid += sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
                                        fs_env, sttime_env, config,
                                        nx, ny, nz, arrival_times, tau_max)
-
     stack_grid /= k
 
     max_stack_grid = np.where(stack_grid == np.max(stack_grid))
