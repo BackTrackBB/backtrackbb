@@ -76,9 +76,15 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     pylab.setp(labels, rotation=90, fontsize=12)
     tt1 = st[0].stats.starttime+t_b
     tt2 = st[0].stats.starttime+t_e
-    ax1_xy.set_title('Date: '+str(tt1.date)+', Time: '+str(tt1.time)+\
-                  ' - '+str(tt2.time)+'  ('+str(t_b+config.cut_start)+' - '+str(t_e+config.cut_start)+'  sec),'+
-                  ' depth='+str(int(zz_grid))+' [km]')
+    ax1_xy.set_title('Date: %s, Time: %s.%03d - %s.%03d (%s - %s s), depth: %s km' %
+                     (tt1.date,
+                      tt1.strftime('%H:%M:%S'),
+                      int(round(tt1.microsecond/1000.)),
+                      tt2.strftime('%H:%M:%S'),
+                      int(round(tt2.microsecond/1000.)),
+                      t_b + config.cut_start,
+                      t_e + config.cut_start,
+                      zz_grid))
     if coord_eq:
         ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1,c='w')
     for sta in coord_sta:
@@ -159,6 +165,15 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
     if trigger is not None:
+        t = trigger.origin_time
+        if t is not None:
+            t_str = '%s.%03d, ' %\
+                    (t.strftime('Date: %Y-%m-%d, Time: %H:%M:%S'),
+                     int(round(t.microsecond/1000.)))
+        else:
+            t_str = ''
+        ax2_xy.set_title('%sLon: %.4f, Lat: %.4f, Depth: %.3f km' %
+                         (t_str, trigger.lon, trigger.lat, trigger.z))
         ax2_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax2_xy.set_aspect('equal', 'datalim')

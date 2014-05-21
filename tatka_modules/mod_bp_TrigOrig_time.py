@@ -44,7 +44,7 @@ def TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
                 trig_time[sta][2] = 0.
                 trig_time[sta][2] = orig_time/mm + trig_time[sta][1]
         else:
-            bp_origin_time = 999.9
+            bp_origin_time = None
             trig_time = defaultdict(list)
 
     return bp_origin_time, trig_time
