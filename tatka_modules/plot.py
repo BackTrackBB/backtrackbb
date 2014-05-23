@@ -8,7 +8,7 @@ from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def bp_plot(config, grid1, proj_grid, comb_sta,
+def bp_plot(config, grid1, proj_grid,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta,
             st, sta, st_CF,
@@ -34,9 +34,6 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
     sta_smbl_size = 150 / ratio
     eq_smbl_size = 200 / ratio
     trig_smbl_size = 200 / ratio
-
-    #grid_max= proj_grid/len(comb_sta)
-    grid_max= proj_grid/1
 
     scmap2 = pylab.cm.jet
     scmap2.set_under('w', LTrig)
@@ -65,7 +62,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
     xx_grid, yy_grid, zz_grid = grid1.get_xyz(i_grid, j_grid, k_grid)
 
-    hnd=ax1_xy.imshow(np.flipud(np.transpose(grid_max[:,:,k_grid])),
+    hnd=ax1_xy.imshow(np.flipud(np.transpose(proj_grid[:,:,k_grid])),
                              extent=grid1.get_xy_extent(), cmap=scmap, rasterized=True)
     ax1_xy.axis('tight')
     ax1_xy.set_xlim(Xmin,Xmax)
@@ -101,7 +98,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax1_yz
     ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
-    ax1_yz.imshow(np.flipud(grid_max[i_grid,:,:]),
+    ax1_yz.imshow(np.flipud(proj_grid[i_grid,:,:]),
                      extent=grid1.get_zy_extent(), cmap=scmap, rasterized=True)
 
     if trigger is not None:
@@ -119,7 +116,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax1_xz
     ax1_xz = divider1.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax1_xy)
-    ax1_xz.imshow(np.flipud(np.transpose(grid_max[:,j_grid,:])),
+    ax1_xz.imshow(np.flipud(np.transpose(proj_grid[:,j_grid,:])),
                      extent=grid1.get_xz_extent(), cmap=scmap, rasterized=True)
 
     if trigger is not None:
@@ -145,7 +142,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 #--ax2_xy
     ax2_xy = fig.add_subplot(223)
     divider11 = make_axes_locatable(ax2_xy)
-    hnd2 = ax2_xy.imshow(np.flipud(np.transpose(grid_max[:,:,k_grid])),
+    hnd2 = ax2_xy.imshow(np.flipud(np.transpose(proj_grid[:,:,k_grid])),
                        extent=grid1.get_xy_extent(), cmap=scmap2,
                        vmin=lcc_min, vmax=lcc_max,
                        rasterized=True)
@@ -180,7 +177,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax2_yz
     ax2_yz = divider11.append_axes('right', size=yz_size, pad=0.05, sharey=ax2_xy)
-    ax2_yz.imshow(np.flipud(grid_max[i_grid,:,:]),
+    ax2_yz.imshow(np.flipud(proj_grid[i_grid,:,:]),
                       extent=grid1.get_zy_extent(), cmap=scmap2,
                       vmin=lcc_min, vmax=lcc_max,
                       rasterized=True)
@@ -201,7 +198,7 @@ def bp_plot(config, grid1, proj_grid, comb_sta,
 
 #--ax2_xz
     ax2_xz = divider11.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax2_xy)
-    ax2_xz.imshow(np.flipud(np.transpose(grid_max[:,j_grid,:])),
+    ax2_xz.imshow(np.flipud(np.transpose(proj_grid[:,j_grid,:])),
                      extent=grid1.get_xz_extent(), cmap=scmap2,
                      vmin=lcc_min, vmax=lcc_max,
                      rasterized=True)
