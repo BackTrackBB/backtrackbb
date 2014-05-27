@@ -4,12 +4,12 @@ import numpy as np
 import itertools
 from collections import defaultdict
 from scipy.ndimage.interpolation import zoom
-from tatka_modules.bp_types import Trigger
-from tatka_modules.map_project import rect2latlon
-from tatka_modules.grid_projection import sta_GRD_Proj
-from tatka_modules.plot import bp_plot
-from tatka_modules.mod_bp_TrigOrig_time import TrOrig_time
-import cPickle as pickle
+from bp_types import Trigger
+from map_project import rect2latlon
+from grid_projection import sta_GRD_Proj
+from plot import bp_plot
+from mod_bp_TrigOrig_time import TrOrig_time
+from NLLGrid import NLLGrid
 
 
 def run_BackProj(args):
@@ -27,9 +27,21 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
     time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
-    grid1 = GRD_sta.values()[0]
-    nx, ny, nz = np.shape(grid1.array)
-    stack_grid = np.zeros((nx,ny,nz),float)
+    # Create stack grid using a time grid as model
+    gr = GRD_sta.values()[0]
+    stack_grid = NLLGrid(nx=gr.nx, ny=gr.ny, nz=gr.nz,
+                         x_orig=gr.x_orig, y_orig=gr.y_orig, z_orig=gr.z_orig,
+                         dx=gr.dx, dy=gr.dy, dz=gr.dz)
+    stack_grid.type = 'STACK'
+    stack_grid.proj_name = gr.proj_name
+    stack_grid.ellipsoid = gr.ellipsoid
+    stack_grid.orig_lat = gr.orig_lat
+    stack_grid.orig_lon = gr.orig_lon
+    stack_grid.first_std_paral = gr.first_std_paral
+    stack_grid.second_std_paral = gr.second_std_paral
+    stack_grid.map_rot = gr.map_rot
+    stack_grid.init_array()
+
     arrival_times = defaultdict(list)
     trig_time = defaultdict(list)
     bp_trig_time = defaultdict(list)
@@ -58,18 +70,15 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 Mtau.append(np.round(tau_max,1))
                 t_e = t_b + np.round(tau_max,1)
             else:
-                Mtau = 'none'
+                Mtau = None
                 tau_max = None
 
-            stack_grid += sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
+            stack_grid.array += sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
                                        fs_env, sttime_env, config,
-                                       nx, ny, nz, arrival_times, tau_max)
-    stack_grid /= k
+                                       arrival_times, tau_max)
+    stack_grid.array /= k
 
-    max_stack_grid = np.where(stack_grid == np.max(stack_grid))
-    i_max = max_stack_grid[0][0]
-    j_max = max_stack_grid[1][0]
-    k_max = max_stack_grid[2][0]
+    i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
 
     if config.cut_data:
         start_tw = config.cut_start + t_b
@@ -96,12 +105,12 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
             i_max = zoom_i_max + i_max-sf
             j_max = zoom_j_max + j_max-sf
             k_max = zoom_k_max + k_max-sf
-        xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
+        xx_trig, yy_trig, zz_trig = stack_grid.get_xyz(i_max, j_max, k_max)
 
         trigger = Trigger()
-        trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
+        trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
-        trigger.max_grid = np.round(np.max(stack_grid), 4)
+        trigger.max_grid = np.round(stack_grid.max(), 4)
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + config.time_lag
         trigger.center_win = start_tw + config.time_lag/2.
@@ -119,17 +128,17 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
 
     if config.save_projGRID == True or\
             (config.save_projGRID == 'trigger_only' and trigger is not None):
-        print 'saving GRIDS with results'
-        out_file = os.path.join(config.out_dir, 'out_t%05.1f.pickle' % t_b)
-        with open(out_file, 'wb') as fp:
-            pickle.dump(stack_grid, fp)
+        print 'Saving projection grid to file.'
+        basename = os.path.join(config.out_dir, 'out_t%05.1f' % t_b)
+        stack_grid.write_hdr_file(basename)
+        stack_grid.write_buf_file(basename)
 
     ## Plotting------------------------------------------------------------------
     n1 = 0
     n22 = len(frequencies) - 1
     fq_str = str(np.round(frequencies[n1])) + '_' + str(np.round(frequencies[n22]))
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
-    bp_plot(config, grid1, stack_grid,
+    bp_plot(config, stack_grid,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta, st, stations, st_CF,
             time, time_env,

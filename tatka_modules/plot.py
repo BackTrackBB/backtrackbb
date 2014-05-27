@@ -1,20 +1,20 @@
 import os
 import numpy as np
 import pylab
-from collections import defaultdict
 import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def bp_plot(config, grid1, proj_grid,
+
+def bp_plot(config, proj_grid,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta,
             st, sta, st_CF,
             time, time_env,
-            fq, n1, n22,trigger,arrival_times=defaultdict(list),
-            trig_time=defaultdict(list),Mtau = 'none'):
+            fq, n1, n22, trigger,
+            arrival_times=None, trig_time=None, Mtau=None):
 
     LTrig = config.trigger
     lcc_max = config.lcc_max
@@ -22,7 +22,7 @@ def bp_plot(config, grid1, proj_grid,
     scmap = config.scmap
     plot_waveforms = config.plot_waveforms
 
-    Xmin, Xmax, Ymin, Ymax, Zmin, Zmax = grid1.get_extent()
+    Xmin, Xmax, Ymin, Ymax, Zmin, Zmax = proj_grid.get_extent()
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
     fig = figure.Figure(figsize=(20, 20))
     plot_xz_size = ((Zmax - Zmin)/(Xmax - Xmin))*100
@@ -54,16 +54,16 @@ def bp_plot(config, grid1, proj_grid,
         k_grid = k_max
     elif coord_eq:
         x_eq, y_eq, z_eq = coord_eq
-        i_grid, j_grid, k_grid = grid1.get_ijk(x_eq[0], y_eq[0], z_eq[0])
+        i_grid, j_grid, k_grid = proj_grid.get_ijk(x_eq[0], y_eq[0], z_eq[0])
     else:
-        i_grid = int(proj_grid.shape[0] / 2.)
-        j_grid = int(proj_grid.shape[1] / 2.)
-        k_grid = int(proj_grid.shape[2] / 2.)
+        i_grid = int(proj_grid.nx / 2.)
+        j_grid = int(proj_grid.ny / 2.)
+        k_grid = int(proj_grid.nz / 2.)
 
-    xx_grid, yy_grid, zz_grid = grid1.get_xyz(i_grid, j_grid, k_grid)
+    xx_grid, yy_grid, zz_grid = proj_grid.get_xyz(i_grid, j_grid, k_grid)
 
     hnd=ax1_xy.imshow(np.flipud(np.transpose(proj_grid[:,:,k_grid])),
-                             extent=grid1.get_xy_extent(), cmap=scmap, rasterized=True)
+                             extent=proj_grid.get_xy_extent(), cmap=scmap, rasterized=True)
     ax1_xy.axis('tight')
     ax1_xy.set_xlim(Xmin,Xmax)
     ax1_xy.set_ylim(Ymin,Ymax)
@@ -99,7 +99,7 @@ def bp_plot(config, grid1, proj_grid,
 #--ax1_yz
     ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
     ax1_yz.imshow(np.flipud(proj_grid[i_grid,:,:]),
-                     extent=grid1.get_zy_extent(), cmap=scmap, rasterized=True)
+                     extent=proj_grid.get_zy_extent(), cmap=scmap, rasterized=True)
 
     if trigger is not None:
         ax1_yz.scatter(zz_max, yy_max,
@@ -117,7 +117,7 @@ def bp_plot(config, grid1, proj_grid,
 #--ax1_xz
     ax1_xz = divider1.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax1_xy)
     ax1_xz.imshow(np.flipud(np.transpose(proj_grid[:,j_grid,:])),
-                     extent=grid1.get_xz_extent(), cmap=scmap, rasterized=True)
+                     extent=proj_grid.get_xz_extent(), cmap=scmap, rasterized=True)
 
     if trigger is not None:
         ax1_xz.scatter(xx_max, zz_max,
@@ -143,7 +143,7 @@ def bp_plot(config, grid1, proj_grid,
     ax2_xy = fig.add_subplot(223)
     divider11 = make_axes_locatable(ax2_xy)
     hnd2 = ax2_xy.imshow(np.flipud(np.transpose(proj_grid[:,:,k_grid])),
-                       extent=grid1.get_xy_extent(), cmap=scmap2,
+                       extent=proj_grid.get_xy_extent(), cmap=scmap2,
                        vmin=lcc_min, vmax=lcc_max,
                        rasterized=True)
     ax2_xy.axis('tight')
@@ -178,7 +178,7 @@ def bp_plot(config, grid1, proj_grid,
 #--ax2_yz
     ax2_yz = divider11.append_axes('right', size=yz_size, pad=0.05, sharey=ax2_xy)
     ax2_yz.imshow(np.flipud(proj_grid[i_grid,:,:]),
-                      extent=grid1.get_zy_extent(), cmap=scmap2,
+                      extent=proj_grid.get_zy_extent(), cmap=scmap2,
                       vmin=lcc_min, vmax=lcc_max,
                       rasterized=True)
 
@@ -199,7 +199,7 @@ def bp_plot(config, grid1, proj_grid,
 #--ax2_xz
     ax2_xz = divider11.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax2_xy)
     ax2_xz.imshow(np.flipud(np.transpose(proj_grid[:,j_grid,:])),
-                     extent=grid1.get_xz_extent(), cmap=scmap2,
+                     extent=proj_grid.get_xz_extent(), cmap=scmap2,
                      vmin=lcc_min, vmax=lcc_max,
                      rasterized=True)
 
@@ -254,18 +254,18 @@ def bp_plot(config, grid1, proj_grid,
         ax3.plot(time_env, ydata, 'k', rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
-        ##        plotting vertical bars corresponding to LCCmax in given time window
+        ## plotting vertical bars corresponding to LCCmax in given time window
         if trigger is not None:
             y_max = max(ydata)
             y_min = 2 * min(ydata) - y_max
-            if len(trig_time) > 0:
+            if trig_time is not None and len(trig_time) > 0:
                 for p_times in arrival_times[sta]:
-                    LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
+                    LCCmax_time = p_times - st[0].stats.starttime + config.cut_start
                     ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
                 ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
                 ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
 
-    if Mtau != 'none':
+    if Mtau is not None:
         for tt in Mtau:
             ax3.axvspan(t_b+config.cut_start, t_b+tt+config.cut_start,
                         facecolor='g', alpha=0.1)
