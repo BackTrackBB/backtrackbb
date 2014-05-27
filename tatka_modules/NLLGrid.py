@@ -1,51 +1,66 @@
 # -*- coding: utf8 -*-
-
+# NLLGrid.py
+#
+# Reading and writing of NLL grid files
+#
+# (c) 2013-2014 - Natalia Poiata <poiata@ipgp.fr>,
+#                 Claudio Satriano <satriano@ipgp.fr>
 import numpy as np
 from array import array
 
+
 class NLLGrid():
     '''
-    Class for reading NLL grid files
+    Class for reading and writing NLL grid files
     '''
 
-    def __init__(self, basename=''):
-        self.nx = int(0)
-        self.ny = int(0)
-        self.nz = int(0)
-        self.x_orig = float(0)
-        self.y_orig = float(0)
-        self.z_orig = float(0)
-        self.dx = float(0)
-        self.dy = float(0)
-        self.dz = float(0)
-        self.type = ''
-        self.proj_name = ''
+    def __init__(self,
+                 basename=None,
+                 nx=0, ny=0, nz=0,
+                 x_orig=0., y_orig=0., z_orig=0.,
+                 dx=0., dy=0., dz=0.):
+        self.nx = nx
+        self.ny = ny
+        self.nz = nz
+        self.x_orig = x_orig
+        self.y_orig = y_orig
+        self.z_orig = z_orig
+        self.dx = dx
+        self.dy = dy
+        self.dz = dz
+        self.type = None
+        self.proj_name = None
         self.orig_lat = float(0)
         self.orig_lon = float(0)
+        self.first_std_paral = None
+        self.second_std_paral = None
         self.map_rot = float(0)
-        self.station = ''
+        self.station = None
         self.sta_x = float(0)
         self.sta_y = float(0)
         self.sta_z = float(0)
         self.array = None
         self.basename = basename
         if basename:
-            self.read_hdr_file(basename)
-            self.read_buf_file(basename)
+            self.read_hdr_file()
+            self.read_buf_file()
 
     def __getitem__(self, key):
         if self.array is not None:
             return self.array[key]
 
-    def read_hdr_file(self, basename):
-        '''Reads header file of NLLoc output'''
-        self.basename = basename
-        filename = basename + '.hdr'
+    def init_array(self):
+        self.array = np.zeros((self.nx, self.ny, self.nz), float)
+
+    def read_hdr_file(self, basename=None):
+        '''Reads header file of NLL grid format'''
+        if basename is not None:
+            self.basename = basename
+        filename = self.basename + '.hdr'
 
         # read header file
-        f = open(filename)
-        lines = f.readlines()
-        f.close()
+        with open(filename, 'r') as fp:
+            lines = fp.readlines()
 
         # extract information
         vals = lines[0].split()
@@ -86,19 +101,59 @@ class NLLGrid():
                 self.sta_y = float(vals[2])
                 self.sta_z = float(vals[3])
 
-    def read_buf_file(self, basename):
-        '''reads buf file as a 3d array'''
-        self.basename = basename
-        buffilename = basename + '.buf'
+    def read_buf_file(self, basename=None):
+        '''Reads buf file as a 3d array'''
+        if basename is not None:
+            self.basename = basename
+        filename = self.basename + '.buf'
 
-        f1 = open(buffilename, 'rb')
-        buf = array('f')
-        buf.fromfile(f1,
-                     self.nx *
-                     self.ny *
-                     self.nz)
-        f1.close()
+        with open(filename, 'rb') as fp:
+            buf = array('f')
+            buf.fromfile(fp, self.nx * self.ny * self.nz)
         self.array = np.array(buf).reshape(self.nx, self.ny, self.nz)
+
+    def write_hdr_file(self, basename=None):
+        '''Writes header file of NLL grid format'''
+        if basename is not None:
+            self.basename = basename
+        filename = self.basename + '.hdr'
+
+        lines = []
+        lines.append('%d %d %d  %.6f %.6f %.6f  %.6f %.6f %.6f %s\n' %
+                (self.nx, self.ny, self.nz,
+                 self.x_orig, self.y_orig, self.z_orig,
+                 self.dx, self.dy, self.dz,
+                 self.type))
+        if self.station is not None:
+            lines.append('%s %.6f %.6f %.6f\n' %
+                    (self.station, self.sta_x, self.sta_y, self.sta_z))
+        if self.proj_name == 'NONE':
+            lines.append('TRANSFORM  NONE\n')
+        if self.proj_name == 'SIMPLE':
+            lines.append('TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f\n' %
+                    (self.orig_lat, self.orig_lon, self.map_rot))
+        if self.proj_name == 'LAMBERT':
+            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.ellipsoid
+            line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
+            line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f\n' %\
+                    (self.first_std_paral, self.second_std_paral, self.map_rot)
+            lines.append(line)
+
+        with open(filename, 'w') as fp:
+            for line in lines:
+                fp.write(line)
+
+    def write_buf_file(self, basename=None):
+        '''Writes buf file as a 3d array'''
+        if self.array is None:
+            return
+
+        if basename is not None:
+            self.basename = basename
+        filename = self.basename + '.buf'
+
+        with open(filename, 'wb') as fp:
+            self.array.astype(np.float32).tofile(fp)
 
     def get_xyz(self, i, j, k):
         x = i * self.dx + self.x_orig
@@ -111,10 +166,12 @@ class NLLGrid():
         j = int((y - self.y_orig) / self.dy)
         k = int((z - self.z_orig) / self.dz)
         return i, j, k
-    
+
     def get_value(self, x, y, z):
+        if self.array is None:
+            return
         i, j, k = self.get_ijk(x, y, z)
-        return self.array[i, j, k]    
+        return self.array[i, j, k]
 
     def get_extent(self):
         extent = (self.x_orig - self.dx / 2,
@@ -140,3 +197,7 @@ class NLLGrid():
 
     def get_zy_extent(self):
         return self.get_extent()[4:] + self.get_extent()[2:4]
+
+    def max(self):
+        if self.array is not None:
+            return self.array.max()
