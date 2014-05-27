@@ -3,13 +3,14 @@ import scipy as sp
 from LocalCC import LocalCC
 
 
-def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
-                 fs_sampling, start_time, config,
-                 arrival_times, tau_max=None):
+def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift, config, tau_max=None):
 
     max_lag = config.time_lag
     if tau_max is not None:
         max_lag = tau_max
+
+    fs_sampling = stream[0].stats.sampling_rate
+    start_time = stream[0].stats.starttime
 
     beg = int(t_b * fs_sampling)
     end = int(t_e * fs_sampling)
@@ -21,10 +22,6 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
 
     t_lag, local_cc, arrival1, arrival2 =\
         LocalCC(sig1, sig2, fs_sampling, max_lag, start_time+t_b, config)
-
-    arrival_times[sta1].append(arrival1)
-    arrival_times[sta2].append(arrival2)
-
 
     ## Max value of local_cc in given window
     local_cc_1d = np.amax(local_cc, axis=1)
@@ -39,4 +36,4 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
     tt_array2 = ttime_GRIDS[sta2].array
     stationPair_projGrid = function((tt_array2 - tt_array1).flatten()).reshape(tt_array1.shape)
 
-    return stationPair_projGrid
+    return stationPair_projGrid, arrival1, arrival2

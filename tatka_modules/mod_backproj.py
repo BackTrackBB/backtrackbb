@@ -17,8 +17,7 @@ def run_BackProj(args):
 
 
 def _run_BackProj(idd, config, st, st_CF, frequencies,
-                  stations, coord_sta, GRD_sta,
-                  coord_eq):
+                  stations, coord_sta, GRD_sta, coord_eq):
 
     t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
     t_b = t_bb[idd]
@@ -43,13 +42,9 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     stack_grid.init_array()
 
     arrival_times = defaultdict(list)
-    trig_time = defaultdict(list)
     bp_trig_time = defaultdict(list)
 
     nn = int(config.t_overlap)
-
-    fs_env = st_CF[0].stats.sampling_rate
-    sttime_env = st_CF[0].stats.starttime
 
     rec_start_time = st[0].stats.starttime
 
@@ -73,9 +68,11 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 Mtau = None
                 tau_max = None
 
-            stack_grid.array += sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
-                                       fs_env, sttime_env, config,
-                                       arrival_times, tau_max)
+            proj_grid, arrival1, arrival2 =\
+                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn, config, tau_max)
+            stack_grid.array += proj_grid
+            arrival_times[sta1].append(arrival1)
+            arrival_times[sta2].append(arrival2)
     stack_grid.array /= k
 
     i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
@@ -120,7 +117,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     ##------------------Origin time calculation------------------------------------------------------
         bp_origin_time, bp_trig_time =\
                 TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
-                            rec_start_time, arrival_times, trig_time)
+                            rec_start_time, arrival_times)
 
         trigger.origin_time = bp_origin_time
     ##-----------------------------------------------------------------------------------------------
