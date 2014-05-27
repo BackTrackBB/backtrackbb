@@ -5,7 +5,7 @@ from LocalCC import LocalCC
 
 def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
                  fs_sampling, start_time, config,
-                 nnx, nny, nnz, arrival_times, tau_max=None):
+                 arrival_times, tau_max=None):
 
     max_lag = config.time_lag
     if tau_max is not None:
@@ -37,6 +37,6 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift,
     ## Output_Grid
     tt_array1 = ttime_GRIDS[sta1].array
     tt_array2 = ttime_GRIDS[sta2].array
-    stationPair_projGrid = function((tt_array2 - tt_array1).flatten()).reshape(nnx, nny, nnz)
+    stationPair_projGrid = function((tt_array2 - tt_array1).flatten()).reshape(tt_array1.shape)
 
     return stationPair_projGrid
