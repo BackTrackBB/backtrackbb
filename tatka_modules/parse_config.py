@@ -5,6 +5,12 @@ from configobj import ConfigObj
 from validate import Validator
 from Config import Config
 
+
+def _str2bool(arg):
+    v = str(arg)
+    return v.lower() in ("yes", "true", "t", "1")
+
+
 def __parse_configspec():
     try:
         configspec_file = os.path.join(os.path.dirname(__file__), 'configspec.conf')
@@ -18,16 +24,18 @@ def __parse_configspec():
         sys.exit(1)
     return configspec
 
+
 def __write_sample_config(configspec, progname):
     c = ConfigObj(configspec=configspec)
     val = Validator()
     c.validate(val)
-    c.defaults=[]
+    c.defaults = []
     c.initial_comment = configspec.initial_comment
     c.comments = configspec.comments
     configfile = progname + '.conf'
     c.write(open(configfile, 'w'))
     print 'Sample config file written to: ' + configfile
+
 
 def parse_config(config_file):
     configspec = __parse_configspec()
@@ -54,6 +62,10 @@ def parse_config(config_file):
                 sys.stderr.write('Invalid value for "%s": "%s"\n'
                         % (entry, config_obj[entry]))
         sys.exit(1)
+
+    # Fields needing special treatment:
+    if config_obj['save_projGRID'] != 'trigger_only':
+        config_obj['save_projGRID'] = _str2bool(config_obj['save_projGRID'])
 
     # Create a Config object
     config = Config(config_obj.dict().copy())

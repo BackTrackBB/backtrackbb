@@ -77,11 +77,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         start_tw = t_b
         config.cut_start = 0.
 
-    if config.save_projGRID:
-        print 'saving GRIDS with results'
-        out_file = os.path.join('out_grid', 'out_' + str(t_b) + '.pkl')
-        pickle.dump(stack_grid, open(out_file, "wb"))
-
     trigger = None
     if stack_grid[i_max, j_max, k_max] >= config.trigger:
         if config.max_subdivide is not None:
@@ -121,6 +116,13 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         trigger.origin_time = bp_origin_time
     ##-----------------------------------------------------------------------------------------------
         print trigger
+
+    if config.save_projGRID == True or\
+            (config.save_projGRID == 'trigger_only' and trigger is not None):
+        print 'saving GRIDS with results'
+        out_file = os.path.join(config.out_dir, 'out_t%05.1f.pickle' % t_b)
+        with open(out_file, 'wb') as fp:
+            pickle.dump(stack_grid, fp)
 
     ## Plotting------------------------------------------------------------------
     n1 = 0
