@@ -55,6 +55,21 @@ def parse_config(config_file):
                         % (entry, config_obj[entry]))
         sys.exit(1)
 
+    # Fields needing special treatment:
+    if config_obj['hos_sigma'] is not None:
+        hos_sigma = config_obj['hos_sigma']
+        stations = config_obj['stations']
+        # change hos_sigma elements to float
+        # and take the power of two
+        hos_sigma = [float(x)**2 for x in hos_sigma]
+        # make hos_sigma the same length than stations
+        if len(stations) > len(hos_sigma):
+            hos_sigma += [hos_sigma[-1], ] *\
+                (len(stations) - len(hos_sigma))
+        hos_sigma_dict = {key: value for (key, value) in
+            zip(stations, hos_sigma)}
+        config_obj['hos_sigma'] = hos_sigma_dict
+
     # Create a Config object
     config = Config(config_obj.dict().copy())
 
