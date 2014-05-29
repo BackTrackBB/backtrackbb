@@ -3,7 +3,7 @@ import scipy as sp
 from LocalCC import LocalCC
 
 
-def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift, config, tau_max=None):
+def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, wave1, wave2, t_b, t_e, shift, config, tau_max=None):
 
     max_lag = config.time_lag
     if tau_max is not None:
@@ -15,8 +15,8 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift, config, tau_m
     beg = int(t_b * fs_sampling)
     end = int(t_e * fs_sampling)
 
-    trace1 = stream.select(station=sta1)[0]
-    trace2 = stream.select(station=sta2)[0]
+    trace1 = stream.select(station=sta1, channel=wave1)[0]
+    trace2 = stream.select(station=sta2, channel=wave2)[0]
     sig1 = trace1.data[beg-shift:end+shift]/max(abs(trace1.data[beg-shift:end+shift]))
     sig2 = trace2.data[beg-shift:end+shift]/max(abs(trace2.data[beg-shift:end+shift]))
 
@@ -32,8 +32,8 @@ def sta_GRD_Proj(stream, ttime_GRIDS, sta1, sta2, t_b, t_e, shift, config, tau_m
     function = sp.interpolate.UnivariateSpline(t_lag, local_cc_1d, k=1, s=0)
 
     ## Output_Grid
-    tt_array1 = ttime_GRIDS[sta1].array
-    tt_array2 = ttime_GRIDS[sta2].array
+    tt_array1 = ttime_GRIDS[sta1][wave1].array
+    tt_array2 = ttime_GRIDS[sta2][wave2].array
     stationPair_projGrid = function((tt_array2 - tt_array1).flatten()).reshape(tt_array1.shape)
 
     return stationPair_projGrid, arrival1, arrival2

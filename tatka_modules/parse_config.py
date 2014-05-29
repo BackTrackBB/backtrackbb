@@ -84,6 +84,12 @@ def parse_config(config_file):
         zip(stations, hos_sigma)}
     config_obj['hos_sigma'] = hos_sigma_dict
 
+    # Make wave_type a list
+    if config_obj['wave_type'] == 'PS':
+        config_obj['wave_type'] = ['P', 'S']
+    else:
+        config_obj['wave_type'] = [config_obj['wave_type'], ]
+
     # Create a Config object
     config = Config(config_obj.dict().copy())
 

@@ -10,14 +10,15 @@ def TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
 
     trig_time = defaultdict(list)
 
+    wave = 'P'
     for sta in stations:
         tr_time = 0
-        for pick_times in arrival_times[sta]:
+        for pick_times in arrival_times[sta][wave]:
             tr_time += pick_times - rec_start_time + config.cut_start
 
-        trig_time[sta].append(tr_time/len(arrival_times[sta]))
+        trig_time[sta].append(tr_time/len(arrival_times[sta][wave]))
 
-        tt_time = GRD_sta[sta].get_value(xx_trig,yy_trig,zz_trig)
+        tt_time = GRD_sta[sta][wave].get_value(xx_trig, yy_trig, zz_trig)
         trig_time[sta].append(tt_time)
 
         orig_time += trig_time[sta][0] - trig_time[sta][1]

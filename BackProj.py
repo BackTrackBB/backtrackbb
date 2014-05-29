@@ -4,9 +4,9 @@ import sys
 import os
 import numpy as np
 from tatka_modules.read_traces import read_traces
-from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq,\
-     MBfilter_CF, GaussConv
-from tatka_modules.NLLGrid import NLLGrid
+from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
+from tatka_modules.read_grids import read_grids
+from tatka_modules.summary_cf import summary_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.plot import plt_SummaryOut
@@ -44,17 +44,8 @@ def main():
         location_jma = os.path.join(config.catalog_dir, config.eq_file)
     #------------------------------------------------------------------------
 
-    #--Reading grids of the theoretical travel-times-------------------------
-    bname = []
-    GRD_sta = {}
-    coord_sta = {}
-    for station in stations:
-        grid_files = '.'.join(('layer', config.wave_type, station, 'time'))
-        grid_files = os.path.join(config.grid_dir, grid_files)
-        bname.append(grid_files)
-        grid = NLLGrid(grid_files)
-        coord_sta[station] = (grid.sta_x, grid.sta_y)
-        GRD_sta[station] = grid
+    #--Read grids of theoretical travel-times--------------------------------
+    GRD_sta, coord_sta = read_grids(config, stations)
 
     #--- cut the data to the selected length dt------------------------------
     if config.cut_data:
@@ -78,14 +69,6 @@ def main():
     #---Some simple parameters from trace------------------------------------
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
     delta = st[0].stats.delta
-    fs_data = st[0].stats.sampling_rate
-    decay_const = config.decay_const
-    if config.rosenberger_decay_const is not None:
-        rosenberger_decay_const = config.rosenberger_decay_const
-    else:
-        rosenberger_decay_const = config.decay_const
-    sigma_gauss = int(decay_const/delta/4) # so far fixed
-                                           # can be added to control file as a separate variable
 
     #---Calculating frequencies for MBFilter---------------------------------
     if config.band_spacing == 'lin':
@@ -95,43 +78,15 @@ def main():
     n1 = 0
     n2 = len(frequencies)
     n22 = len(frequencies) - 1
+    print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
 
     #----MB filtering and calculating Summary characteristic functions:------
-    st_CF = st.copy()
-    for i, station in enumerate(stations):
-        st_select = st.select(station=station)
-        tr_CF = st_CF.select(station=station)[0]
-        print('Creating characteristic function: station No {}/{}'.format(i+1, len(stations)))
-        HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies,
-                                             var_w=config.win_type,
-                                             CF_type=config.ch_function,
-                                             CF_decay_win=decay_const,
-                                             rosenberger_decay_win=rosenberger_decay_const,
-                                             wave_type=config.wave_type,
-                                             hos_sigma=config.hos_sigma[station])
-
-        CF = env_rec[n1:n2]
-
-        if config.ch_function=='envelope':
-            tr_CF.data = np.sqrt(np.power(CF, 2).mean(axis=0))
-        if config.ch_function=='kurtosis':
-            kurt_argmax = np.amax(env_rec,axis=0)
-            tr_CF.data = GaussConv(kurt_argmax, sigma_gauss)
-
-    #-----resampling CF if wanted-------------------------------------------
-    if config.sampl_rate_cf:
-        if config.sampl_rate_cf < fs_data:
-            st_CF.resample(config.sampl_rate_cf)
-    else:
-        config.sampl_rate_cf = fs_data
+    st_CF = summary_cf(config, stations, st, frequencies)
 
     time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
-    print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
-
-    #---grid infromation-----------------------------------------------------
-    grid1 = GRD_sta.values()[0]
-    nx, ny, nz = np.shape(grid1.array)
+    #---Take the first grid as reference ------------------------------------
+    grid1 = GRD_sta.values()[0].values()[0]
 
     #---init map projection--------------------------------------------------
     get_transform(grid1.proj_name,
@@ -166,8 +121,8 @@ def main():
         str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
         config.ch_function,
         config.channel,
-        config.wave_type,
-        'trig'+str(config.trigger)
+        ''.join(config.wave_type),
+        'trig' + str(config.trigger)
         ))
 
     file_out_data = file_out_base + '_OUT2.dat'

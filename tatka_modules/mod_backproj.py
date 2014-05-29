@@ -27,7 +27,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
     # Create stack grid using a time grid as model
-    gr = GRD_sta.values()[0]
+    gr = GRD_sta.values()[0].values()[0]
     stack_grid = NLLGrid(nx=gr.nx, ny=gr.ny, nz=gr.nz,
                          x_orig=gr.x_orig, y_orig=gr.y_orig, z_orig=gr.z_orig,
                          dx=gr.dx, dy=gr.dy, dz=gr.dz)
@@ -41,19 +41,24 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     stack_grid.map_rot = gr.map_rot
     stack_grid.init_array()
 
-    arrival_times = defaultdict(list)
-    bp_trig_time = defaultdict(list)
+    arrival_times = defaultdict(lambda: defaultdict(list))
 
     nn = int(config.t_overlap)
 
     rec_start_time = st[0].stats.starttime
 
+    sta_wave = [(sta, wave) for wave in config.wave_type for sta in stations]
+
     k = 0
     Mtau = []
-    for sta1, sta2 in itertools.combinations(stations, 2):
+    for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
+        sta1 = sta_wave1[0]
+        sta2 = sta_wave2[0]
+        wave1 = sta_wave1[1]
+        wave2 = sta_wave2[1]
+
         x_sta1, y_sta1 = coord_sta[sta1]
         x_sta2, y_sta2 = coord_sta[sta2]
-
         distance = np.sqrt((x_sta1-x_sta2)**2 + (y_sta1-y_sta2)**2)
 
         if distance <= config.maxSTA_distance:
@@ -69,10 +74,10 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 tau_max = None
 
             proj_grid, arrival1, arrival2 =\
-                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn, config, tau_max)
+                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_b, t_e, nn, config, tau_max)
             stack_grid.array += proj_grid
-            arrival_times[sta1].append(arrival1)
-            arrival_times[sta2].append(arrival2)
+            arrival_times[sta1][wave1].append(arrival1)
+            arrival_times[sta2][wave2].append(arrival2)
     stack_grid.array /= k
 
     i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
@@ -84,6 +89,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         config.cut_start = 0.
 
     trigger = None
+    bp_trig_time = None
     if stack_grid[i_max, j_max, k_max] >= config.trigger:
         if config.max_subdivide is not None:
             #We "zoom" the grid in a region close to the maximum

@@ -236,22 +236,30 @@ def bp_plot(config, proj_grid,
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
     for sta in set(tr.stats.station for tr in st):
-        # selecting firs component of the data traces corresponding to given station
-        tr = st.select(station=sta)[0]
-        CH_fct = st_CF.select(station=sta)[0]
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
+            # try selecting vertical component...
+            tr = st.select(station=sta, component='Z')[0]
+            # otherwhise, just use the first one.
+            if not tr:
+                tr = st.select(station=sta)[0]
             # Project signal to Axes coordinates:
             signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
         # Project signal to Axes coordinates:
-        signal = CH_fct.data/abs(CH_fct.max())*0.05 + y_sta_ax
-        xydata = np.dstack((np.zeros_like(signal), signal))[0]
-        ydata = invtrans.transform(xydata)[:,1]
-        ax3.plot(time_env, ydata, 'k', rasterized=True)
+        for wave in config.wave_type:
+            tr_CF = st_CF.select(station=sta, channel=wave)[0]
+            signal = tr_CF.data/abs(tr_CF.max())*0.05 + y_sta_ax
+            xydata = np.dstack((np.zeros_like(signal), signal))[0]
+            ydata = invtrans.transform(xydata)[:,1]
+            if wave == 'P':
+                color = 'blue'
+            if wave == 'S':
+                color = 'red'
+            ax3.plot(time_env, ydata, color, rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
         ## plotting vertical bars corresponding to LCCmax in given time window
@@ -259,11 +267,16 @@ def bp_plot(config, proj_grid,
             y_max = max(ydata)
             y_min = 2 * min(ydata) - y_max
             if trig_time is not None and len(trig_time) > 0:
-                for p_times in arrival_times[sta]:
-                    LCCmax_time = p_times - st[0].stats.starttime + config.cut_start
-                    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
-                ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
-                ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
+                for wave in config.wave_type:
+                    if wave == 'P':
+                        color = 'blue'
+                    if wave == 'S':
+                        color = 'red'
+                    for p_times in arrival_times[sta][wave]:
+                        LCCmax_time = p_times - st[0].stats.starttime + config.cut_start
+                        ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color=color)
+                #ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
+                #ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
 
     if Mtau is not None:
         for tt in Mtau:
@@ -391,22 +404,30 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
     for sta in set(tr.stats.station for tr in st):
-        # selecting firs component of the data traces corresponding to given station
-        tr = st.select(station=sta)[0]
-        CH_fct = st_CF.select(station=sta)[0]
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
+            # try selecting vertical component...
+            tr = st.select(station=sta, component='Z')[0]
+            # otherwhise, just use the first one.
+            if not tr:
+                tr = st.select(station=sta)[0]
             # Project signal to Axes coordinates:
             signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
         # Project signal to Axes coordinates:
-        signal = CH_fct.data/abs(CH_fct.max())*0.05 + y_sta_ax
-        xydata = np.dstack((np.zeros_like(signal), signal))[0]
-        ydata = invtrans.transform(xydata)[:,1]
-        ax3.plot(time_env, ydata, 'k', rasterized=True)
+        for wave in config.wave_type:
+            tr_CF = st_CF.select(station=sta, channel=wave)[0]
+            signal = tr_CF.data/abs(tr_CF.max())*0.05 + y_sta_ax
+            xydata = np.dstack((np.zeros_like(signal), signal))[0]
+            ydata = invtrans.transform(xydata)[:,1]
+            if wave == 'P':
+                color = 'blue'
+            if wave == 'S':
+                color = 'red'
+            ax3.plot(time_env, ydata, color, rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
     note=ch_function+' of MBFilter; Fq. range: '+str(np.round(fq_1))+\
