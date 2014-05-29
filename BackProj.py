@@ -101,14 +101,14 @@ def main():
     for i, station in enumerate(stations):
         st_select = st.select(station=station)
         tr_CF = st_CF.select(station=station)[0]
-
         print('Creating characteristic function: station No {}/{}'.format(i+1, len(stations)))
         HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies,
                                              var_w=config.win_type,
                                              CF_type=config.ch_function,
                                              CF_decay_win=decay_const,
                                              rosenberger_decay_win=rosenberger_decay_const,
-                                             wave_type=config.wave_type)
+                                             wave_type=config.wave_type,
+                                             hos_sigma=config.hos_sigma[station])
 
         CF = env_rec[n1:n2]
 

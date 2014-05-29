@@ -35,7 +35,9 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 def MBfilter_CF(st, frequencies, var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
                 order1=4, order2=2, power2=2,
-                rosenberger_decay_win=1.0, wave_type='P', full_output=False):
+                rosenberger_decay_win=1.0, wave_type='P',
+                hos_sigma=None,
+                full_output=False):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
@@ -50,6 +52,9 @@ def MBfilter_CF(st, frequencies, var_w=True,
     CF_decay_nsmps = int(CF_decay_win / delta)
     rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
     b = CF_decay_nsmps * delta/Tn[int(Nb/2 + 1)]
+
+    if hos_sigma is None:
+        hos_sigma = 0.001
 
     # Less than 3 components
     if len(st) < 3:
@@ -78,7 +83,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
 
             if CF_type == 'kurtosis':
                 CF1[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
-                                      0.001, order1, order2, power2)
+                                      hos_sigma, order1, order2, power2)
 
     # More than 3 components
     else:
@@ -143,16 +148,16 @@ def MBfilter_CF(st, frequencies, var_w=True,
             if CF_type == 'kurtosis':
                 if wave_type == 'P':
                     CF1[n] = recursive_hos(filtered_dataP[0,:], 1./CF_decay_nsmps_mb,
-                                          0.001, order1, order2, power2)
+                                          hos_sigma, order1, order2, power2)
                     if full_output:
                         CF2[n] = recursive_hos(filtered_dataS[1,:], 1./CF_decay_nsmps_mb,
-                                          0.001, order1, order2, power2)
+                                          hos_sigma, order1, order2, power2)
                 else:
                     CF1[n] = recursive_hos(filtered_dataS[1,:], 1./CF_decay_nsmps_mb,
-                                          0.001, order1, order2, power2)
+                                          hos_sigma, order1, order2, power2)
                     if full_output:
                         CF2[n] = recursive_hos(filtered_dataP[0,:], 1./CF_decay_nsmps_mb,
-                                          0.001, order1, order2, power2)
+                                          hos_sigma, order1, order2, power2)
 
     if full_output:
         return YN1, CF1, CF2, Tn, Nb, filteredDataP, filteredDataS
