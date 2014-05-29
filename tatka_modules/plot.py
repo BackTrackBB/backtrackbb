@@ -240,7 +240,10 @@ def bp_plot(config, proj_grid,
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # try selecting vertical component...
-            tr = st.select(station=sta, component='Z')[0]
+            try:
+                tr = st.select(station=sta, component='Z')[0]
+            except IndexError:
+                tr = None
             # otherwhise, just use the first one.
             if not tr:
                 tr = st.select(station=sta)[0]
@@ -408,7 +411,10 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # try selecting vertical component...
-            tr = st.select(station=sta, component='Z')[0]
+            try:
+                tr = st.select(station=sta, component='Z')[0]
+            except IndexError:
+                tr = None
             # otherwhise, just use the first one.
             if not tr:
                 tr = st.select(station=sta)[0]
