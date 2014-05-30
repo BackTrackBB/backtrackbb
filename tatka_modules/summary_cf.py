@@ -21,6 +21,7 @@ def summary_cf(config, stations, st, frequencies):
             tr_CF = st.select(station=station)[0].copy()
             tr_CF.stats.channel = wave_type
             st_CF.append(tr_CF)
+            hos_sigma = config['hos_sigma_' + wave_type]
             print 'Creating characteristic function: %s %s' % (station, wave_type)
             HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies,
                     var_w=config.win_type,
@@ -28,7 +29,7 @@ def summary_cf(config, stations, st, frequencies):
                     CF_decay_win=decay_const,
                     rosenberger_decay_win=rosenberger_decay_const,
                     wave_type=wave_type,
-                    hos_sigma=config.hos_sigma[station])
+                    hos_sigma=hos_sigma[station])
 
             CF = env_rec[:]
 
