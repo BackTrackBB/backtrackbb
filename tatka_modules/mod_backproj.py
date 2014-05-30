@@ -127,10 +127,19 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     n22 = len(frequencies) - 1
     fq_str = str(np.round(frequencies[n1])) + '_' + str(np.round(frequencies[n22]))
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
-    bp_plot(config, grid1, stack_grid,
-            coord_eq, t_b, t_e, datestr, fq_str,
-            coord_sta, st, stations, st_CF,
-            time, time_env,
-            frequencies, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
+
+    if config.plot_results=='True':
+        bp_plot(config, grid1, stack_grid,
+                coord_eq, t_b, t_e, datestr, fq_str,
+                coord_sta, st, stations, st_CF,
+                time, time_env,
+                frequencies, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
+        
+    if config.plot_results=='trigger_only' and trigger:
+        bp_plot(config, grid1, stack_grid,
+                coord_eq, t_b, t_e, datestr, fq_str,
+                coord_sta, st, stations, st_CF,
+                time, time_env,
+                frequencies, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
 
     return trigger
