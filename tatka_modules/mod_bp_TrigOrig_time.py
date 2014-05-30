@@ -24,7 +24,6 @@ def TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
 
     for sta in stations:
         trig_time[sta].append(orig_time/len(stations) + trig_time[sta][1])
-        trig_time[sta].append(abs(trig_time[sta][0] - trig_time[sta][2]))
         time_dev.append(abs(trig_time[sta][0] - trig_time[sta][2]))
 
     if len(filter(lambda x: x>= dt_min,time_dev)) > 1:

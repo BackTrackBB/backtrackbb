@@ -3,6 +3,7 @@
 
 class Trigger():
     def __init__(self,
+                 eventid=None,
                  x=None, y=None, z=None,
                  i=None, j=None, k=None,
                  max_grid=None,
@@ -34,4 +35,23 @@ class Trigger():
             s += ' LAT %s LON %s' % (self.lat, self.lon)
         if (self.origin_time is not None):
             s += ' T_ORIG %s' % (self.origin_time)
+        return s
+    
+class Pick():
+    def __init__(self,
+                 evtid=None,station=None,
+                 arrival_type=None):
+        
+        self.evtid = evtid
+        self.station = station
+        self.arrival_type = arrival_type
+        self.theor_time = []
+
+    def __str__(self):
+        s = ''
+        for sta,tt in zip(self.station,self.theor_time):
+            s += '  %s ' % sta
+            s += '  %s ' % self.arrival_type
+            s += '  %s ' % tt
+            s += '\n'
         return s

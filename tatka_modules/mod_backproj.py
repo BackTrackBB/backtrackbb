@@ -4,7 +4,7 @@ import numpy as np
 import itertools
 from collections import defaultdict
 from scipy.ndimage.interpolation import zoom
-from tatka_modules.bp_types import Trigger
+from tatka_modules.bp_types import Trigger,Pick
 from tatka_modules.map_project import rect2latlon
 from tatka_modules.grid_projection import sta_GRD_Proj
 from tatka_modules.plot import bp_plot
@@ -119,9 +119,17 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                             rec_start_time, arrival_times, trig_time)
 
         trigger.origin_time = bp_origin_time
+        trigger.eventid = bp_origin_time.strftime("%Y%m%d_%H%M")
+
+        pick = Pick()
+        pick.eventid = trigger.eventid
+        pick.station = stations
+        pick.arrival_type = config.wave_type
+        for sta in stations:
+            pick.theor_time.append(bp_trig_time[sta][1])
     ##-----------------------------------------------------------------------------------------------
         print trigger
-
+        print pick
     ## Plotting------------------------------------------------------------------
     n1 = 0
     n22 = len(frequencies) - 1
