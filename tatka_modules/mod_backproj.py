@@ -102,12 +102,15 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                                     j_max-sf:j_max+sf,
                                     k_max-sf:k_max+sf]
             zoom_slice_grid = zoom(slice_grid, zoom_factor)
-            zoom_i_max, zoom_j_max, zoom_k_max =\
-                    [a[0]/zoom_factor
-                     for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
-            i_max = zoom_i_max + i_max-sf
-            j_max = zoom_j_max + j_max-sf
-            k_max = zoom_k_max + k_max-sf
+            # check if zoom_slice_grid is not empty.
+            # TODO: why can it be empty?
+            if zoom_slice_grid.size > 0:
+                zoom_i_max, zoom_j_max, zoom_k_max =\
+                     [a[0]/zoom_factor
+                      for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
+                i_max = zoom_i_max + i_max-sf
+                j_max = zoom_j_max + j_max-sf
+                k_max = zoom_k_max + k_max-sf
         xx_trig, yy_trig, zz_trig = stack_grid.get_xyz(i_max, j_max, k_max)
 
         trigger = Trigger()
