@@ -39,10 +39,10 @@ class Trigger():
     
 class Pick():
     def __init__(self,
-                 evtid=None,station=None,
+                 eventid=None,station=None,
                  arrival_type=None):
         
-        self.evtid = evtid
+        self.eventid = eventid
         self.station = station
         self.arrival_type = arrival_type
         self.theor_time = []
