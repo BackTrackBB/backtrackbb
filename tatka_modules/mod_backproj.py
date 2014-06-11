@@ -117,19 +117,21 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         bp_origin_time, bp_trig_time =\
                 TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
                             rec_start_time, arrival_times, trig_time)
-
-        trigger.origin_time = bp_origin_time
-        trigger.eventid = bp_origin_time.strftime("%Y%m%d_%H%M")
-
         pick = Pick()
-        pick.eventid = trigger.eventid
+        trigger.origin_time = bp_origin_time
         pick.station = stations
         pick.arrival_type = config.wave_type
-        for sta in stations:
-            pick.theor_time.append(bp_trig_time[sta][1])
+        if bp_origin_time:
+            trigger.eventid = bp_origin_time.strftime("%Y%m%d_%H%M")+'A'
+            pick.eventid = trigger.eventid
+            for sta in stations:
+                pick.theor_time.append(bp_trig_time[sta][1])
+                pick.pick_time.append(bp_trig_time[sta][4])
+                
+        trigger.add_picks(pick)
     ##-----------------------------------------------------------------------------------------------
         print trigger
-        print pick
+
     ## Plotting------------------------------------------------------------------
     n1 = 0
     n22 = len(frequencies) - 1

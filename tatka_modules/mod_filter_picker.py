@@ -78,7 +78,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
 
             if CF_type == 'kurtosis':
                 CF1[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
-                                      0.001, order1, order2, power2)
+                                      0.0000000001, order1, order2, power2)
 
     # More than 3 components
     else:

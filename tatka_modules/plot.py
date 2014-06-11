@@ -259,11 +259,11 @@ def bp_plot(config, grid1, proj_grid,
             y_max = max(ydata)
             y_min = 2 * min(ydata) - y_max
             if len(trig_time) > 0:
-                for p_times in arrival_times[sta]:
-                    LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
-                    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
-                ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
-                ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
+##                for p_times in arrival_times[sta]:
+##                    LCCmax_time = p_times-st[0].stats.starttime+config.cut_start
+##                    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color='g')
+                ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=3.0, color='b',alpha=0.4)
+                ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=1.0, color='r')
 
     if Mtau != 'none':
         for tt in Mtau:
