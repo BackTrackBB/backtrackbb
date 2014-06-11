@@ -31,7 +31,6 @@ def main():
     print 'use of var time window for location:', var_twin
     #---Reading data---------------------------------------------------------
     st, stations = read_traces(config)
-
     #------------------------------------------------------------------------
     t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
     print 'Number of time windows = ', len(t_bb)
@@ -84,7 +83,7 @@ def main():
         rosenberger_decay_const = config.rosenberger_decay_const
     else:
         rosenberger_decay_const = config.decay_const
-    sigma_gauss = int(decay_const/delta/4) # so far fixed
+    sigma_gauss = int(decay_const/delta/2) # so far fixed
                                            # can be added to control file as a separate variable
 
     #---Calculating frequencies for MBFilter---------------------------------
@@ -153,7 +152,8 @@ def main():
     #------------------------------------------------------------------------
 
     print 'starting BPmodule'
-
+##    out_f = open('out.dat','w')
+    
     # Create out_dir, if it doesn't exist
     if not os.path.exists(config.out_dir):
         os.mkdir(config.out_dir)
@@ -178,7 +178,7 @@ def main():
 
     #---running program------------------------------------------------------
     arglist = [
-               (idd, config,
+               (idd,config,
                 st, st_CF, frequencies,
                 stations, coord_sta, GRD_sta,
                 coord_eq)
@@ -199,13 +199,13 @@ def main():
             p_outputs.append(run_BackProj(args))
 
     triggers = filter(None, p_outputs)
-
     #----------Outputs-------------------------------------------------------
     #writing output
     with open(file_out_data,'w') as f:
         for trigger in triggers:
             f.write(str(trigger) + '\n')
-
+            for l in trigger.list_picks:
+                f.write(str(l))
     #-plotting output--------------------------------------------------------
     plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
                    triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
