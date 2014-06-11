@@ -17,7 +17,12 @@ def read_traces(config):
     tmpst = Stream()
     for filename in glob(os.path.join(basepath, '*')):
         try:
-            tmpst += read(filename, **kwargs)
+            if config.start_time:
+                tmpst += read(filename,
+                              starttime = UTCDateTime(config.start_time),
+                              endtime = UTCDateTime(config.end_time),**kwargs)
+            else:
+                tmpst += read(filename, **kwargs)
         except Exception:
             continue
 
