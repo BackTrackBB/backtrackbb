@@ -5,6 +5,12 @@ from configobj import ConfigObj
 from validate import Validator
 from Config import Config
 
+
+def _str2bool(arg):
+    v = str(arg)
+    return v.lower() in ("yes", "true", "t", "1")
+
+
 def __parse_configspec():
     try:
         configspec_file = os.path.join(os.path.dirname(__file__), 'configspec.conf')
@@ -18,16 +24,18 @@ def __parse_configspec():
         sys.exit(1)
     return configspec
 
+
 def __write_sample_config(configspec, progname):
     c = ConfigObj(configspec=configspec)
     val = Validator()
     c.validate(val)
-    c.defaults=[]
+    c.defaults = []
     c.initial_comment = configspec.initial_comment
     c.comments = configspec.comments
     configfile = progname + '.conf'
     c.write(open(configfile, 'w'))
     print 'Sample config file written to: ' + configfile
+
 
 def parse_config(config_file):
     configspec = __parse_configspec()
@@ -54,6 +62,37 @@ def parse_config(config_file):
                 sys.stderr.write('Invalid value for "%s": "%s"\n'
                         % (entry, config_obj[entry]))
         sys.exit(1)
+
+    # Fields needing special treatment:
+    if config_obj['save_projGRID'] != 'trigger_only':
+        config_obj['save_projGRID'] = _str2bool(config_obj['save_projGRID'])
+
+    stations = config_obj['stations']
+    for hos_sigma_field in ('hos_sigma_P', 'hos_sigma_S'):
+        if config_obj[hos_sigma_field] is not None:
+            hos_sigma = config_obj[hos_sigma_field]
+            # change hos_sigma elements to float
+            # and take the power of two
+            hos_sigma = [float(x)**2 for x in hos_sigma]
+            # make hos_sigma the same length than stations
+            if len(stations) > len(hos_sigma):
+                hos_sigma += [hos_sigma[-1], ] *\
+                    (len(stations) - len(hos_sigma))
+        else:
+            # just create a list of Nones
+            hos_sigma = [None, ] * len(stations)
+        hos_sigma_dict = {key: value for (key, value) in
+            zip(stations, hos_sigma)}
+        config_obj[hos_sigma_field] = hos_sigma_dict
+    # if there is no value for S, we just make a copy of the dictionary for P
+    if all(v is None for v in config_obj['hos_sigma_S'].values()):
+        config_obj['hos_sigma_S'] = config_obj['hos_sigma_P'].copy()
+
+    # Make wave_type a list
+    if config_obj['wave_type'] == 'PS':
+        config_obj['wave_type'] = ['P', 'S']
+    else:
+        config_obj['wave_type'] = [config_obj['wave_type'], ]
 
     # Create a Config object
     config = Config(config_obj.dict().copy())

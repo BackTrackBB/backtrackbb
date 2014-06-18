@@ -4,12 +4,12 @@ import numpy as np
 import itertools
 from collections import defaultdict
 from scipy.ndimage.interpolation import zoom
-from tatka_modules.bp_types import Trigger,Pick
-from tatka_modules.map_project import rect2latlon
-from tatka_modules.grid_projection import sta_GRD_Proj
-from tatka_modules.plot import bp_plot
-from tatka_modules.mod_bp_TrigOrig_time import TrOrig_time
-import cPickle as pickle
+from bp_types import Trigger, Pick
+from map_project import rect2latlon
+from grid_projection import sta_GRD_Proj
+from plot import bp_plot
+from mod_bp_TrigOrig_time import TrOrig_time
+from NLLGrid import NLLGrid
 
 
 def run_BackProj(args):
@@ -17,8 +17,7 @@ def run_BackProj(args):
 
 
 def _run_BackProj(idd, config, st, st_CF, frequencies,
-                  stations, coord_sta, GRD_sta,
-                  coord_eq):
+                  stations, coord_sta, GRD_sta, coord_eq):
 
     t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
     t_b = t_bb[idd]
@@ -27,26 +26,39 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
     time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
-    grid1 = GRD_sta.values()[0]
-    nx, ny, nz = np.shape(grid1.array)
-    stack_grid = np.zeros((nx,ny,nz),float)
-    arrival_times = defaultdict(list)
-    trig_time = defaultdict(list)
-    bp_trig_time = defaultdict(list)
+    # Create stack grid using a time grid as model
+    gr = GRD_sta.values()[0].values()[0]
+    stack_grid = NLLGrid(nx=gr.nx, ny=gr.ny, nz=gr.nz,
+                         x_orig=gr.x_orig, y_orig=gr.y_orig, z_orig=gr.z_orig,
+                         dx=gr.dx, dy=gr.dy, dz=gr.dz)
+    stack_grid.type = 'STACK'
+    stack_grid.proj_name = gr.proj_name
+    stack_grid.ellipsoid = gr.ellipsoid
+    stack_grid.orig_lat = gr.orig_lat
+    stack_grid.orig_lon = gr.orig_lon
+    stack_grid.first_std_paral = gr.first_std_paral
+    stack_grid.second_std_paral = gr.second_std_paral
+    stack_grid.map_rot = gr.map_rot
+    stack_grid.init_array()
+
+    arrival_times = defaultdict(lambda: defaultdict(list))
 
     nn = int(config.t_overlap)
 
-    fs_env = st_CF[0].stats.sampling_rate
-    sttime_env = st_CF[0].stats.starttime
-
     rec_start_time = st[0].stats.starttime
+
+    sta_wave = [(sta, wave) for wave in config.wave_type for sta in stations]
 
     k = 0
     Mtau = []
-    for sta1, sta2 in itertools.combinations(stations, 2):
+    for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
+        sta1 = sta_wave1[0]
+        sta2 = sta_wave2[0]
+        wave1 = sta_wave1[1]
+        wave2 = sta_wave2[1]
+
         x_sta1, y_sta1 = coord_sta[sta1]
         x_sta2, y_sta2 = coord_sta[sta2]
-
         distance = np.sqrt((x_sta1-x_sta2)**2 + (y_sta1-y_sta2)**2)
 
         if distance <= config.maxSTA_distance:
@@ -58,18 +70,17 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 Mtau.append(np.round(tau_max,1))
                 t_e = t_b + np.round(tau_max,1)
             else:
-                Mtau = 'none'
+                Mtau = None
                 tau_max = None
 
-            stack_grid += sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, t_b, t_e, nn,
-                                       fs_env, sttime_env, config,
-                                       nx, ny, nz, arrival_times, tau_max)
-    stack_grid /= k
+            proj_grid, arrival1, arrival2 =\
+                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_b, t_e, nn, config, tau_max)
+            stack_grid.array += proj_grid
+            arrival_times[sta1][wave1].append(arrival1)
+            arrival_times[sta2][wave2].append(arrival2)
+    stack_grid.array /= k
 
-    max_stack_grid = np.where(stack_grid == np.max(stack_grid))
-    i_max = max_stack_grid[0][0]
-    j_max = max_stack_grid[1][0]
-    k_max = max_stack_grid[2][0]
+    i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
 
     if config.cut_data:
         start_tw = config.cut_start + t_b
@@ -77,12 +88,8 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         start_tw = t_b
         config.cut_start = 0.
 
-    if config.save_projGRID:
-        print 'saving GRIDS with results'
-        out_file = os.path.join('out_grid', 'out_' + str(t_b) + '.pkl')
-        pickle.dump(stack_grid, open(out_file, "wb"))
-
     trigger = None
+    bp_trig_time = None
     if stack_grid[i_max, j_max, k_max] >= config.trigger:
         if config.max_subdivide is not None:
             #We "zoom" the grid in a region close to the maximum
@@ -95,18 +102,21 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                                     j_max-sf:j_max+sf,
                                     k_max-sf:k_max+sf]
             zoom_slice_grid = zoom(slice_grid, zoom_factor)
-            zoom_i_max, zoom_j_max, zoom_k_max =\
-                    [a[0]/zoom_factor
-                     for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
-            i_max = zoom_i_max + i_max-sf
-            j_max = zoom_j_max + j_max-sf
-            k_max = zoom_k_max + k_max-sf
-        xx_trig, yy_trig, zz_trig = grid1.get_xyz(i_max, j_max, k_max)
+            # check if zoom_slice_grid is not empty.
+            # TODO: why can it be empty?
+            if zoom_slice_grid.size > 0:
+                zoom_i_max, zoom_j_max, zoom_k_max =\
+                     [a[0]/zoom_factor
+                      for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
+                i_max = zoom_i_max + i_max-sf
+                j_max = zoom_j_max + j_max-sf
+                k_max = zoom_k_max + k_max-sf
+        xx_trig, yy_trig, zz_trig = stack_grid.get_xyz(i_max, j_max, k_max)
 
         trigger = Trigger()
-        trigger.x, trigger.y, trigger.z = grid1.get_xyz(i_max, j_max, k_max)
+        trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
-        trigger.max_grid = np.round(np.max(stack_grid), 4)
+        trigger.max_grid = np.round(stack_grid.max(), 4)
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + config.time_lag
         trigger.center_win = start_tw + config.time_lag/2.
@@ -116,9 +126,10 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     ##------------------Origin time calculation------------------------------------------------------
         bp_origin_time, bp_trig_time =\
                 TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
-                            rec_start_time, arrival_times, trig_time)
-        pick = Pick()
+                            rec_start_time, arrival_times)
+
         trigger.origin_time = bp_origin_time
+        pick = Pick()
         pick.station = stations
         pick.arrival_type = config.wave_type
         if bp_origin_time:
@@ -127,10 +138,17 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
             for sta in stations:
                 pick.theor_time.append(bp_trig_time[sta][1])
                 pick.pick_time.append(bp_trig_time[sta][4])
-                
+
         trigger.add_picks(pick)
     ##-----------------------------------------------------------------------------------------------
         print trigger
+
+    if config.save_projGRID == True or\
+            (config.save_projGRID == 'trigger_only' and trigger is not None):
+        print 'Saving projection grid to file.'
+        basename = os.path.join(config.out_dir, 'out_t%05.1f' % t_b)
+        stack_grid.write_hdr_file(basename)
+        stack_grid.write_buf_file(basename)
 
     ## Plotting------------------------------------------------------------------
     n1 = 0
@@ -140,7 +158,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
 
     if config.plot_results == 'True' or\
             (config.plot_results == 'trigger_only' and trigger is not None):
-        bp_plot(config, grid1, stack_grid,
+        bp_plot(config, stack_grid,
                 coord_eq, t_b, t_e, datestr, fq_str,
                 coord_sta, st, stations, st_CF,
                 time, time_env,
