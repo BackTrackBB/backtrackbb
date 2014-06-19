@@ -42,7 +42,7 @@ def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
         bp_origin_time = _time_average([pick.pick_time - pick.travel_time
                                         for pick in picks if pick.time_dev < dt_min])
         if bp_origin_time is None:
-            return None
+            return
         for pick in picks:
             pick.theor_time = bp_origin_time + pick.travel_time
 
@@ -54,5 +54,3 @@ def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
         pick.pick_time -= trigger.origin_time
         pick.theor_time -= trigger.origin_time
         trigger.add_pick(pick)
-
-    return trigger
