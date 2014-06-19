@@ -154,10 +154,19 @@ def main():
             p_outputs.append(run_BackProj(args))
 
     triggers = filter(None, p_outputs)
+
     #----------Outputs-------------------------------------------------------
     #writing output
+    eventids = []
     with open(file_out_data,'w') as f:
         for trigger in triggers:
+            # check if eventid already exists
+            while trigger.eventid in eventids:
+                # increment the last letter by one
+                evid = list(trigger.eventid)
+                evid[-1] = chr(ord(evid[-1]) + 1)
+                trigger.eventid = ''.join(evid)
+            eventids.append(trigger.eventid)
             f.write(str(trigger) + '\n')
             # sort picks by station
             picks = sorted(trigger.picks, key=lambda x: x.station)
