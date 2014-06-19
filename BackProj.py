@@ -160,7 +160,7 @@ def main():
         for trigger in triggers:
             f.write(str(trigger) + '\n')
             for l in trigger.list_picks:
-                f.write(str(l))
+                f.write(str(l) + '\n')
     #-plotting output--------------------------------------------------------
     plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
                    triggers, t_bb, datestr, frequencies[n1], frequencies[n22],

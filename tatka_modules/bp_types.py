@@ -24,7 +24,6 @@ class Trigger():
         self.lat = None
         self.lon = None
         self.origin_time = None
-        
 
     def __str__(self):
         s = '%s ' % self.eventid
@@ -40,27 +39,24 @@ class Trigger():
         if (self.origin_time is not None):
             s += ' T_ORIG %s' % (self.origin_time)
         return s
-    
+
     def add_picks(self, x):
         self.list_picks.append(x)
-    
+
+
 class Pick():
     def __init__(self,
-                 eventid=None,station=None,
+                 eventid=None, station=None,
                  arrival_type=None):
-        
         self.eventid = eventid
         self.station = station
         self.arrival_type = arrival_type
-        self.theor_time = []
-        self.pick_time = []
+        self.theor_time = None
+        self.pick_time = None
 
     def __str__(self):
-        s = ''
-        for sta,tt,pt in zip(self.station,self.theor_time,self.pick_time):
-            s += ' sta %s ' % sta
-            s += ' Ph %s ' % self.arrival_type
-            s += ' TT %.2f ' % tt
-            s += ' PT %.2f ' % pt
-            s += '\n'
+        s = ' sta %s ' % self.station
+        s += ' Ph %s ' % self.arrival_type
+        s += ' TT %.2f ' % self.theor_time
+        s += ' PT %.2f ' % self.pick_time
         return s

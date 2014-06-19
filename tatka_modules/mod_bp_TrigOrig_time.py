@@ -73,16 +73,15 @@ def TrOrig_time(config, stations, GRD_sta, trigger, rec_start_time, arrival_time
 
     trigger.origin_time = bp_origin_time
 
-    pick = Pick()
-    pick.station = stations
-    pick.arrival_type = config.wave_type
     if trigger.origin_time:
         trigger.eventid = trigger.origin_time.strftime("%Y%m%d_%H%M") + 'A'
-        pick.eventid = trigger.eventid
         for sta in stations:
-            pick.theor_time.append(trig_time[sta][1])
-            pick.pick_time.append(trig_time[sta][4])
-
-    trigger.add_picks(pick)
+            pick = Pick()
+            pick.eventid = trigger.eventid
+            pick.station = sta
+            pick.arrival_type = config.wave_type
+            pick.theor_time = trig_time[sta][1]
+            pick.pick_time = trig_time[sta][4]
+            trigger.add_picks(pick)
 
     return trig_time
