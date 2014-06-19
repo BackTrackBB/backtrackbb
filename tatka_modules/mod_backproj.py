@@ -4,7 +4,7 @@ import numpy as np
 import itertools
 from collections import defaultdict
 from scipy.ndimage.interpolation import zoom
-from bp_types import Trigger, Pick
+from bp_types import Trigger
 from map_project import rect2latlon
 from grid_projection import sta_GRD_Proj
 from plot import bp_plot
@@ -111,7 +111,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 i_max = zoom_i_max + i_max-sf
                 j_max = zoom_j_max + j_max-sf
                 k_max = zoom_k_max + k_max-sf
-        xx_trig, yy_trig, zz_trig = stack_grid.get_xyz(i_max, j_max, k_max)
 
         trigger = Trigger()
         trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
@@ -123,24 +122,9 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         trigger.lat, trigger.lon =\
                 rect2latlon(trigger.x, trigger.y)
 
-    ##------------------Origin time calculation------------------------------------------------------
-        bp_origin_time, bp_trig_time =\
-                TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
-                            rec_start_time, arrival_times)
+        # Origin time and theoretical arrivals calculation
+        bp_trig_time = TrOrig_time(config, stations, GRD_sta, trigger, rec_start_time, arrival_times)
 
-        trigger.origin_time = bp_origin_time
-        pick = Pick()
-        pick.station = stations
-        pick.arrival_type = config.wave_type
-        if bp_origin_time:
-            trigger.eventid = bp_origin_time.strftime("%Y%m%d_%H%M")+'A'
-            pick.eventid = trigger.eventid
-            for sta in stations:
-                pick.theor_time.append(bp_trig_time[sta][1])
-                pick.pick_time.append(bp_trig_time[sta][4])
-
-        trigger.add_picks(pick)
-    ##-----------------------------------------------------------------------------------------------
         print trigger
 
     if config.save_projGRID == True or\

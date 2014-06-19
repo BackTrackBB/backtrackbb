@@ -1,7 +1,8 @@
 from collections import defaultdict
+from bp_types import Pick
 
-def TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
-                rec_start_time, arrival_times):
+
+def TrOrig_time(config, stations, GRD_sta, trigger, rec_start_time, arrival_times):
     ##-------------------------------------
     dt_min = config.dt_min
     time_dev = []
@@ -20,7 +21,7 @@ def TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
         trig_time[sta].append(tr_time/len(arrival_times[sta][wave]))
 
         # theoretical travel times for each station - trig_time[sta][1]
-        tt_time = GRD_sta[sta][wave].get_value(xx_trig, yy_trig, zz_trig)
+        tt_time = GRD_sta[sta][wave].get_value(trigger.x, trigger.y, trigger.z)
         trig_time[sta].append(tt_time)
 
         # initial estimation of relative & absolute origin times
@@ -70,4 +71,18 @@ def TrOrig_time(config, stations, GRD_sta, xx_trig, yy_trig, zz_trig,
 ##                tr_time.append(pick_times - bp_origin_time)
 ####            print sta,np.mean(tr_time,axis=0), np.std(tr_time,axis=0)
 
-    return bp_origin_time, trig_time
+    trigger.origin_time = bp_origin_time
+
+    pick = Pick()
+    pick.station = stations
+    pick.arrival_type = config.wave_type
+    if trigger.origin_time:
+        trigger.eventid = trigger.origin_time.strftime("%Y%m%d_%H%M") + 'A'
+        pick.eventid = trigger.eventid
+        for sta in stations:
+            pick.theor_time.append(trig_time[sta][1])
+            pick.pick_time.append(trig_time[sta][4])
+
+    trigger.add_picks(pick)
+
+    return trig_time
