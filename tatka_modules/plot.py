@@ -14,7 +14,7 @@ def bp_plot(config, proj_grid,
             st, sta, st_CF,
             time, time_env,
             fq, n1, n22, trigger,
-            arrival_times=None, trig_time=None, Mtau=None):
+            arrival_times=None, Mtau=None):
 
     LTrig = config.trigger
     lcc_max = config.lcc_max
@@ -269,17 +269,19 @@ def bp_plot(config, proj_grid,
         if trigger is not None:
             y_max = max(ydata)
             y_min = 2 * min(ydata) - y_max
-            if trig_time is not None and len(trig_time) > 0:
-                for wave in config.wave_type:
-                    if wave == 'P':
-                        color = 'blue'
-                    if wave == 'S':
-                        color = 'red'
-                    for p_times in arrival_times[sta][wave]:
-                        LCCmax_time = p_times - st[0].stats.starttime + config.cut_start
-                        ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color=color)
-                #ax3.plot((trig_time[sta][0], trig_time[sta][0]), (y_min, y_max), linewidth=2.0, color='b')
-                #ax3.plot((trig_time[sta][2], trig_time[sta][2]), (y_min, y_max), linewidth=2.0, color='r')
+            for pick in trigger.get_picks(station=sta):
+                wave = pick.arrival_type
+                if wave == 'P':
+                    color = 'blue'
+                if wave == 'S':
+                    color = 'red'
+                #for p_times in arrival_times[sta][wave]:
+                #    LCCmax_time = p_times - st[0].stats.starttime + config.cut_start
+                #    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color=color)
+                pick_time = trigger.origin_time + pick.pick_time - st[0].stats.starttime + config.cut_start
+                theor_time = trigger.origin_time + pick.theor_time - st[0].stats.starttime + config.cut_start
+                ax3.plot((pick_time, pick_time), (y_min, y_max), linewidth=2.0, color=color)
+                ax3.plot((theor_time, theor_time), (y_min, y_max), linewidth=2.0, color=color, linestyle='--')
 
     if Mtau is not None:
         for tt in Mtau:

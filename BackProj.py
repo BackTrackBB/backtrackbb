@@ -159,8 +159,10 @@ def main():
     with open(file_out_data,'w') as f:
         for trigger in triggers:
             f.write(str(trigger) + '\n')
-            for l in trigger.list_picks:
-                f.write(str(l) + '\n')
+            # sort picks by station
+            picks = sorted(trigger.picks, key=lambda x: x.station)
+            for pick in picks:
+                f.write(str(pick) + '\n')
     #-plotting output--------------------------------------------------------
     plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
                    triggers, t_bb, datestr, frequencies[n1], frequencies[n22],

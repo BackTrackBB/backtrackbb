@@ -10,7 +10,7 @@ class Trigger():
                  beg_win=None, end_win=None,
                  center_win=None):
         self.eventid = None
-        self.list_picks = []
+        self.picks = []
         self.x = x
         self.y = y
         self.z = z
@@ -40,8 +40,13 @@ class Trigger():
             s += ' T_ORIG %s' % (self.origin_time)
         return s
 
-    def add_picks(self, x):
-        self.list_picks.append(x)
+    def add_pick(self, pick):
+        self.picks.append(pick)
+
+    def get_picks(self, station=None, arrival_type=None):
+        return [pick for pick in self.picks
+                if (station is not None and pick.station == station)
+                or (arrival_type is not None and pick.arrival_type == arrival_type)]
 
 
 class Pick():
@@ -53,6 +58,8 @@ class Pick():
         self.arrival_type = arrival_type
         self.theor_time = None
         self.pick_time = None
+        self.travel_time = None
+        self.time_dev = None
 
     def __str__(self):
         s = ' sta %s ' % self.station

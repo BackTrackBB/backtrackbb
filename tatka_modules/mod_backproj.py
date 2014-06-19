@@ -45,8 +45,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
 
     nn = int(config.t_overlap)
 
-    rec_start_time = st[0].stats.starttime
-
     sta_wave = [(sta, wave) for wave in config.wave_type for sta in stations]
 
     k = 0
@@ -89,7 +87,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         config.cut_start = 0.
 
     trigger = None
-    bp_trig_time = None
     if stack_grid[i_max, j_max, k_max] >= config.trigger:
         if config.max_subdivide is not None:
             #We "zoom" the grid in a region close to the maximum
@@ -122,9 +119,12 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         trigger.lat, trigger.lon =\
                 rect2latlon(trigger.x, trigger.y)
 
-        # Origin time and theoretical arrivals calculation
-        bp_trig_time = TrOrig_time(config, stations, GRD_sta, trigger, rec_start_time, arrival_times)
+        # Compute origin time and theoretical arrivals
+        TrOrig_time(config, stations, GRD_sta, trigger, arrival_times)
+        if trigger.origin_time is None:
+            trigger = None
 
+    if trigger is not None:
         print trigger
 
     if config.save_projGRID == True or\
@@ -146,6 +146,6 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                 coord_eq, t_b, t_e, datestr, fq_str,
                 coord_sta, st, stations, st_CF,
                 time, time_env,
-                frequencies, n1, n22, trigger, arrival_times, bp_trig_time, Mtau)
+                frequencies, n1, n22, trigger, arrival_times, Mtau)
 
     return trigger
