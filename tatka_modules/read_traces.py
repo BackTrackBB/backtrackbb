@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 import os
 from glob import glob
-from obspy.core import read, Stream
+from obspy.core import read, Stream,UTCDateTime
 
 def read_traces(config):
     basepath = config.data_dir
