@@ -35,7 +35,7 @@ class Trigger():
         s += 'END %s ' % self.end_win
         if (self.lat is not None and
             self.lon is not None):
-            s += ' LAT %.2f LON %.2f' % (self.lat, self.lon)
+            s += ' LAT %.5f LON %.5f' % (self.lat, self.lon)
         if (self.origin_time is not None):
             s += ' T_ORIG %s' % (self.origin_time)
         return s
