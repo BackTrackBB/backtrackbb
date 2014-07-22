@@ -1,5 +1,6 @@
 # bp_types.py
 # Data types for BackProj
+from obspy import UTCDateTime
 
 class Trigger():
     def __init__(self,
@@ -40,6 +41,25 @@ class Trigger():
             s += ' T_ORIG %s' % (self.origin_time)
         return s
 
+    def from_str(self, string):
+        word = string.split()
+        # sanity check
+        try:
+            if word[1] != 'X' or word[17] != 'T_ORIG':
+                raise ValueError, 'Not a valid trigger string'
+        except IndexError:
+            raise ValueError, 'Not a valid trigger string'
+        self.eventid = word[0]
+        self.x = float(word[2])
+        self.y = float(word[4])
+        self.z = float(word[6])
+        self.max_grid = float(word[8])
+        self.beg_win = float(word[10])
+        self.end_win = float(word[12])
+        self.lat = float(word[14])
+        self.lon = float(word[16])
+        self.origin_time = UTCDateTime(word[18])
+
     def add_pick(self, pick):
         self.picks.append(pick)
 
@@ -67,3 +87,19 @@ class Pick():
         s += ' TT %.2f ' % self.theor_time
         s += ' PT %.2f ' % self.pick_time
         return s
+
+    def from_str(self, string):
+        word = string.split()
+        # sanity check
+        try:
+            if word[0] != 'sta' or word[6] != 'PT':
+                raise ValueError, 'Not a valid pick string'
+        except IndexError:
+            raise ValueError, 'Not a valid pick string'
+        self.station = word[1]
+        self.arrival_type = word[3]
+        self.theor_time = float(word[5])
+        self.pick_time = float(word[7])
+        #TODO: read and write these fields?
+        #self.travel_time = None
+        #self.time_dev = None
