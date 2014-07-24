@@ -38,4 +38,14 @@ def read_traces(config):
     print 'Number of traces in stream = ', len(st)
 
     st.sort()
+
+    # Check for common starttime and endtime of the traces
+    st_starttime = max([tr.stats.starttime for tr in st])
+    st_endtime = min([tr.stats.endtime for tr in st])
+    if config.start_time:        
+        st.trim(max(st_starttime, UTCDateTime(config.start_time)),
+                min(st_endtime,UTCDateTime(config.end_time)))
+    else:
+        st.trim(st_starttime,st_endtime)        
+    
     return st, stations

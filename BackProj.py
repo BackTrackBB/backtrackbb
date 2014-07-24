@@ -35,6 +35,10 @@ def main():
     st, stations = read_traces(config)
     #------------------------------------------------------------------------
     t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
+    # selecting the time windows that do not exceed the length of the data---
+    t_ee = t_bb + config.time_lag
+    data_length = st[0].stats.endtime - st[0].stats.starttime
+    t_bb = t_ee[t_ee<=data_length] - config.time_lag    
     print 'Number of time windows = ', len(t_bb)
 
     loc_infile = None
