@@ -54,3 +54,17 @@ def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
         pick.pick_time -= trigger.origin_time
         pick.theor_time -= trigger.origin_time
         trigger.add_pick(pick)
+
+    if config.grid_type != config.wave_type:
+        phase2 = list(set(config.grid_type)-set(config.wave_type))[0]
+    # additional theoretical travel time estimation for second phase
+    # only done if config.grid_type and config.wave_type have different number of phases
+        for sta in stations:
+            pick = Pick()
+            pick.eventid = trigger.eventid
+            pick.station = sta
+            pick.arrival_type = phase2
+            pick.theor_time = GRD_sta[sta][phase2].get_value(trigger.x, trigger.y, trigger.z)
+            pick.pick_time = 0.0
+            picks.append(pick)
+            trigger.add_pick(pick)        

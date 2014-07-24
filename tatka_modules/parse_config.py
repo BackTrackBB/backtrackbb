@@ -94,6 +94,12 @@ def parse_config(config_file):
     else:
         config_obj['wave_type'] = [config_obj['wave_type'], ]
 
+    # Make settings for grid_type
+    if config_obj['grid_type'] == 'PS':
+        config_obj['grid_type'] = ['P', 'S']
+    else:
+        config_obj['grid_type'] = config_obj['wave_type']        
+
     # Create a Config object
     config = Config(config_obj.dict().copy())
 
