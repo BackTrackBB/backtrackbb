@@ -223,6 +223,9 @@ def bp_plot(config, proj_grid,
 
 
 #--ax3: traces
+    st_plt = st.copy()
+    st_plt.filter('bandpass', freqmin=fq[n22], freqmax=fq[n1],
+              corners=2, zerophase=True)
     ax3 = fig.add_subplot(122)
     time += config.cut_start
     time_env += config.cut_start
@@ -235,18 +238,18 @@ def bp_plot(config, proj_grid,
     pylab.setp(labels, rotation=90, fontsize=12)
     trans = ax3.transData + ax3.transAxes.inverted()
     invtrans = trans.inverted()
-    for sta in set(tr.stats.station for tr in st):
+    for sta in set(tr.stats.station for tr in st_plt):
         x_sta, y_sta = coord_sta[sta]
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         if plot_waveforms:
             # try selecting vertical component...
             try:
-                tr = st.select(station=sta, component='Z')[0]
+                tr = st_plt.select(station=sta, component='Z')[0]
             except IndexError:
                 tr = None
             # otherwhise, just use the first one.
             if not tr:
-                tr = st.select(station=sta)[0]
+                tr = st_plt.select(station=sta)[0]
             # Project signal to Axes coordinates:
             signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
