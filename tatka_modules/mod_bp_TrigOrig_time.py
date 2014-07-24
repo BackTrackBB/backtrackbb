@@ -65,6 +65,6 @@ def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
             pick.station = sta
             pick.arrival_type = phase2
             pick.theor_time = GRD_sta[sta][phase2].get_value(trigger.x, trigger.y, trigger.z)
-            pick.pick_time = GRD_sta[sta][phase2].get_value(trigger.x, trigger.y, trigger.z)
+            pick.pick_time = -10.0
             picks.append(pick)
             trigger.add_pick(pick)        
