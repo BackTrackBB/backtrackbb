@@ -62,9 +62,9 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         if distance <= config.maxSTA_distance:
             k += 1
             if config.varWin_stationPair:
-                tau_max = GRD_sta[sta1].get_value(GRD_sta[sta2].sta_x,
-                                                  GRD_sta[sta2].sta_y,
-                                                  GRD_sta[sta2].sta_z)
+                tau_max = GRD_sta[sta1][wave1].get_value(GRD_sta[sta2][wave1].sta_x,
+                                                  GRD_sta[sta2][wave1].sta_y,
+                                                  GRD_sta[sta2][wave1].sta_z)
                 Mtau.append(np.round(tau_max,1))
                 t_e = t_b + np.round(tau_max,1)
             else:

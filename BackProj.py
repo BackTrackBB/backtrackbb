@@ -111,9 +111,7 @@ def main():
         coord_jma = read_locationEQ(location_jma, config.data_day, config.data_hours,
                                         config.lat_orig, config.lon_orig)
     #------------------------------------------------------------------------
-
     print 'starting BPmodule'
-    #out_f = open('out.dat','w')
 
     # Create out_dir, if it doesn't exist
     if not os.path.exists(config.out_dir):
