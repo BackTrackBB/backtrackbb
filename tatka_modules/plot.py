@@ -283,7 +283,8 @@ def bp_plot(config, proj_grid,
                 #    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color=color)
                 pick_time = trigger.origin_time + pick.pick_time - st[0].stats.starttime + config.cut_start
                 theor_time = trigger.origin_time + pick.theor_time - st[0].stats.starttime + config.cut_start
-                ax3.plot((pick_time, pick_time), (y_min, y_max), linewidth=2.0, color=color)
+                if pick.pick_time != -10.:
+                    ax3.plot((pick_time, pick_time), (y_min, y_max), linewidth=2.0, color=color)
                 ax3.plot((theor_time, theor_time), (y_min, y_max), linewidth=2.0, color=color, linestyle='--')
 
     if Mtau is not None:
