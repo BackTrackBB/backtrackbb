@@ -91,6 +91,9 @@ def main():
 
     ## reading data, cutting events and saving data in specified format-------------------------------
         for pick in trigger.picks:
+            if pick.arrival_type is not 'P':
+                continue
+
             read_starttime = trigger.origin_time + pick.theor_time - pre_P
             read_endtime = trigger.origin_time + pick.theor_time + post_P
             filename = os.path.join(basepath_data, '*' + pick.station + '*')
