@@ -65,18 +65,18 @@ def main():
     ##---outputting event files and data--------------------------------------------------------------
     for trigger in triggers:
 
-    ##-------writting enevtid.dat file ---------------------------------------------------------------
-        event_dat_base = '.'.join((trigger.eventid,'dat'))
-        event_dat = os.path.join(out_event_folder,event_dat_base)
-        with open(event_dat,'w') as f:
+    ##-------writting eventid.dat file ---------------------------------------------------------------
+        event_dat_base = '.'.join((trigger.eventid, 'dat'))
+        event_dat = os.path.join(out_event_folder, event_dat_base)
+        with open(event_dat, 'w') as f:
             f.write(str(trigger) + '\n')
             for pick in trigger.picks:
                 f.write(str(pick) + '\n')
 
-    ##-------writting enevtid_nll.dat file -----------------------------------------------------------
-        event_dat_base2 = '.'.join((trigger.eventid+'_nll','dat'))
-        event_dat2 = os.path.join(out_event_folder,event_dat_base2)
-        with open(event_dat2,'w') as f:
+    ##-------writing eventid_nll.obs file -----------------------------------------------------------
+        event_dat_base = '.'.join((trigger.eventid + '_nll', 'obs'))
+        event_dat = os.path.join(out_event_folder, event_dat_base)
+        with open(event_dat, 'w') as f:
             f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
             for pick in trigger.picks:
                 f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
