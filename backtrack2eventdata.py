@@ -80,7 +80,10 @@ def main():
             f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
             for pick in trigger.picks:
                 f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
-                time = trigger.origin_time + pick.pick_time
+                if pick.arrival_type is 'P':
+                    time = trigger.origin_time + pick.pick_time
+                else:
+                    time = trigger.origin_time + pick.theor_time
                 f.write('%s ' % time.strftime('%Y%m%d'))
                 f.write('%s ' % time.strftime('%H%M'))
                 f.write('%s.' % time.strftime('%S'))
