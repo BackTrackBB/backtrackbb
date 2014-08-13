@@ -63,7 +63,6 @@ def main():
             os.mkdir(out_event_folder)
 
     ##---outputting event files and data--------------------------------------------------------------
-    for trigger in triggers:
 
     ##-------writting eventid.dat file ---------------------------------------------------------------
         event_dat_base = '.'.join((trigger.eventid, 'dat'))
