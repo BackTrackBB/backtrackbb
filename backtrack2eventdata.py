@@ -73,25 +73,28 @@ def main():
             f.write(str(trigger) + '\n')
             for pick in trigger.picks:
                 f.write(str(pick) + '\n')
-
+    
     ##-------writing eventid_nll.obs file -----------------------------------------------------------
-        event_dat_base = '.'.join((trigger.eventid + '_nll', 'obs'))
-        event_dat = os.path.join(out_event_folder, event_dat_base)
-        with open(event_dat, 'w') as f:
-            f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
-            for pick in trigger.picks:
-                f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
-                if pick.arrival_type is 'P':
-                    time = trigger.origin_time + pick.pick_time
-                else:
-                    time = trigger.origin_time + pick.theor_time
-                f.write('%s ' % time.strftime('%Y%m%d'))
-                f.write('%s ' % time.strftime('%H%M'))
-                f.write('%s.' % time.strftime('%S'))
-                msec = int(round(int(time.strftime('%f'))/100.))
-                f.write('%04d ' % msec)
-                f.write('GAU  5.00e-02  0.00e+00  0.00e+00  0.00e+00')
-                f.write('\n')
+        event_dat_base1 = '.'.join((trigger.eventid + '_nll', 'obs'))
+        event_dat_base2 = '.'.join((evt_folder , 'pick'))
+        
+        for event_base in (event_dat_base1,event_dat_base2):
+            event_dat = os.path.join(out_event_folder, event_base)
+            with open(event_dat, 'w') as f:
+                f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
+                for pick in trigger.picks:
+                    f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
+                    if pick.arrival_type is 'P':
+                        time = trigger.origin_time + pick.pick_time
+                    else:
+                        time = trigger.origin_time + pick.theor_time
+                    f.write('%s ' % time.strftime('%Y%m%d'))
+                    f.write('%s ' % time.strftime('%H%M'))
+                    f.write('%s.' % time.strftime('%S'))
+                    msec = int(round(int(time.strftime('%f'))/100.))
+                    f.write('%04d ' % msec)
+                    f.write('GAU  5.00e-02  0.00e+00  0.00e+00  0.00e+00')
+                    f.write('\n')
 
     ## reading data, cutting events and saving data in specified format-------------------------------
         for pick in trigger.picks:
