@@ -58,7 +58,9 @@ def main():
     if not os.path.exists(main_folder):
         os.mkdir(main_folder)
     for trigger in triggers:
-        out_event_folder = os.path.join(main_folder, trigger.eventid)
+        evt_folder = trigger.eventid[0:4]+"-"+trigger.eventid[4:6]+"-"+trigger.eventid[6:8]+\
+              "-"+trigger.eventid[9:-1]
+        out_event_folder = os.path.join(main_folder, evt_folder)        
         if not os.path.exists(out_event_folder):
             os.mkdir(out_event_folder)
 
