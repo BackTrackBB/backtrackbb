@@ -50,7 +50,6 @@ def MBfilter_CF(st, frequencies, var_w=True,
     CN_LP = delta/(wn+delta)        # low-pass filter constant
     CF_decay_nsmps = int(CF_decay_win / delta)
     rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
-    b = CF_decay_nsmps * delta/Tn[int(Nb/2 + 1)]
 
     if hos_sigma is None:
         hos_sigma = -1.
@@ -69,8 +68,8 @@ def MBfilter_CF(st, frequencies, var_w=True,
         for n in xrange(Nb):
             YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n])
 
-            if var_w:
-                CF_decay_nsmps_mb = b * Tn[n]/delta
+            if var_w and CF_type == 'envelope':
+                CF_decay_nsmps_mb = (Tn[n]/delta)*CF_decay_nsmps
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
