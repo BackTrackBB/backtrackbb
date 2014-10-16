@@ -21,13 +21,11 @@ lib_rec_hos._recursive_hos.argtypes = [
         ctypes.c_float,
         ctypes.c_float,
         ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_float
         ]
 lib_rec_hos._recursive_hos.restype = ctypes.c_void_p
 
 
-def recursive_hos(signal, C_WIN, sigma_min, order1, order2, power2):
+def recursive_hos(signal, C_WIN, sigma_min, order):
     signal = np.array(signal, dtype=np.float64)
     """
         Recursive computation of higher-horder statistics.
@@ -40,7 +38,7 @@ def recursive_hos(signal, C_WIN, sigma_min, order1, order2, power2):
 
     hos_signal = np.zeros(len(signal))
     lib_rec_hos._recursive_hos(
-            signal, hos_signal, signal.size, sigma_min, C_WIN, order1, order2, power2)
+            signal, hos_signal, signal.size, sigma_min, C_WIN, order)
     return hos_signal
 
 
@@ -48,6 +46,6 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     signal = np.ones(60000)
     signal[30000]+=1
-    kurt_signal = recursive_hos(signal, 0.5, 0.001, 4, 2, 2)
+    kurt_signal = recursive_hos(signal, 0.5, 0.001, 4)
     plt.plot(kurt_signal)
     plt.show()
