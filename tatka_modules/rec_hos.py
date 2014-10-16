@@ -28,6 +28,7 @@ lib_rec_hos._recursive_hos.restype = ctypes.c_void_p
 
 
 def recursive_hos(signal, C_WIN, sigma_min, order1, order2, power2):
+    signal = np.array(signal, dtype=np.float64)
     """
         Recursive computation of higher-horder statistics.
     """

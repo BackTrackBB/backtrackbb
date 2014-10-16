@@ -14,6 +14,7 @@ void _recursive_hos(const double *signal, double *hos_signal, int npts,
         float sigma_min, float C_WIN, int order1, int order2, float power2)
 {
     int i;
+    int n_win;
     double mean = 0;
     double var_temp = 1.0;
     double var = 1;
