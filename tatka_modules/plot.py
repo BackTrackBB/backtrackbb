@@ -169,8 +169,12 @@ def bp_plot(config, proj_grid,
                      int(round(t.microsecond/1000.)))
         else:
             t_str = ''
-        ax2_xy.set_title('%sLon: %.4f, Lat: %.4f, Depth: %.3f km' %
-                         (t_str, trigger.lon, trigger.lat, trigger.z))
+        if trigger.lon:
+            ax2_xy.set_title('%sLon: %.4f, Lat: %.4f, Depth: %.3f km' %
+                             (t_str, trigger.lon, trigger.lat, trigger.z))
+        else:
+            ax2_xy.set_title('%sX: %.2f km, Y: %.2f km, Depth: %.2f km' %
+                             (t_str, trigger.x, trigger.y, trigger.z))
         ax2_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
     ax2_xy.set_aspect('equal', 'datalim')

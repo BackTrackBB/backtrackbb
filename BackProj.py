@@ -94,12 +94,13 @@ def main():
     grid1 = GRD_sta.values()[0].values()[0]
 
     #---init map projection--------------------------------------------------
-    get_transform(grid1.proj_name,
-                  grid1.orig_lat, grid1.orig_lon,
-                  grid1.first_std_paral,
-                  grid1.second_std_paral,
-                  grid1.map_rot,
-                  grid1.ellipsoid)
+    if grid1.proj_name!='NONE':
+        get_transform(grid1.proj_name,
+                      grid1.orig_lat, grid1.orig_lon,
+                      grid1.first_std_paral,
+                      grid1.second_std_paral,
+                      grid1.map_rot,
+                      grid1.ellipsoid)
 
     #----geographical coordinates of the eq's epicenter----------------------
     coord_eq = None

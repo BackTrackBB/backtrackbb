@@ -32,13 +32,14 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                          x_orig=gr.x_orig, y_orig=gr.y_orig, z_orig=gr.z_orig,
                          dx=gr.dx, dy=gr.dy, dz=gr.dz)
     stack_grid.type = 'STACK'
-    stack_grid.proj_name = gr.proj_name
-    stack_grid.ellipsoid = gr.ellipsoid
-    stack_grid.orig_lat = gr.orig_lat
-    stack_grid.orig_lon = gr.orig_lon
-    stack_grid.first_std_paral = gr.first_std_paral
-    stack_grid.second_std_paral = gr.second_std_paral
-    stack_grid.map_rot = gr.map_rot
+    if gr.proj_name != 'NONE':
+        stack_grid.proj_name = gr.proj_name
+        stack_grid.ellipsoid = gr.ellipsoid
+        stack_grid.orig_lat = gr.orig_lat
+        stack_grid.orig_lon = gr.orig_lon
+        stack_grid.first_std_paral = gr.first_std_paral
+        stack_grid.second_std_paral = gr.second_std_paral
+        stack_grid.map_rot = gr.map_rot
     stack_grid.init_array()
 
     arrival_times = defaultdict(lambda: defaultdict(list))
@@ -116,8 +117,9 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + config.time_lag
         trigger.center_win = start_tw + config.time_lag/2.
-        trigger.lat, trigger.lon =\
-                rect2latlon(trigger.x, trigger.y)
+        if stack_grid.proj_name != 'NONE':
+            trigger.lat, trigger.lon =\
+                    rect2latlon(trigger.x, trigger.y)
 
         # Compute origin time and theoretical arrivals
         TrOrig_time(config, stations, GRD_sta, trigger, arrival_times)
