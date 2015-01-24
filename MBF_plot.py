@@ -48,6 +48,7 @@ HP2_1,  MBkurt_1, Tn2_1, Nb2_1 = MBfilter_CF(st, frequencies,
                                      var_w = config.varWin_stationPair,
                                      CF_type = config.ch_function,
                                      CF_decay_win = config.decay_const,
+                                     filter_type = config.filter_type,
                                      hos_sigma=hos_sigma[config.stations[0]])
 print 'Creating characteristic function: %s' % (st[0].stats.station)
 if config.ch_function == 'kurtosis':         
@@ -102,8 +103,12 @@ if len(st)==2:
 else:
     ax4.plot(ttime, st[0].data,'k',lw=line_width,label = st[0].id)
 
-st.filter('bandpass', freqmin=config.f_min,
+if config.filter_type == 'bandpass':
+    st.filter('bandpass', freqmin=config.f_min,
           freqmax=config.f_max, corners=2, zerophase=False)
+elif config.filter_type == 'highpass':
+    st.filter('highpass', freq=config.f_min,
+          corners=2, zerophase=False)
 st.normalize()
 if len(st)==2:
     horiz_env = np.sqrt(np.power(st[0].data,2)+

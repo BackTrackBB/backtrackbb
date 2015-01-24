@@ -34,8 +34,9 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 
 def MBfilter_CF(st, frequencies, var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
-                order=4,rosenberger_decay_win=1.0,
-                wave_type='P',hos_sigma=None,
+                filter_type='bandpass',
+                order=4, rosenberger_decay_win=1.0,
+                wave_type='P', hos_sigma=None,
                 full_output=False):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
@@ -47,7 +48,12 @@ def MBfilter_CF(st, frequencies, var_w=True,
     Tn = 1./frequencies
     wn = Tn/(2*np.pi)
     CN_HP = wn/(wn+delta)        # high-pass filter constant
-    CN_LP = delta/(wn+delta)        # low-pass filter constant
+    if filter_type == 'bandpass':
+        CN_LP = delta/(wn+delta)        # low-pass filter constant
+    elif filter_type == 'highpass':
+        CN_LP = [None,] * len(CN_HP)
+    else:
+        raise ValueError, 'Wrong filter type: %s' % filter_type
     CF_decay_nsmps = int(CF_decay_win / delta)
     rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
 
