@@ -60,32 +60,46 @@ def main():
 
     #-------                  Plotting
     fig = plt.figure(figsize=(18,10))
-    # ax1: filtered traces
-    ax1 = fig.add_axes([0.02, 0.395, 0.47, 0.6])
-    # ax2: characteristic functions
-    ax2 = fig.add_axes([0.51, 0.395, 0.47, 0.6], sharex=ax1, sharey=ax1)
-    # ax3: summary characteristic function
-    ax3 = fig.add_axes([0.51, 0.207, 0.47, 0.17], sharex=ax1)
-    # ax4: original trace
-    ax4 = fig.add_axes([0.02, 0.207, 0.47, 0.17], sharex=ax1, sharey=ax3)
+    # ax1: original trace
+    ax1 = fig.add_axes([0.02, 0.207, 0.47, 0.17])
+    # ax2: filtered traces
+    ax2 = fig.add_axes([0.02, 0.395, 0.47, 0.6], sharex=ax1)
+    # ax3: characteristic functions
+    ax3 = fig.add_axes([0.51, 0.395, 0.47, 0.6], sharex=ax1, sharey=ax2)
+    # ax4: summary characteristic function
+    ax4 = fig.add_axes([0.51, 0.207, 0.47, 0.17], sharex=ax1, sharey=ax1)
 
     time_array = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
 
-    ax1.set_xlim(0, max(time_array))
-    ax2.set_xlim(0, max(time_array))
-    ax1.set_ylim(-1, Nb2_1)
-    ax2.set_ylim(-1, Nb2_1)
-    ax3.set_ylim(-1, 1)
+    ax1.set_ylim(-1, 1)
     ax4.set_ylim(-1, 1)
-    ax3.set_xlabel('Time [s]',fontsize=14)
+    ax2.set_xlim(0, max(time_array))
+    ax3.set_xlim(0, max(time_array))
+    ax2.set_ylim(-1, Nb2_1)
+    ax3.set_ylim(-1, Nb2_1)
+    ax1.set_xlabel('Time [s]',fontsize=14)
     ax4.set_xlabel('Time [s]',fontsize=14)
     ax1.yaxis.set_visible(False)
     ax2.yaxis.set_visible(False)
-    ax1.xaxis.set_visible(False)
-    ax2.xaxis.set_visible(False)
     ax3.yaxis.set_visible(False)
+    ax2.xaxis.set_visible(False)
+    ax3.xaxis.set_visible(False)
     ax4.yaxis.set_visible(False)
 
+
+    # ax1: original trace:
+    st.normalize()
+    if len(st) == 2:
+        ax1.plot(time_array, st[0].data,'k',lw=line_width,label = st[0].id)
+        ax1.plot(time_array, st[1].data-max(st[0].data),'b',lw=line_width,
+                 label = st[1].id)
+    else:
+        ax1.plot(time_array, st[0].data,'k',lw=line_width,label = st[0].id)
+    ax1.legend()
+    # end ax1
+
+
+    # ax2, ax3: filtered traces, characteristic functions
     # Normalize to one
     HP2_1 /= np.amax(HP2_1)
     MBkurt_1 /= np.amax(MBkurt_1)
@@ -94,56 +108,47 @@ def main():
     traces = [trace + i for i, trace in enumerate(list(HP2_1))]
     lines = LineCollection([list(zip(time_array, trace)) for trace in traces],
             linewidth=line_width, color='k', rasterized=True)
-    ax1.add_collection(lines)
+    ax2.add_collection(lines)
 
     traces = [trace + i for i, trace in enumerate(list(MBkurt_1))]
     lines = LineCollection([list(zip(time_array, trace)) for trace in traces],
             linewidth=line_width, color='k', rasterized=True)
-    ax2.add_collection(lines)
+    ax3.add_collection(lines)
 
     # Transformations for label positioning
     trans1 = transforms.blended_transform_factory(
-        fig.transFigure, ax1.transData)
-    trans2 = transforms.blended_transform_factory(
         fig.transFigure, ax2.transData)
+    trans2 = transforms.blended_transform_factory(
+        fig.transFigure, ax3.transData)
     inv = fig.transFigure.inverted()
-    xtext1 = inv.transform(ax1.transData.transform((time_array[0], 0)))[0]
-    xtext2 = inv.transform(ax2.transData.transform((time_array[0], 0)))[0]
+    xtext1 = inv.transform(ax2.transData.transform((time_array[0], 0)))[0]
+    xtext2 = inv.transform(ax3.transData.transform((time_array[0], 0)))[0]
 
     for i, Tn in enumerate(Tn2_1):
         label = '%.2f Hz' % (1./Tn)
-        ax1.text(xtext1, i+0.1, label, fontsize=13, transform=trans1, clip_on=True)
-        ax2.text(xtext2, i+0.1, label, fontsize=13, transform=trans2, clip_on=True)
+        ax2.text(xtext1, i+0.1, label, fontsize=13, transform=trans1, clip_on=True)
+        ax3.text(xtext2, i+0.1, label, fontsize=13, transform=trans2, clip_on=True)
+    # end ax2, ax3
 
 
-    st.normalize()
-    if len(st) == 2:
-        ax4.plot(time_array, st[0].data,'k',lw=line_width,label = st[0].id)
-        ax4.plot(time_array, st[1].data-max(st[0].data),'b',lw=line_width,
-                 label = st[1].id)
-    else:
-        ax4.plot(time_array, st[0].data,'k',lw=line_width,label = st[0].id)
-
-
+    # ax4: summary characteristic function
     label = 'MBF sum. ' + config.ch_function
-    ax3.plot(time_array, MBkurt_1max/max(MBkurt_1max),'r', label=label, lw=1.5)
+    ax4.plot(time_array, MBkurt_1max/max(MBkurt_1max),'r', label=label, lw=1.5)
     if config.ch_function == 'kurtosis':
         label = 'MBF sum. gauss'
-        ax3.plot(time_array, MBkurt_1max_gauss/max(MBkurt_1max_gauss), 'b', label=label, lw=1.5)
+        ax4.plot(time_array, MBkurt_1max_gauss/max(MBkurt_1max_gauss), 'b', label=label, lw=1.5)
 
     st.filter('bandpass', freqmin=config.f_min,
               freqmax=config.f_max, corners=2, zerophase=False)
     st.normalize()
     if len(st) == 2:
-        horiz_env = np.sqrt(np.power(st[0].data,2)+
-                            np.power(st[1].data,2))
-        ax3.plot(time_array, horiz_env,'k',alpha = 0.6,lw=0.5)
+        horiz_env = np.sqrt(np.power(st[0].data, 2) +
+                            np.power(st[1].data, 2))
+        ax4.plot(time_array, horiz_env,'k',alpha = 0.6,lw=0.5)
     else:
-        ax3.plot(time_array, st[0].data,'k',alpha = 0.6,lw=0.5)
-
-
-    ax3.legend()
+        ax4.plot(time_array, st[0].data,'k',alpha = 0.6,lw=0.5)
     ax4.legend()
+    # end ax4
     #------------------------------------------------------------------------------
 
     if len(st) == 2:
