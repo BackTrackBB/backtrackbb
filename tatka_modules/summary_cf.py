@@ -28,6 +28,7 @@ def summary_cf(config, stations, st, frequencies):
                     CF_type=config.ch_function,
                     CF_decay_win=decay_const,
                     filter_type=config.filter_type,
+                    order=config.hos_order,
                     rosenberger_decay_win=rosenberger_decay_const,
                     wave_type=wave_type,
                     hos_sigma=hos_sigma[station])
