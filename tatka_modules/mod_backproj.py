@@ -16,12 +16,10 @@ def run_BackProj(args):
     return _run_BackProj(*args)
 
 
-def _run_BackProj(idd, config, st, st_CF, frequencies,
+def _run_BackProj(config, st, st_CF, t_begin, frequencies,
                   stations, coord_sta, GRD_sta, coord_eq):
 
-    t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
-    t_b = t_bb[idd]
-    t_e = t_b + config.time_lag
+    t_end = t_begin + config.time_lag
 
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
     time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
@@ -67,13 +65,13 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
                                                   GRD_sta[sta2][wave1].sta_y,
                                                   GRD_sta[sta2][wave1].sta_z)
                 Mtau.append(np.round(tau_max,1))
-                t_e = t_b + np.round(tau_max,1)
+                t_end = t_begin + np.round(tau_max,1)
             else:
                 Mtau = None
                 tau_max = None
 
             proj_grid, arrival1, arrival2 =\
-                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_b, t_e, nn, config, tau_max)
+                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_begin, t_end, nn, config, tau_max)
             stack_grid.array += proj_grid
             arrival_times[sta1][wave1].append(arrival1)
             arrival_times[sta2][wave2].append(arrival2)
@@ -82,9 +80,9 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
 
     if config.cut_data:
-        start_tw = config.cut_start + t_b
+        start_tw = config.cut_start + t_begin
     else:
-        start_tw = t_b
+        start_tw = t_begin
         config.cut_start = 0.
 
     trigger = None
@@ -132,7 +130,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     if config.save_projGRID == True or\
             (config.save_projGRID == 'trigger_only' and trigger is not None):
         print 'Saving projection grid to file.'
-        basename = os.path.join(config.out_dir, 'out_t%05.1f' % t_b)
+        basename = os.path.join(config.out_dir, 'out_t%05.1f' % t_begin)
         stack_grid.write_hdr_file(basename)
         stack_grid.write_buf_file(basename)
 
@@ -145,7 +143,7 @@ def _run_BackProj(idd, config, st, st_CF, frequencies,
     if config.plot_results == 'True' or\
             (config.plot_results == 'trigger_only' and trigger is not None):
         bp_plot(config, stack_grid,
-                coord_eq, t_b, t_e, datestr, fq_str,
+                coord_eq, t_begin, t_end, datestr, fq_str,
                 coord_sta, st, stations, st_CF,
                 time, time_env,
                 frequencies, n1, n22, trigger, arrival_times, Mtau)

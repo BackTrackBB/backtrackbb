@@ -38,7 +38,7 @@ def main():
     # selecting the time windows that do not exceed the length of the data---
     t_ee = t_bb + config.time_lag
     data_length = st[0].stats.endtime - st[0].stats.starttime
-    t_bb = t_ee[t_ee<=data_length] - config.time_lag    
+    t_bb = t_ee[t_ee<=data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
 
     loc_infile = None
@@ -141,19 +141,19 @@ def main():
 
     #---running program------------------------------------------------------
     arglist = [
-               (idd,config,
-                st, st_CF, frequencies,
+               (config,
+                st, st_CF, t_begin, frequencies,
                 stations, coord_sta, GRD_sta,
                 coord_eq)
-               for idd in xrange(len(t_bb))
+               for t_begin in t_bb
               ]
     if config.ncpu > 1:
         # parallel execution
         print 'Running on %d threads' % config.ncpu
         p = Pool(config.ncpu)  #defining number of jobs
         p_outputs = p.map(run_BackProj, arglist)
-        p.close()      #no more tasks
-        p.join()       #wrap up current tasks
+        p.close() #no more tasks
+        p.join() #wrap up current tasks
     else:
         # serial execution (useful for debugging)
         print 'Running on 1 thread'
@@ -184,7 +184,7 @@ def main():
         #----sorting triggers----and grouping triggered locations----------------
         sorted_trigs = copy.copy(triggers)
         sorted_trigs = groupe_triggers(sorted_trigs,config)
-        
+
         #writing sorted triggers in a second output file-------------------------
         #writing output
         eventids = []
@@ -201,8 +201,8 @@ def main():
                 # sort picks by station
                 picks = sorted(trigger.picks, key=lambda x: x.station)
                 for pick in picks:
-                    f.write(str(pick) + '\n')                   
-            
+                    f.write(str(pick) + '\n')
+
         #-plotting output-------------------------------------------------------
         plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
                        sorted_trigs, t_bb, datestr, frequencies[n1], frequencies[n22],
