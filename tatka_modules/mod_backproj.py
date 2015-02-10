@@ -42,8 +42,6 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
 
     arrival_times = defaultdict(lambda: defaultdict(list))
 
-    nn = int(config.t_overlap)
-
     sta_wave = [(sta, wave) for wave in config.wave_type for sta in stations]
 
     k = 0
@@ -57,24 +55,25 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         x_sta1, y_sta1 = coord_sta[sta1]
         x_sta2, y_sta2 = coord_sta[sta2]
         distance = np.sqrt((x_sta1-x_sta2)**2 + (y_sta1-y_sta2)**2)
+        if distance > config.maxSTA_distance:
+            continue
 
-        if distance <= config.maxSTA_distance:
-            k += 1
-            if config.varWin_stationPair:
-                tau_max = GRD_sta[sta1][wave1].get_value(GRD_sta[sta2][wave1].sta_x,
-                                                  GRD_sta[sta2][wave1].sta_y,
-                                                  GRD_sta[sta2][wave1].sta_z)
-                Mtau.append(np.round(tau_max,1))
-                t_end = t_begin + np.round(tau_max,1)
-            else:
-                Mtau = None
-                tau_max = None
+        if config.varWin_stationPair:
+            tau_max = GRD_sta[sta1][wave1].get_value(GRD_sta[sta2][wave1].sta_x,
+                                                     GRD_sta[sta2][wave1].sta_y,
+                                                     GRD_sta[sta2][wave1].sta_z)
+            Mtau.append(np.round(tau_max,1))
+            t_end = t_begin + np.round(tau_max,1)
+        else:
+            Mtau = None
+            tau_max = None
 
-            proj_grid, arrival1, arrival2 =\
-                    sta_GRD_Proj(st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_begin, t_end, nn, config, tau_max)
-            stack_grid.array += proj_grid
-            arrival_times[sta1][wave1].append(arrival1)
-            arrival_times[sta2][wave2].append(arrival2)
+        proj_grid, arrival1, arrival2 =\
+                sta_GRD_Proj(config, st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_begin, t_end, tau_max)
+        stack_grid.array += proj_grid
+        arrival_times[sta1][wave1].append(arrival1)
+        arrival_times[sta2][wave2].append(arrival2)
+        k += 1
     stack_grid.array /= k
 
     i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
