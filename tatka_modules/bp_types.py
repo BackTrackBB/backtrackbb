@@ -103,3 +103,26 @@ class Pick():
         #TODO: read and write these fields?
         #self.travel_time = None
         #self.time_dev = None
+
+
+class RecursiveMemory():
+    def __init__(self):
+        self.filterH1 = 0.
+        self.filterH2 = 0.
+        self.filterL1 = 0.
+        self.filterL2 = 0.
+        self.mean_sq = 0.
+        self.mean = 0.
+        self.var = 1.
+        self.hos = 0.
+
+    def __str__(self):
+        s = 'filterH1: %f\n' % self.filterH1
+        s += 'filterH2: %f\n' % self.filterH2
+        s += 'filterL1: %f\n' % self.filterL1
+        s += 'filterL2: %f\n' % self.filterL2
+        s += 'mean_sq: %f\n' % self.mean_sq
+        s += 'mean: %f\n' % self.mean
+        s += 'var: %f\n' % self.var
+        s += 'hos: %f\n' % self.hos
+        return s

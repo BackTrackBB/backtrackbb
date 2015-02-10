@@ -37,6 +37,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
                 filter_type='bandpass',
                 order=4, rosenberger_decay_win=1.0,
                 wave_type='P', hos_sigma=None,
+                rec_memory=None,
                 full_output=False):
     """
     Performs MBfiltering using 2HP+2LP recursive filter
@@ -72,7 +73,11 @@ def MBfilter_CF(st, frequencies, var_w=True,
         CF1 = np.zeros((Nb, len(y)), float)
 
         for n in xrange(Nb):
-            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n])
+            if rec_memory is not None:
+                rmem = rec_memory[n]
+            else:
+                rmem = None
+            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n], rmem)
 
             if var_w and CF_type == 'envelope':
                 CF_decay_nsmps_mb = (Tn[n]/delta)*CF_decay_nsmps
@@ -80,14 +85,15 @@ def MBfilter_CF(st, frequencies, var_w=True,
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
             if CF_type == 'envelope':
-                CF1[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb)
+                CF1[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb, rmem)
 
             if CF_type == 'hilbert':
+                # This does not support recursive memory!
                 CF1[n] = smooth(abs(sp.signal.hilbert(YN1[n])), CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
                 CF1[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
-                                      hos_sigma, order)
+                                      hos_sigma, order, rmem)
 
     # More than 3 components
     else:
