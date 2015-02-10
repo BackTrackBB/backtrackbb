@@ -23,7 +23,7 @@ void _recursive_filter_HP(const double *signal, double *filt_signal, int npts, f
     int i;
     double filterH1_0 = 0;
 
-    for (i=1; i<npts; i++) {
+    for (i=0; i<npts; i++) {
         filterH1_0 = *filterH1;
         *filterH1 = C_HP * (*filterH1 + signal[i] - *previous_sample);
         *filterH2 = C_HP * (*filterH2 + *filterH1 - filterH1_0);
