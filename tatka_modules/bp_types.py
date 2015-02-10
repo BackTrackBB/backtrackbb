@@ -111,6 +111,7 @@ class RecursiveMemory():
         self.filterH2 = 0.
         self.filterL1 = 0.
         self.filterL2 = 0.
+        self.previous_sample = 0.
         self.mean_sq = 0.
         self.mean = 0.
         self.var = 1.
@@ -121,6 +122,7 @@ class RecursiveMemory():
         s += 'filterH2: %f\n' % self.filterH2
         s += 'filterL1: %f\n' % self.filterL1
         s += 'filterL2: %f\n' % self.filterL2
+        s += 'previous_sample: %f\n' % self.previous_sample
         s += 'mean_sq: %f\n' % self.mean_sq
         s += 'mean: %f\n' % self.mean
         s += 'var: %f\n' % self.var
