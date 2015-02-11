@@ -1,6 +1,7 @@
 # bp_types.py
 # Data types for BackProj
 from obspy import UTCDateTime
+from ctypes import c_double
 
 class Trigger():
     def __init__(self,
@@ -107,24 +108,24 @@ class Pick():
 
 class RecursiveMemory():
     def __init__(self):
-        self.filterH1 = 0.
-        self.filterH2 = 0.
-        self.filterL1 = 0.
-        self.filterL2 = 0.
-        self.previous_sample = 0.
-        self.mean_sq = 0.
-        self.mean = 0.
-        self.var = 1.
-        self.hos = 0.
+        self.filterH1 = c_double(0)
+        self.filterH2 = c_double(0)
+        self.filterL1 = c_double(0)
+        self.filterL2 = c_double(0)
+        self.previous_sample = c_double(0)
+        self.mean_sq = c_double(0)
+        self.mean = c_double(0)
+        self.var = c_double(1)
+        self.hos = c_double(0)
 
     def __str__(self):
-        s = 'filterH1: %f\n' % self.filterH1
-        s += 'filterH2: %f\n' % self.filterH2
-        s += 'filterL1: %f\n' % self.filterL1
-        s += 'filterL2: %f\n' % self.filterL2
-        s += 'previous_sample: %f\n' % self.previous_sample
-        s += 'mean_sq: %f\n' % self.mean_sq
-        s += 'mean: %f\n' % self.mean
-        s += 'var: %f\n' % self.var
-        s += 'hos: %f\n' % self.hos
+        s = 'filterH1: %f\n' % self.filterH1.value
+        s += 'filterH2: %f\n' % self.filterH2.value
+        s += 'filterL1: %f\n' % self.filterL1.value
+        s += 'filterL2: %f\n' % self.filterL2.value
+        s += 'previous_sample: %f\n' % self.previous_sample.value
+        s += 'mean_sq: %f\n' % self.mean_sq.value
+        s += 'mean: %f\n' % self.mean.value
+        s += 'var: %f\n' % self.var.value
+        s += 'hos: %f\n' % self.hos.value
         return s

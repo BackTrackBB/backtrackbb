@@ -44,9 +44,9 @@ def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
     hos_signal = np.zeros(len(signal))
 
     if rec_memory is not None:
-        mean = c_double(rec_memory.mean)
-        var = c_double(rec_memory.var)
-        hos = c_double(rec_memory.hos)
+        mean = rec_memory.mean
+        var = rec_memory.var
+        hos = rec_memory.hos
     else:
         mean = c_double(0)
         var = c_double(1)
@@ -57,9 +57,9 @@ def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
             byref(mean), byref(var), byref(hos))
 
     if rec_memory is not None:
-        rec_memory.mean = mean.value
-        rec_memory.var = var.value
-        rec_memory.hos = hos.value
+        rec_memory.mean = mean
+        rec_memory.var = var
+        rec_memory.hos = hos
 
     return hos_signal
 

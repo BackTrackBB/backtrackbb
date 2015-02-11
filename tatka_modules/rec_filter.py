@@ -38,11 +38,11 @@ def recursive_filter(signal, C_HP, C_LP=None, rec_memory=None):
     filt_signal = np.zeros(len(signal))
 
     if rec_memory is not None:
-        filterH1 = c_double(rec_memory.filterH1)
-        filterH2 = c_double(rec_memory.filterH2)
-        filterL1 = c_double(rec_memory.filterL1)
-        filterL2 = c_double(rec_memory.filterL2)
-        previous_sample = c_double(rec_memory.previous_sample)
+        filterH1 = rec_memory.filterH1
+        filterH2 = rec_memory.filterH2
+        filterL1 = rec_memory.filterL1
+        filterL2 = rec_memory.filterL2
+        previous_sample = rec_memory.previous_sample
     else:
         filterH1 = c_double(0)
         filterH2 = c_double(0)
@@ -63,11 +63,11 @@ def recursive_filter(signal, C_HP, C_LP=None, rec_memory=None):
             byref(previous_sample))
 
     if rec_memory is not None:
-        rec_memory.filterH1 = filterH1.value
-        rec_memory.filterH2 = filterH2.value
-        rec_memory.filterL1 = filterL1.value
-        rec_memory.filterL2 = filterL2.value
-        rec_memory.previous_sample = previous_sample.value
+        rec_memory.filterH1 = filterH1
+        rec_memory.filterH2 = filterH2
+        rec_memory.filterL1 = filterL1
+        rec_memory.filterL2 = filterL2
+        rec_memory.previous_sample = previous_sample
 
     return filt_signal
 
