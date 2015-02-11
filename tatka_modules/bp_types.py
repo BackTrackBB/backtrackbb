@@ -107,12 +107,13 @@ class Pick():
 
 
 class RecursiveMemory():
-    def __init__(self):
+    def __init__(self, memory_sample=-1):
         self.filterH1 = c_double(0)
         self.filterH2 = c_double(0)
         self.filterL1 = c_double(0)
         self.filterL2 = c_double(0)
-        self.previous_sample = c_double(0)
+        self.prev_sample_value = c_double(0)
+        self.memory_sample = int(memory_sample)
         self.mean_sq = c_double(0)
         self.mean = c_double(0)
         self.var = c_double(1)
@@ -124,7 +125,8 @@ class RecursiveMemory():
         s += 'filterH2: %f\n' % self.filterH2.value
         s += 'filterL1: %f\n' % self.filterL1.value
         s += 'filterL2: %f\n' % self.filterL2.value
-        s += 'previous_sample: %f\n' % self.previous_sample.value
+        s += 'prev_sample_value: %f\n' % self.prev_sample_value.value
+        s += 'memory_sample: %d\n' % self.memory_sample
         s += 'mean_sq: %f\n' % self.mean_sq.value
         s += 'mean: %f\n' % self.mean.value
         s += 'var: %f\n' % self.var.value

@@ -12,7 +12,9 @@ lib_rec_rms._recursive_rms.argtypes = [
         ndpointer(dtype=np.float64), #rms_signal
         c_int, #npts
         c_float, #C_WIN
-        POINTER(c_double) #mean_sq
+        POINTER(c_double), #mean_sq
+        c_int, #memory_sample
+        c_int #initialize
         ]
 lib_rec_rms._recursive_rms.restype = c_void_p
 
@@ -22,15 +24,21 @@ def recursive_rms(signal, C_WIN, rec_memory=None):
     rms_signal = np.zeros(len(signal))
 
     if rec_memory is not None:
-        mean_sq = c_double(rec_memory.mean_sq)
+        mean_sq = rec_memory.mean_sq
+        memory_sample = rec_memory.memory_sample
+        initialize = int(rec_memory.initialize)
     else:
         mean_sq = c_double(0)
+        memory_sample = -1
+        initialize = 1
 
     lib_rec_rms._recursive_rms(
-            signal, rms_signal, signal.size, C_WIN, byref(mean_sq))
+            signal, rms_signal, signal.size, C_WIN,
+            byref(mean_sq), memory_sample, initialize)
 
     if rec_memory is not None:
-        rec_memory.mean_sq = mean_sq.value
+        rec_memory.mean_sq = mean_sq
+        rec_memory.initialize = False
 
     return rms_signal
 
