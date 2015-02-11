@@ -14,18 +14,18 @@
 
 void _recursive_hos(const double *signal, double *hos_signal, int npts,
         float sigma_min, float C_WIN, int order,
-        double *mean, double *var, double *hos)
+        double *mean, double *var, double *hos, int initialize)
 {
     int i;
-    int n_win;
+    int n_win = (int) 1/C_WIN;
     double var_temp;
     double power = order/2;
 
-    n_win = (int) 1/C_WIN;
-
-    for (i=0; i<n_win; i++) {
-        *mean = C_WIN * signal[i] + (1 - C_WIN) * (*mean);
-        *var = C_WIN * pow((signal[i] - *mean), 2.0) + (1 - C_WIN) * (*var);
+    if (initialize) {
+        for (i=0; i<n_win; i++) {
+            *mean = C_WIN * signal[i] + (1 - C_WIN) * (*mean);
+            *var = C_WIN * pow((signal[i] - *mean), 2.0) + (1 - C_WIN) * (*var);
+        }
     }
 
     for (i=0; i<npts; i++) {

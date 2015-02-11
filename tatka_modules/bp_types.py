@@ -117,6 +117,7 @@ class RecursiveMemory():
         self.mean = c_double(0)
         self.var = c_double(1)
         self.hos = c_double(0)
+        self.initialize = True
 
     def __str__(self):
         s = 'filterH1: %f\n' % self.filterH1.value
@@ -128,4 +129,5 @@ class RecursiveMemory():
         s += 'mean: %f\n' % self.mean.value
         s += 'var: %f\n' % self.var.value
         s += 'hos: %f\n' % self.hos.value
+        s += 'initialize: %s\n' % self.initialize
         return s

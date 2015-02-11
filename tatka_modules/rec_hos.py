@@ -25,7 +25,8 @@ lib_rec_hos._recursive_hos.argtypes = [
         c_int, #order
         POINTER(c_double), #mean
         POINTER(c_double), #var
-        POINTER(c_double) #hos
+        POINTER(c_double), #hos
+        c_int #initialize
         ]
 lib_rec_hos._recursive_hos.restype = c_void_p
 
@@ -47,19 +48,22 @@ def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
         mean = rec_memory.mean
         var = rec_memory.var
         hos = rec_memory.hos
+        initialize = int(rec_memory.initialize)
     else:
         mean = c_double(0)
         var = c_double(1)
         hos = c_double(0)
+        initialize = 1
 
     lib_rec_hos._recursive_hos(
             signal, hos_signal, signal.size, sigma_min, C_WIN, order,
-            byref(mean), byref(var), byref(hos))
+            byref(mean), byref(var), byref(hos), initialize)
 
     if rec_memory is not None:
         rec_memory.mean = mean
         rec_memory.var = var
         rec_memory.hos = hos
+        rec_memory.initialize = False
 
     return hos_signal
 
