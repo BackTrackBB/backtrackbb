@@ -66,8 +66,6 @@ def MBfilter_CF(st, frequencies, var_w=True,
         # Use just the first trace in stream
         tr = st[0]
         y = tr.data
-        y = y - y.mean()
-        y[0] = np.mean(y[0:CF_decay_nsmps])
 
         YN1 = np.zeros((Nb, len(y)), float)
         CF1 = np.zeros((Nb, len(y)), float)
@@ -106,13 +104,6 @@ def MBfilter_CF(st, frequencies, var_w=True,
         y1 = tr1.data
         y2 = tr2.data
         y3 = tr3.data
-
-        y1 = y1 - y1.mean()
-        y1[0] = np.mean(y1[0:CF_decay_nsmps])
-        y2 = y2 - y2.mean()
-        y2[0] = np.mean(y2[0:CF_decay_nsmps])
-        y3 = y3 - y3.mean()
-        y3[0] = np.mean(y3[0:CF_decay_nsmps])
 
         # Initializing arrays
         YN1 = np.zeros((Nb, len(y1)), float)
