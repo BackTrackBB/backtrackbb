@@ -3,7 +3,9 @@ import scipy as sp
 from rec_cc import local_CCr
 
 
-def LocalCC(in_signal1, in_signal2, samp_rate, max_time_lag, zero_time, config):
+def LocalCC(config, in_signal1, in_signal2, max_time_lag, zero_time):
+
+    samp_rate = config.sampl_rate_data
 
     if config.do_smooth_lcc:
         sigma = config.smooth_lcc

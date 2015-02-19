@@ -66,6 +66,7 @@ def read_traces(config):
                 min(st_endtime, UTCDateTime(config.end_time)))
     else:
         st.trim(st_starttime, st_endtime)
+    config.starttime = st_starttime
 
     # attach station list to config file
     config.stations = stations
