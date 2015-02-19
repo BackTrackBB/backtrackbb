@@ -63,9 +63,6 @@ def main():
     st.detrend(type='constant')
     st.detrend(type='linear')
 
-    #---Some simple parameters from trace------------------------------------
-    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-
     #---Calculating frequencies for MBFilter---------------------------------
     if config.band_spacing == 'lin':
         frequencies = make_LinFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
@@ -78,8 +75,6 @@ def main():
 
     #----MB filtering and calculating Summary characteristic functions:------
     st_CF = summary_cf(config, st, frequencies)
-
-    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
     #---Take the first grid as reference ------------------------------------
     grid1 = GRD_sta.values()[0].values()[0]
@@ -195,12 +190,12 @@ def main():
                     f.write(str(pick) + '\n')
 
         #-plotting output-------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
+        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                        sorted_trigs, t_bb, datestr, frequencies[n1], frequencies[n22],
                        coord_eq, coord_jma, file_out_fig)
     else:
     #-plotting output--------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
+        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                        triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
                        coord_eq, coord_jma, file_out_fig)
 

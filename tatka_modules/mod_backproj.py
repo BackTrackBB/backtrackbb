@@ -21,9 +21,6 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
 
     t_end = t_begin + config.time_lag
 
-    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
-
     # Create stack grid using a time grid as model
     gr = GRD_sta.values()[0].values()[0]
     stack_grid = NLLGrid(nx=gr.nx, ny=gr.ny, nz=gr.nz,
@@ -144,7 +141,6 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end, datestr, fq_str,
                 coord_sta, st, st_CF,
-                time, time_env,
                 frequencies, n1, n22, trigger, arrival_times, Mtau)
 
     return trigger
