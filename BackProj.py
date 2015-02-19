@@ -32,7 +32,7 @@ def main():
     var_twin = config.varWin_stationPair
     print 'use of var time window for location:', var_twin
     #---Reading data---------------------------------------------------------
-    st, stations = read_traces(config)
+    st = read_traces(config)
     #------------------------------------------------------------------------
     t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
     # selecting the time windows that do not exceed the length of the data---
@@ -50,7 +50,7 @@ def main():
     #------------------------------------------------------------------------
 
     #--Read grids of theoretical travel-times--------------------------------
-    GRD_sta, coord_sta = read_grids(config, stations)
+    GRD_sta, coord_sta = read_grids(config)
 
     #--- cut the data to the selected length dt------------------------------
     if config.cut_data:
@@ -59,34 +59,25 @@ def main():
     else:
         config.cut_start = 0.
 
-    #---- resample data -----------------------------------------------------
-    if config.sampl_rate_data:
-        for tr in st:
-            f_tr = tr.stats.sampling_rate
-            if f_tr > config.sampl_rate_data:
-                dec_ct = int(f_tr/config.sampl_rate_data)
-                tr.decimate(dec_ct, strict_length=False, no_filter=True)
-
     #---remove mean and trend------------------------------------------------
     st.detrend(type='constant')
     st.detrend(type='linear')
 
     #---Some simple parameters from trace------------------------------------
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-    delta = st[0].stats.delta
 
     #---Calculating frequencies for MBFilter---------------------------------
     if config.band_spacing == 'lin':
-        frequencies = make_LinFq(config.f_min, config.f_max, delta, config.n_freq_bands)
+        frequencies = make_LinFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
     elif config.band_spacing == 'log':
-        frequencies = make_LogFq(config.f_min, config.f_max, delta, config.n_freq_bands)
+        frequencies = make_LogFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
     n1 = 0
     n2 = len(frequencies)
     n22 = len(frequencies) - 1
     print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
 
     #----MB filtering and calculating Summary characteristic functions:------
-    st_CF = summary_cf(config, stations, st, frequencies)
+    st_CF = summary_cf(config, st, frequencies)
 
     time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
 
@@ -143,7 +134,7 @@ def main():
     arglist = [
                (config,
                 st, st_CF, t_begin, frequencies,
-                stations, coord_sta, GRD_sta,
+                coord_sta, GRD_sta,
                 coord_eq)
                for t_begin in t_bb
               ]

@@ -17,7 +17,7 @@ def run_BackProj(args):
 
 
 def _run_BackProj(config, st, st_CF, t_begin, frequencies,
-                  stations, coord_sta, GRD_sta, coord_eq):
+                  coord_sta, GRD_sta, coord_eq):
 
     t_end = t_begin + config.time_lag
 
@@ -42,7 +42,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
 
     arrival_times = defaultdict(lambda: defaultdict(list))
 
-    sta_wave = [(sta, wave) for wave in config.wave_type for sta in stations]
+    sta_wave = [(sta, wave) for wave in config.wave_type for sta in config.stations]
 
     k = 0
     Mtau = []
@@ -119,7 +119,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
                     rect2latlon(trigger.x, trigger.y)
 
         # Compute origin time and theoretical arrivals
-        TrOrig_time(config, stations, GRD_sta, trigger, arrival_times)
+        TrOrig_time(config, GRD_sta, trigger, arrival_times)
         if trigger.origin_time is None:
             trigger = None
 
@@ -143,7 +143,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
             (config.plot_results == 'trigger_only' and trigger is not None):
         bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end, datestr, fq_str,
-                coord_sta, st, stations, st_CF,
+                coord_sta, st, st_CF,
                 time, time_env,
                 frequencies, n1, n22, trigger, arrival_times, Mtau)
 

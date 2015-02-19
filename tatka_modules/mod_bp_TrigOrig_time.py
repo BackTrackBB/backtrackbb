@@ -14,12 +14,12 @@ def _time_average(times):
 #TODO: _time_stdev():
 
 
-def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
+def TrOrig_time(config, GRD_sta, trigger, arrival_times):
 
     dt_min = config.dt_min
     picks = []
 
-    for sta, wave in ((sta, wave) for wave in config.wave_type for sta in stations):
+    for sta, wave in ((sta, wave) for wave in config.wave_type for sta in config.stations):
         pick = Pick()
         pick.station = sta
         pick.arrival_type = wave
@@ -57,9 +57,9 @@ def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
 
     if config.grid_type != config.wave_type:
         phase2 = list(set(config.grid_type)-set(config.wave_type))[0]
-    # additional theoretical travel time estimation for second phase
-    # only done if config.grid_type and config.wave_type have different number of phases
-        for sta in stations:
+        # additional theoretical travel time estimation for second phase
+        # only done if config.grid_type and config.wave_type have different number of phases
+        for sta in config.stations:
             pick = Pick()
             pick.eventid = trigger.eventid
             pick.station = sta
@@ -67,4 +67,4 @@ def TrOrig_time(config, stations, GRD_sta, trigger, arrival_times):
             pick.theor_time = GRD_sta[sta][phase2].get_value(trigger.x, trigger.y, trigger.z)
             pick.pick_time = -10.0
             picks.append(pick)
-            trigger.add_pick(pick)        
+            trigger.add_pick(pick)

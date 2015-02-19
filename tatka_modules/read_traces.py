@@ -34,18 +34,39 @@ def read_traces(config):
     # Retain only requested channel and stations:
     st = Stream(tr for tr in tmpst.select(channel=config.channel)
                 if tr.stats.station in stations)
+    st.sort()
+
+    # Check sampling rate
+    config.delta = None
+    for tr in st:
+        sampling_rate = tr.stats.sampling_rate
+        # Resample data, if requested
+        if config.sampl_rate_data:
+            if sampling_rate > config.sampl_rate_data:
+                dec_ct = int(sampling_rate/config.sampl_rate_data)
+                tr.decimate(dec_ct, strict_length=False, no_filter=True)
+            else:
+                raise ValueError, 'Sampling frequency for trace %s is lower than %s' % (tr.id, config.sampl_rate_data)
+        delta = tr.stats.delta
+        if config.delta is None:
+            config.delta = delta
+        else:
+            if delta != config.delta:
+                raise ValueError, 'Trace %s has different delta: %s (expected: %s)' % (tr.id, delta, config.delta)
+    # Recompute sampling rate after resampling
+    config.sampl_rate_data = st[0].stats.sampling_rate
 
     print 'Number of traces in stream = ', len(st)
-
-    st.sort()
 
     # Check for common starttime and endtime of the traces
     st_starttime = max([tr.stats.starttime for tr in st])
     st_endtime = min([tr.stats.endtime for tr in st])
-    if config.start_time:        
+    if config.start_time:
         st.trim(max(st_starttime, UTCDateTime(config.start_time)),
-                min(st_endtime,UTCDateTime(config.end_time)))
+                min(st_endtime, UTCDateTime(config.end_time)))
     else:
-        st.trim(st_starttime,st_endtime)        
-    
-    return st, stations
+        st.trim(st_starttime, st_endtime)
+
+    # attach station list to config file
+    config.stations = stations
+    return st

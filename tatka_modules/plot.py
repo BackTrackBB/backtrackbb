@@ -11,7 +11,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 def bp_plot(config, proj_grid,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta,
-            st, sta, st_CF,
+            st, st_CF,
             time, time_env,
             fq, n1, n22, trigger,
             arrival_times=None, Mtau=None):

@@ -2,10 +2,10 @@ import numpy as np
 from obspy import Stream
 from mod_filter_picker import MBfilter_CF, GaussConv
 
-def summary_cf(config, stations, st, frequencies):
+def summary_cf(config, st, frequencies):
 
     # Compute decay constants
-    delta = st[0].stats.delta
+    delta = config.delta
     decay_const = config.decay_const
     if config.rosenberger_decay_const is not None:
         rosenberger_decay_const = config.rosenberger_decay_const
@@ -15,7 +15,7 @@ def summary_cf(config, stations, st, frequencies):
                                            # can be added to control file as a separate variable
 
     st_CF = Stream()
-    for station in stations:
+    for station in config.stations:
         for wave_type in config.wave_type:
             st_select = st.select(station=station)
             tr_CF = st.select(station=station)[0].copy()
