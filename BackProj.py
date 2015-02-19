@@ -34,7 +34,7 @@ def main():
     #---Reading data---------------------------------------------------------
     st = read_traces(config)
     #------------------------------------------------------------------------
-    t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
+    t_bb = np.arange(config.start_t, config.end_t, config.time_lag - config.t_overlap)
     # selecting the time windows that do not exceed the length of the data---
     t_ee = t_bb + config.time_lag
     data_length = st[0].stats.endtime - st[0].stats.starttime
