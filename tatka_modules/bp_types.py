@@ -107,13 +107,17 @@ class Pick():
 
 
 class RecursiveMemory():
-    def __init__(self, memory_sample=-1):
+    def __init__(self, sta=None, wave=None, nsamples=0, overlap=0):
+        self.sta = sta
+        self.wave = wave
+        self.nsamples = int(nsamples)
+        self.overlap = int(overlap)
         self.filterH1 = c_double(0)
         self.filterH2 = c_double(0)
         self.filterL1 = c_double(0)
         self.filterL2 = c_double(0)
         self.prev_sample_value = c_double(0)
-        self.memory_sample = int(memory_sample)
+        self.memory_sample = self.nsamples - self.overlap - 1
         self.mean_sq = c_double(0)
         self.mean = c_double(0)
         self.var = c_double(1)
@@ -121,7 +125,8 @@ class RecursiveMemory():
         self.initialize = True
 
     def __str__(self):
-        s = 'filterH1: %f\n' % self.filterH1.value
+        s = '%s %s\n' % (self.sta, self.wave)
+        s += 'filterH1: %f\n' % self.filterH1.value
         s += 'filterH2: %f\n' % self.filterH2.value
         s += 'filterL1: %f\n' % self.filterL1.value
         s += 'filterL2: %f\n' % self.filterL2.value

@@ -10,6 +10,7 @@ from grid_projection import sta_GRD_Proj
 from plot import bp_plot
 from mod_bp_TrigOrig_time import TrOrig_time
 from NLLGrid import NLLGrid
+from summary_cf import summary_cf
 
 
 def run_BackProj(args):
@@ -17,7 +18,7 @@ def run_BackProj(args):
 
 
 def _run_BackProj(config, st, st_CF, t_begin, frequencies,
-                  coord_sta, GRD_sta, coord_eq):
+                  coord_sta, GRD_sta, coord_eq, rec_memory=None):
 
     t_end = t_begin + config.time_lag
 
@@ -37,12 +38,20 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         stack_grid.map_rot = gr.map_rot
     stack_grid.init_array()
 
-    arrival_times = defaultdict(lambda: defaultdict(list))
-
-    sta_wave = [(sta, wave) for wave in config.wave_type for sta in config.stations]
+    if rec_memory is not None:
+        st_cut = st.copy()
+        st_cut = st_cut.trim(config.starttime + t_begin, config.starttime + t_end)
+        st_CF_cut = summary_cf(config, st_cut, frequencies)
+        st_CF += st_CF_cut
+        st_CF.merge(method=1)
+    else:
+        st_CF_cut = st_CF.copy()
+        st_CF_cut = st_CF_cut.trim(config.starttime + t_begin, config.starttime + t_end)
 
     k = 0
     Mtau = []
+    arrival_times = defaultdict(lambda: defaultdict(list))
+    sta_wave = [(sta, wave) for wave in config.wave_type for sta in config.stations]
     for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
         sta1 = sta_wave1[0]
         sta2 = sta_wave2[0]
@@ -66,7 +75,9 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
             tau_max = None
 
         proj_grid, arrival1, arrival2 =\
-                sta_GRD_Proj(config, st_CF, GRD_sta, sta1, sta2, wave1, wave2, t_begin, t_end, tau_max)
+                sta_GRD_Proj(config, st_CF_cut, GRD_sta,
+                             sta1, sta2, wave1, wave2,
+                             t_begin, tau_max)
         stack_grid.array += proj_grid
         arrival_times[sta1][wave1].append(arrival1)
         arrival_times[sta2][wave2].append(arrival2)

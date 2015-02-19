@@ -7,12 +7,13 @@ import numpy as np
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
 from tatka_modules.read_grids import read_grids
-from tatka_modules.summary_cf import summary_cf
+from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.mod_groupe_trigs import groupe_triggers
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.parse_config import parse_config
+from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
 from multiprocessing import Pool
 
@@ -73,8 +74,12 @@ def main():
     n22 = len(frequencies) - 1
     print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
 
-    #----MB filtering and calculating Summary characteristic functions:------
-    st_CF = summary_cf(config, st, frequencies)
+    if config.recursive_memory:
+        rec_memory = init_recursive_memory(config)
+        st_CF = empty_cf(config, st)
+    else:
+        rec_memory = None
+        st_CF = summary_cf(config, st, frequencies)
 
     #---Take the first grid as reference ------------------------------------
     grid1 = GRD_sta.values()[0].values()[0]
@@ -130,7 +135,7 @@ def main():
                (config,
                 st, st_CF, t_begin, frequencies,
                 coord_sta, GRD_sta,
-                coord_eq)
+                coord_eq, rec_memory)
                for t_begin in t_bb
               ]
     if config.ncpu > 1:

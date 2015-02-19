@@ -3,22 +3,18 @@ import scipy as sp
 from LocalCC import LocalCC
 
 
-def sta_GRD_Proj(config, st_CF, ttime_GRIDS, sta1, sta2, wave1, wave2, t_b, t_e, tau_max=None):
+def sta_GRD_Proj(config, st_CF, ttime_GRIDS, sta1, sta2, wave1, wave2, t_b, tau_max=None):
 
     max_lag = config.time_lag
     if tau_max is not None:
         max_lag = tau_max
 
-    fs_sampling = config.sampl_rate_data
     start_time = config.starttime
-
-    beg = int(t_b * fs_sampling)
-    end = int(t_e * fs_sampling)
 
     trace1 = st_CF.select(station=sta1, channel=wave1)[0]
     trace2 = st_CF.select(station=sta2, channel=wave2)[0]
-    sig1 = trace1.data[beg:end]/max(abs(trace1.data[beg:end]))
-    sig2 = trace2.data[beg:end]/max(abs(trace2.data[beg:end]))
+    sig1 = trace1.data/max(abs(trace1.data))
+    sig2 = trace2.data/max(abs(trace2.data))
 
     t_lag, local_cc, arrival1, arrival2 =\
         LocalCC(config, sig1, sig2, max_lag, start_time+t_b)
