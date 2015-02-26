@@ -11,6 +11,7 @@ from plot import bp_plot
 from mod_bp_TrigOrig_time import TrOrig_time
 from NLLGrid import NLLGrid
 from summary_cf import summary_cf
+from mod_utils import stream_cut
 
 
 def run_BackProj(args):
@@ -39,9 +40,8 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     stack_grid.init_array()
 
     if rec_memory is not None:
-        st_cut = st.copy()
-        st_cut = st_cut.trim(config.starttime + t_begin, config.starttime + t_end)
-        st_CF_cut = summary_cf(config, st_cut, frequencies)
+        st_cut = stream_cut(st, t_begin, t_end)
+        st_CF_cut = summary_cf(config, st_cut, frequencies, rec_memory=rec_memory)
         st_CF += st_CF_cut
         st_CF.merge(method=1)
     else:
