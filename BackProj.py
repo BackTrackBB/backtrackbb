@@ -17,6 +17,7 @@ from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
 from multiprocessing import Pool
 
+DEBUG = False
 
 def main():
     if len(sys.argv) != 2:
@@ -77,6 +78,8 @@ def main():
     if config.recursive_memory:
         rec_memory = init_recursive_memory(config)
         st_CF = empty_cf(config, st)
+        if DEBUG:
+            st_CF2 = summary_cf(config, st, frequencies)
     else:
         rec_memory = None
         st_CF = summary_cf(config, st, frequencies)
@@ -203,6 +206,16 @@ def main():
         plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                        triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
                        coord_eq, coord_jma, file_out_fig)
+
+    if DEBUG:
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax1 = fig.add_subplot(211)
+        ax1.plot(st_CF[0], linewidth=2)
+        ax1.plot(st_CF2[0][0:len(st_CF[0])])
+        ax2 = fig.add_subplot(212, sharex=ax1)
+        ax2.plot(st_CF[0] - st_CF2[0][0:len(st_CF[0])])
+        plt.show()
 
 
 if __name__ == '__main__':
