@@ -2,11 +2,10 @@ import numpy as np
 import scipy as sp
 import sys
 from obspy.signal.util import smooth
-from scipy.signal import gaussian
 from rec_filter import recursive_filter
 from rec_rms import recursive_rms
 from rec_hos import recursive_hos
-#from RosenbergerAlgorithm import rosenberger
+from rec_gauss_filter import recursive_gauss_filter
 from rosenberger import rosenberger
 
 
@@ -170,8 +169,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
 def GaussConv(data_in, sigma):
     derivative_data = np.gradient(data_in)
     derivative_data[derivative_data < 0] = 0
-    gauss_window = gaussian(len(derivative_data), sigma)
-    CF_gaussian = np.convolve(derivative_data, gauss_window, mode='same')
+    CF_gaussian = recursive_gauss_filter(derivative_data, sigma)
     return CF_gaussian
 
 
