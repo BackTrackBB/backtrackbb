@@ -19,8 +19,10 @@ lib_rec_cc._local_CCr.restype = ctypes.c_void_p
 
 
 def local_CCr(signal1, signal2, t_lag, fs, sigma=None):
-    signal1 = np.array(signal1, dtype=np.float64)
-    signal2 = np.array(signal2, dtype=np.float64)
+    if not isinstance(signal1, np.ndarray):
+        signal1 = np.array(signal1, dtype=np.float64)
+    if not isinstance(signal2, np.ndarray):
+        signal2 = np.array(signal2, dtype=np.float64)
     if signal1.size != signal2.size:
         raise RuntimeError, 'Signals must have the same size.'
 
