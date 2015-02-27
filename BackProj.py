@@ -134,28 +134,35 @@ def main():
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
     #---running program------------------------------------------------------
+    if config.recursive_memory:
+        # We use plot_pool to run asynchronus plotting in run_Backproj
+        plot_pool = Pool(config.ncpu)
+    else:
+        plot_pool = None
+
     arglist = [
                (config,
                 st, st_CF, t_begin, frequencies,
                 coord_sta, GRD_sta,
-                coord_eq, rec_memory)
+                coord_eq, rec_memory, plot_pool)
                for t_begin in t_bb
               ]
-    if config.ncpu > 1:
+    print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
+    if config.ncpu > 1 and not config.recursive_memory:
         # parallel execution
-        print 'Running on %d threads' % config.ncpu
-        p = Pool(config.ncpu)  #defining number of jobs
+        p = Pool(config.ncpu) #defining number of jobs
         p_outputs = p.map(run_BackProj, arglist)
         p.close() #no more tasks
         p.join() #wrap up current tasks
     else:
-        # serial execution (useful for debugging)
-        print 'Running on 1 thread'
-        p_outputs = []
-        for args in arglist:
-            p_outputs.append(run_BackProj(args))
-
+        # serial execution
+        # (but there might be a parallelization step
+        # inside run_BackProj, if we're using recursive_memory)
+        p_outputs = map(run_BackProj, arglist)
     triggers = filter(None, p_outputs)
+
+    if config.recursive_memory:
+        plot_pool.close()
 
     #----------Outputs-------------------------------------------------------
     #writing output

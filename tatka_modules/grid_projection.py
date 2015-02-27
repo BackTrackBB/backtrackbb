@@ -3,7 +3,11 @@ import scipy as sp
 from LocalCC import LocalCC
 
 
-def sta_GRD_Proj(config, st_CF, ttime_GRIDS, sta1, sta2, wave1, wave2, t_b, tau_max=None):
+def sta_GRD_Proj(args):
+    return _sta_GRD_Proj(*args)
+
+
+def _sta_GRD_Proj(config, sta_wave1, sta_wave2, sig1, sig2, t_b, tau_max=None):
 
     max_lag = config.time_lag
     if tau_max is not None:
@@ -11,13 +15,15 @@ def sta_GRD_Proj(config, st_CF, ttime_GRIDS, sta1, sta2, wave1, wave2, t_b, tau_
 
     start_time = config.starttime
 
-    trace1 = st_CF.select(station=sta1, channel=wave1)[0]
-    trace2 = st_CF.select(station=sta2, channel=wave2)[0]
-    sig1 = trace1.data/max(abs(trace1.data))
-    sig2 = trace2.data/max(abs(trace2.data))
+    if config.do_smooth_lcc:
+        sigma = config.smooth_lcc
+    else:
+        sigma = None
+
+    samp_rate = config.sampl_rate_data
 
     t_lag, local_cc, arrival1, arrival2 =\
-        LocalCC(config, sig1, sig2, max_lag, start_time+t_b)
+        LocalCC(sig1, sig2, samp_rate, max_lag, start_time+t_b, sigma)
 
     ## Max value of local_cc in given window
     local_cc_1d = np.amax(local_cc, axis=1)
@@ -27,9 +33,4 @@ def sta_GRD_Proj(config, st_CF, ttime_GRIDS, sta1, sta2, wave1, wave2, t_b, tau_
     ##function = sp.interpolate.interp1d(t_lag, local_cc_1d)
     function = sp.interpolate.UnivariateSpline(t_lag, local_cc_1d, k=1, s=0)
 
-    ## Output_Grid
-    tt_array1 = ttime_GRIDS[sta1][wave1].array
-    tt_array2 = ttime_GRIDS[sta2][wave2].array
-    stationPair_projGrid = function((tt_array2 - tt_array1).flatten()).reshape(tt_array1.shape)
-
-    return stationPair_projGrid, arrival1, arrival2
+    return function, arrival1, arrival2, sta_wave1, sta_wave2
