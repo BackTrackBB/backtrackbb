@@ -68,6 +68,7 @@ def read_traces(config):
         st.trim(st_starttime, st_endtime)
     config.starttime = st_starttime
 
-    # attach station list to config file
+    # attach station list and trace ids to config file
     config.stations = stations
+    config.trids = [tr.id for tr in st]
     return st

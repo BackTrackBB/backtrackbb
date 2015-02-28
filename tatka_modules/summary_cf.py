@@ -23,10 +23,6 @@ def summary_cf(config, st, frequencies, rec_memory=None):
             tr_CF.stats.channel = wave_type
             st_CF.append(tr_CF)
             hos_sigma = config['hos_sigma_' + wave_type]
-            if rec_memory is not None:
-                rmem = rec_memory[(station, wave_type)]
-            else:
-                rmem = None
             HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies,
                     var_w=config.win_type,
                     CF_type=config.ch_function,
@@ -36,7 +32,7 @@ def summary_cf(config, st, frequencies, rec_memory=None):
                     rosenberger_decay_win=rosenberger_decay_const,
                     wave_type=wave_type,
                     hos_sigma=hos_sigma[station],
-                    rec_memory=rmem)
+                    rec_memory=rec_memory)
 
             CF = env_rec[:]
 

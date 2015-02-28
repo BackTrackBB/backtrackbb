@@ -107,9 +107,10 @@ class Pick():
 
 
 class RecursiveMemory():
-    def __init__(self, sta=None, wave=None, nsamples=0, overlap=0):
-        self.sta = sta
+    def __init__(self, trid=None, wave=None, band=None, nsamples=0, overlap=0):
+        self.trid = trid
         self.wave = wave
+        self.band = band
         self.nsamples = int(nsamples)
         self.overlap = int(overlap)
         self.filterH1 = c_double(0)
@@ -125,7 +126,7 @@ class RecursiveMemory():
         self.initialize = True
 
     def __str__(self):
-        s = '%s %s\n' % (self.sta, self.wave)
+        s = '%s %s %s\n' % (self.trid, self.wave, self.band)
         s += 'filterH1: %f\n' % self.filterH1.value
         s += 'filterH2: %f\n' % self.filterH2.value
         s += 'filterL1: %f\n' % self.filterL1.value
