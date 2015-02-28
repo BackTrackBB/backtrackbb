@@ -77,7 +77,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
             YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n], rmem)
 
             if var_w and CF_type == 'envelope':
-                CF_decay_nsmps_mb = (Tn[n]/delta)*CF_decay_nsmps
+                CF_decay_nsmps_mb = (Tn[n]/delta) * CF_decay_nsmps
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
@@ -131,8 +131,8 @@ def MBfilter_CF(st, frequencies, var_w=True,
             filteredDataS[n] = np.sqrt(np.power(filt_dataS[1,:], 2) +
                                        np.power(filt_dataS[2,:], 2))
 
-            if var_w:
-                CF_decay_nsmps_mb = b * Tn[n]/delta
+            if var_w and CF_type == 'envelope':
+                CF_decay_nsmps_mb = (Tn[n]/delta) * CF_decay_nsmps
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
@@ -155,7 +155,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
                                           hos_sigma, order)
                 else:
                     CF1[n] = recursive_hos(filteredDataS[n], 1./CF_decay_nsmps_mb,
-                                          hos_sigma, order1, order2, power2)
+                                          hos_sigma, order)
                     if full_output:
                         CF2[n] = recursive_hos(filteredDataP[n], 1./CF_decay_nsmps_mb,
                                           hos_sigma, order)
