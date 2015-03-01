@@ -214,14 +214,16 @@ def main():
                        triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
                        coord_eq, coord_jma, file_out_fig)
 
-    if DEBUG:
+    if DEBUG and config.recursive_memory:
         import matplotlib.pyplot as plt
+        CF = st_CF.select(station=config.stations[0])[0]
+        CF2 = st_CF2.select(station=config.stations[0])[0]
         fig = plt.figure()
         ax1 = fig.add_subplot(211)
-        ax1.plot(st_CF[0], linewidth=2)
-        ax1.plot(st_CF2[0][0:len(st_CF[0])])
+        ax1.plot(CF, linewidth=2)
+        ax1.plot(CF2[0:len(CF)])
         ax2 = fig.add_subplot(212, sharex=ax1)
-        ax2.plot(st_CF[0] - st_CF2[0][0:len(st_CF[0])])
+        ax2.plot(CF - CF2[0:len(CF)])
         plt.show()
 
 
