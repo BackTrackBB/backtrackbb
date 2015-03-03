@@ -24,7 +24,7 @@ def main():
         sys.exit(1)
 
     config = parse_config(Config_file)
-    st_n, station = read_traces(config)
+    st_n = read_traces(config)
 
     st = st_n.select(station=config.stations[0])
     st.detrend(type='constant')
