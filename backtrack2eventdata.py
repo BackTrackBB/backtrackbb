@@ -4,7 +4,7 @@ import sys
 import os
 from tatka_modules.parse_config import parse_config
 from tatka_modules.bp_types import Trigger, Pick
-from obspy import read
+from tatka_modules.read_traces import read_traces
 from obspy.core import AttribDict
 
 """
@@ -53,6 +53,9 @@ def main():
     if not os.path.exists(config.event_dir):
         os.mkdir(config.event_dir)
 
+    #---Reading data-----------------------------------------------------------------------------------
+    st = read_traces(config)
+
     for trigger in triggers:
         print trigger.eventid
         out_event_dir = os.path.join(config.event_dir, trigger.eventid)
@@ -90,19 +93,18 @@ def main():
                 f.write('GAU  %.2e  0.00e+00  0.00e+00  0.00e+00' % (decay_const/10.))
                 f.write('\n')
 
-        ## reading data, cutting events and saving data in specified format-----------------------------
+        ## cutting events and saving data in specified format------------------------------------------
         for pick in trigger.picks:
             if pick.arrival_type is not 'P':
                 continue
 
-            read_starttime = trigger.origin_time + pick.theor_time - config.pre_P
-            read_endtime = trigger.origin_time + pick.theor_time + config.post_P
-            filename = os.path.join(config.data_dir, '*' + pick.station + '*')
+            trim_starttime = trigger.origin_time + pick.theor_time - config.pre_P
+            trim_endtime = trigger.origin_time + pick.theor_time + config.post_P
 
-            st = read(filename, starttime=read_starttime,
-                      endtime=read_endtime)
+            st_select = st.copy().select(station=pick.station)
+            st_select.trim(trim_starttime, trim_endtime)
 
-            for tr in st:
+            for tr in st_select:
                 file_out_base = '.'.join((trigger.eventid,
                                          tr.stats.station,
                                          tr.stats.channel,
