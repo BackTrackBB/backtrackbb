@@ -60,15 +60,3 @@ def read_locationEQ(infile,day,hours,lat_zero,lon_zero,depth=35.):
             zz.append(epicenter['depth_e'][i])
             #print epicenter['lat_e'][i],epicenter['lon_e'][i]
     return xx,yy,zz
-
-
-def stream_cut(st, t_begin, t_end):
-    st_cut = st.copy()
-    for tr in st_cut:
-        delta = tr.stats.delta
-        s0 = int(t_begin/delta)
-        s1 = int(t_end/delta)
-        tr.data = tr.data[s0:s1]
-        tr.stats.npts = len(tr.data)
-        tr.stats.starttime = tr.stats.starttime + t_begin
-    return st_cut

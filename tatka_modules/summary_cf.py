@@ -1,7 +1,6 @@
 import numpy as np
 from obspy import Stream
 from mod_filter_picker import MBfilter_CF, GaussConv
-from mod_utils import stream_cut
 
 def summary_cf(config, st, frequencies, rec_memory=None):
 
@@ -59,7 +58,7 @@ def empty_cf(config, st):
     for station in config.stations:
         for wave_type in config.wave_type:
             tr_CF = st.select(station=station).copy()
-            tr_CF = stream_cut(tr_CF, 0, config.start_t)
+            tr_CF = tr_CF.trim(config.starttime, config.starttime + config.start_t)
             tr_CF = tr_CF[0]
             tr_CF.data = np.zeros_like(tr_CF.data)
             tr_CF.stats.channel = wave_type
