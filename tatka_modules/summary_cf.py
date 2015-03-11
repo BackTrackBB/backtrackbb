@@ -60,7 +60,7 @@ def empty_cf(config, st):
             tr_CF = st.select(station=station).copy()
             tr_CF = tr_CF.trim(config.starttime, config.starttime + config.start_t)
             tr_CF = tr_CF[0]
-            tr_CF.data = np.zeros_like(tr_CF.data)
+            tr_CF.data = np.zeros(tr_CF.data.shape)
             tr_CF.stats.channel = wave_type
             st_CF.append(tr_CF)
 
