@@ -45,14 +45,14 @@ def main():
 
     #---------------------------MB filtering------------------------------------
     HP2_1, MBkurt_1, Tn2_1, Nb2_1 = MBfilter_CF(st, frequencies,
-                                         var_w=config.varWin_stationPair,
+                                         var_w=config.win_type,
                                          CF_type=config.ch_function,
                                          order=config.hos_order,
                                          CF_decay_win=config.decay_const,
                                          hos_sigma=hos_sigma[config.stations[0]])
     print 'Creating characteristic function: %s' % (st[0].stats.station)
     if config.ch_function == 'kurtosis':
-        MBkurt_1max_gauss = GaussConv(np.amax(MBkurt_1,axis=0),int(config.decay_const/dt1/4))
+        MBkurt_1max_gauss = GaussConv(np.amax(MBkurt_1,axis=0),int(config.decay_const/dt1/2))
         MBkurt_1max = np.amax(MBkurt_1,axis=0)
     elif config.ch_function == 'envelope' or config.ch_function == 'hilbert':
         MBkurt_1max = np.sqrt(np.power(MBkurt_1, 2).mean(axis=0))
