@@ -42,7 +42,7 @@ def read_traces(config):
         sampling_rate = tr.stats.sampling_rate
         # Resample data, if requested
         if config.sampl_rate_data:
-            if sampling_rate > config.sampl_rate_data:
+            if sampling_rate >= config.sampl_rate_data:
                 dec_ct = int(sampling_rate/config.sampl_rate_data)
                 tr.decimate(dec_ct, strict_length=False, no_filter=True)
             else:

@@ -20,7 +20,10 @@ def _sta_GRD_Proj(config, sta_wave1, sta_wave2, sig1, sig2, t_b, tau_max=None):
     else:
         sigma = None
 
-    samp_rate = config.sampl_rate_data
+    if config.sampl_rate_cf:
+        samp_rate = config.sampl_rate_cf
+    else:
+        samp_rate = config.sampl_rate
 
     t_lag, local_cc, arrival1, arrival2 =\
         LocalCC(sig1, sig2, samp_rate, max_lag, start_time+t_b, sigma)
