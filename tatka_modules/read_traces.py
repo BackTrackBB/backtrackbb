@@ -66,7 +66,15 @@ def read_traces(config):
                 min(st_endtime, UTCDateTime(config.end_time)))
     else:
         st.trim(st_starttime, st_endtime)
-    config.starttime = st_starttime
+
+    #--- cut the data to the selected length dt------------------------------
+    if config.cut_data:
+        st.trim(st[0].stats.starttime+config.cut_start,
+                st[0].stats.starttime+config.cut_start+config.cut_delta)
+    else:
+        config.cut_start = 0.
+
+    config.starttime = st[0].stats.starttime
 
     # attach station list and trace ids to config file
     config.stations = stations

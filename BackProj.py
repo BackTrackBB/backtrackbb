@@ -54,13 +54,6 @@ def main():
     #--Read grids of theoretical travel-times--------------------------------
     GRD_sta, coord_sta = read_grids(config)
 
-    #--- cut the data to the selected length dt------------------------------
-    if config.cut_data:
-        st.trim(st[0].stats.starttime+config.cut_start,
-                st[0].stats.starttime+config.cut_start+config.cut_delta)
-    else:
-        config.cut_start = 0.
-
     #---remove mean and trend------------------------------------------------
     st.detrend(type='constant')
     st.detrend(type='linear')
