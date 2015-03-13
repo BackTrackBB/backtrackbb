@@ -32,8 +32,8 @@ def main():
     print st
     hos_sigma = config['hos_sigma_' + 'S']
     if config.cut_data:
-        st.trim(st[0].stats.startime_array + config.cut_start,
-                st[0].stats.startime_array + config.cut_start + config.cut_delta)
+        st.trim(st[0].stats.starttime + config.cut_start,
+                st[0].stats.starttime + config.cut_start + config.cut_delta)
 
     dt1 = st[0].stats.delta
 
