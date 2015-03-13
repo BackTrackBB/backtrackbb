@@ -3,15 +3,19 @@
 #
 # Reading and writing of NLL grid files
 #
-# (c) 2013-2014 - Natalia Poiata <poiata@ipgp.fr>,
+# (c) 2013-2015 - Natalia Poiata <poiata@ipgp.fr>,
 #                 Claudio Satriano <satriano@ipgp.fr>
+import math
 import numpy as np
 from array import array
+from copy import deepcopy
 
 
 class NLLGrid():
     '''
-    Class for reading and writing NLL grid files
+    Class for manipulating NLL grid files.
+    It has methods to read and write grid files,
+    compute statistics and plot.
     '''
 
     def __init__(self,
@@ -53,7 +57,9 @@ class NLLGrid():
         self.array = np.zeros((self.nx, self.ny, self.nz), float)
 
     def read_hdr_file(self, basename=None):
-        '''Reads header file of NLL grid format'''
+        '''
+        Reads header file of NLL grid format
+        '''
         if basename is not None:
             self.basename = basename
         filename = self.basename + '.hdr'
@@ -102,7 +108,9 @@ class NLLGrid():
                 self.sta_z = float(vals[3])
 
     def read_buf_file(self, basename=None):
-        '''Reads buf file as a 3d array'''
+        '''
+        Reads buf file as a 3d array
+        '''
         if basename is not None:
             self.basename = basename
         filename = self.basename + '.buf'
@@ -113,7 +121,9 @@ class NLLGrid():
         self.array = np.array(buf).reshape(self.nx, self.ny, self.nz)
 
     def write_hdr_file(self, basename=None):
-        '''Writes header file of NLL grid format'''
+        '''
+        Writes header file of NLL grid format
+        '''
         if basename is not None:
             self.basename = basename
         filename = self.basename + '.hdr'
@@ -144,7 +154,9 @@ class NLLGrid():
                 fp.write(line)
 
     def write_buf_file(self, basename=None):
-        '''Writes buf file as a 3d array'''
+        '''
+        Writes buf file as a 3d array
+        '''
         if self.array is None:
             return
 
@@ -166,6 +178,97 @@ class NLLGrid():
         j = int((y - self.y_orig) / self.dy)
         k = int((z - self.z_orig) / self.dz)
         return i, j, k
+
+    def get_ijk_max(self):
+        '''
+        Returns the indexes (i,j,k) of the grid max point
+        '''
+        if self.array is None:
+            return None
+        return np.unravel_index(self.array.argmax(), self.array.shape)
+
+    def get_xyz_max(self):
+        '''
+        Returns the coordinates (x,y,z) of the grid max point
+        '''
+        ijk_max = self.get_ijk_max()
+        if ijk_max is None:
+            return None
+        return self.get_xyz(*ijk_max)
+
+    def get_ijk_mean(self):
+        '''
+        Returns the indexes (i,j,k) of the grid mean point
+        '''
+        xyz_mean = self.get_xyz_mean()
+        if xyz_mean is None:
+            return None
+        return self.get_ijk(*xyz_mean)
+
+    def get_xyz_mean(self):
+        '''
+        Returns the coordinates (x,y,z) of the grid mean point
+        '''
+        if self.array is None:
+            return None
+        xx = np.arange(0, self.nx) * self.dx + self.x_orig
+        yy = np.arange(0, self.ny) * self.dy + self.y_orig
+        zz = np.arange(0, self.nz) * self.dz + self.z_orig
+        yarray, xarray, zarray = np.meshgrid(yy, xx, zz)
+        array_sum = self.array.sum()
+        xmean = (xarray * self.array).sum()/array_sum
+        ymean = (yarray * self.array).sum()/array_sum
+        zmean = (zarray * self.array).sum()/array_sum
+        return (xmean, ymean, zmean)
+
+    def get_xyz_cov(self):
+        '''
+        Returns the grid covariance with respect to the (x,y,z) mean point
+        '''
+        if self.array is None:
+            return None
+        xyz_mean = self.get_xyz_mean()
+        xx = np.arange(0, self.nx) * self.dx + self.x_orig
+        yy = np.arange(0, self.ny) * self.dy + self.y_orig
+        zz = np.arange(0, self.nz) * self.dz + self.z_orig
+        yarray, xarray, zarray = np.meshgrid(yy, xx, zz)
+        array_sum = self.array.sum()
+        cov = np.zeros((3,3))
+        cov[0,0] = (np.power(xarray, 2) * self.array).sum()/array_sum - (xyz_mean[0] * xyz_mean[0])
+        cov[0,1] = cov[1,0] = (xarray * yarray * self.array).sum()/array_sum - (xyz_mean[0] * xyz_mean[1])
+        cov[0,2] = cov[2,0] = (xarray * zarray * self.array).sum()/array_sum - (xyz_mean[0] * xyz_mean[2])
+        cov[1,1] = (np.power(yarray, 2) * self.array).sum()/array_sum - (xyz_mean[1] * xyz_mean[1])
+        cov[1,2] = cov[2,1] = (yarray * zarray * self.array).sum()/array_sum - (xyz_mean[1] * xyz_mean[2])
+        cov[2,2] = (np.power(zarray, 2) * self.array).sum()/array_sum - (xyz_mean[2] * xyz_mean[2])
+        return cov
+
+    def get_xyz_ellipsoid(self):
+        '''
+        Returns the 68% confidence ellipsoid with respect to the (x,y,z) mean point
+        '''
+        from ellipsoid import Ellipsoid3D
+        # The following code is a python translation of the CalcErrorEllipsoid()
+        # c-function from the NonLinLoc package, written by Anthony Lomax
+        cov = self.get_xyz_cov()
+        if cov is None:
+            return None
+
+        u, s, v = np.linalg.svd(cov)
+
+        del_chi_2 = 3.53 #3.53: value for 68% conf
+        ell = Ellipsoid3D()
+        ell.az1 = math.degrees(math.atan2(u[0,0], u[1,0]))
+        if ell.az1 < 0.0:
+            ell.az1 += 360.0
+        ell.dip1 = math.degrees(math.asin(u[2,0]))
+        ell.len1 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[0])
+        ell.az2 = math.degrees(math.atan2(u[0,1], u[1,1]))
+        if ell.az2 < 0.0:
+            ell.az2 += 360.0
+        ell.dip2 = math.degrees(math.asin(u[2,1]))
+        ell.len2 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[1]);
+        ell.len3 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[2]);
+        return ell
 
     def get_value(self, x, y, z):
         if self.array is None:
@@ -201,3 +304,157 @@ class NLLGrid():
     def max(self):
         if self.array is not None:
             return self.array.max()
+
+    def plot(self, slice_index, handle=False, figure=None):
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+        import pylab
+
+        xmin, xmax, ymin, ymax, zmin, zmax = self.get_extent()
+        if figure is None:
+            fig = plt.figure()
+
+        ratio = float(xmax - xmin) / (ymax - ymin)
+        plot_xz_size = ((zmax - zmin)/(xmax - xmin))*100
+        plot_yz_size = plot_xz_size / ratio
+        xz_size = '%f %%' % plot_xz_size
+        yz_size = '%f %%' % plot_yz_size
+
+        # ax_xy
+        ax_xy = fig.add_subplot(111)
+        divider = make_axes_locatable(ax_xy)
+        ax_xy.set_xlim(xmin, xmax)
+        ax_xy.set_ylim(ymin, ymax)
+        ax_xy.imshow(np.transpose(self.array[:, :, slice_index[2]]),
+                     origin='lower', extent=self.get_xy_extent())
+        labels = ax_xy.get_yticklabels()
+        pylab.setp(labels, rotation=90, fontsize=12)
+        ax_xy.axis('tight')
+        ax_xy.set_aspect('equal', 'datalim')
+
+        # ax_xz
+        ax_xz = divider.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax_xy)
+        ax_xz.set_xlim(xmin, xmax)
+        ax_xz.set_ylim(zmax, zmin)
+        ax_xz.imshow(np.transpose(self.array[:, slice_index[1], :]),
+                     origin='lower', extent=self.get_xz_extent())
+        ax_xz.axis('tight')
+
+        # ax_yz
+        ax_yz = divider.append_axes('right', size=yz_size, pad=0.05, sharey=ax_xy)
+        ax_yz.yaxis.set_visible(False)
+        ax_yz.set_xlim(zmin, zmax)
+        ax_yz.set_ylim(ymin, ymax)
+        ax_yz.imshow(self.array[slice_index[0], :, :],
+                     origin='lower', extent=self.get_zy_extent())
+        labels = ax_yz.get_xticklabels()
+        pylab.setp(labels, rotation=90, fontsize=12)
+        labels = ax_yz.get_yticklabels()
+        pylab.setp(labels, rotation=90, fontsize=12)
+        ax_yz.axis('tight')
+
+        if handle:
+            return fig
+        else:
+            plt.show()
+
+    def plot_3D_point(self, fig, point, color='r'):
+        ax_xy, ax_xz, ax_yz = fig.get_axes()
+        ax_xy.scatter(point[0], point[1], color=color)
+        ax_xz.scatter(point[0], point[2], color=color)
+        ax_yz.scatter(point[2], point[1], color=color)
+
+
+    def plot_ellipsoid(self, fig, ellipsoid=None, mean_xyz=None):
+        from ellipsoid import Vect3D, ellipsiod2Axes, toEllipsoid3D
+        ax_xy, ax_xz, ax_yz = fig.get_axes()
+
+        if ellipsoid is None:
+            ellipsoid = self.get_xyz_ellipsoid()
+        expect = Vect3D()
+        if mean_xyz is None:
+            mean_xyz = self.get_xyz_mean()
+        expect.x, expect.y, expect.z = mean_xyz
+
+        pax1, pax2, pax3 = ellipsiod2Axes(ellipsoid)
+
+        ellArray12 = toEllipsoid3D(pax1, pax2, expect, 100)
+        ellArray13 = toEllipsoid3D(pax1, pax3, expect, 100)
+        ellArray23 = toEllipsoid3D(pax2, pax3, expect, 100)
+        ell12 = np.array([(vect.x, vect.y) for vect in ellArray12])
+        ell13 = np.array([(vect.x, vect.y) for vect in ellArray13])
+        ell23 = np.array([(vect.x, vect.y) for vect in ellArray23])
+
+        ax_xy.plot(ell12[:, 0], ell12[:, 1])
+        ax_xy.plot(ell13[:, 0], ell13[:, 1])
+        ax_xy.plot(ell23[:, 0], ell23[:, 1])
+
+        ell12 = np.array([(vect.x, vect.z) for vect in ellArray12])
+        ell13 = np.array([(vect.x, vect.z) for vect in ellArray13])
+        ell23 = np.array([(vect.x, vect.z) for vect in ellArray23])
+        ax_xz.plot(ell12[:,0], ell12[:,1])
+        ax_xz.plot(ell13[:,0], ell13[:,1])
+        ax_xz.plot(ell23[:,0], ell23[:,1])
+
+        ell12 = np.array([(vect.y, vect.z) for vect in ellArray12])
+        ell13 = np.array([(vect.y, vect.z) for vect in ellArray13])
+        ell23 = np.array([(vect.y, vect.z) for vect in ellArray23])
+        ax_yz.plot(ell12[:,1], ell12[:,0])
+        ax_yz.plot(ell13[:,1], ell13[:,0])
+        ax_yz.plot(ell23[:,1], ell23[:,0])
+
+    def copy(self):
+        return deepcopy(self)
+
+
+def main():
+    '''
+    Test code generating a gaussian grid and computing
+    the 3D ellipsoid around the grid mean
+    '''
+    import matplotlib.pyplot as plt
+
+    #http://stackoverflow.com/questions/17190649/how-to-obtain-a-gaussian-filter-in-python
+    def gauss3D(shape=(3, 3, 3), sigmax=0.5, sigmay=0.5, sigmaz=0.5, theta=0):
+        m, n, k = [(ss-1.)/2. for ss in shape]
+        y, x, z = np.ogrid[-m:m+1, -n:n+1, -k:k+1]
+        # xy rotation
+        theta = np.radians(theta)
+        x2 = math.cos(theta)*x - math.sin(theta)*y
+        y2 = math.sin(theta)*x + math.cos(theta)*y
+        h = np.exp(-(x2*x2) / (2.*sigmax*sigmax)) *\
+            np.exp(-(y2*y2) / (2.*sigmay*sigmay)) *\
+            np.exp(-(z*z) / (2.*sigmaz*sigmaz))
+        h[h < np.finfo(h.dtype).eps*h.max()] = 0
+        sumh = h.sum()
+        if sumh != 0:
+            h /= sumh
+        return h
+
+    # Generate the grid
+    nx = 101
+    ny = 201
+    nz = 11
+    x_orig = -50
+    y_orig = -100
+    grd = NLLGrid(nx=nx, ny=ny, nz=nz,
+                  dx=1, dy=1, dz=1,
+                  x_orig=x_orig, y_orig=y_orig)
+    grd.init_array()
+    grd.array = gauss3D((nx, ny, nz), 20, 10, 2, 30)
+
+    # Compute statistics
+    mean_xyz = grd.get_xyz_mean()
+    max_ijk = grd.get_ijk_max()
+    max_xyz = grd.get_xyz_max()
+
+    # Plotting
+    fig = grd.plot(max_ijk, handle=True)
+    grd.plot_3D_point(fig, mean_xyz, color='g')
+    grd.plot_3D_point(fig, max_xyz, color='r')
+    grd.plot_ellipsoid(fig, mean_xyz=mean_xyz)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
