@@ -305,69 +305,88 @@ class NLLGrid():
         if self.array is not None:
             return self.array.max()
 
-    def plot(self, slice_index, handle=False, figure=None):
+    def get_plot_axes(self, figure=None, ax_xy=None):
         import matplotlib.pyplot as plt
         from mpl_toolkits.axes_grid1 import make_axes_locatable
-        import pylab
 
         xmin, xmax, ymin, ymax, zmin, zmax = self.get_extent()
-        if figure is None:
-            fig = plt.figure()
+        if figure is None and ax_xy is None:
+            figure = plt.figure()
+        if figure is None and ax_xy is not None:
+            figure = ax_xy.get_figure()
+        if ax_xy is None:
+            ax_xy = figure.add_subplot(111)
 
         ratio = float(xmax - xmin) / (ymax - ymin)
         plot_xz_size = ((zmax - zmin)/(xmax - xmin))*100
         plot_yz_size = plot_xz_size / ratio
+        plot_cbar_size = 5 #percent
         xz_size = '%f %%' % plot_xz_size
         yz_size = '%f %%' % plot_yz_size
+        cb_size = '%f %%' % plot_cbar_size
 
         # ax_xy
-        ax_xy = fig.add_subplot(111)
         divider = make_axes_locatable(ax_xy)
+        plt.setp(ax_xy.get_xticklabels(), visible=False)
         ax_xy.set_xlim(xmin, xmax)
         ax_xy.set_ylim(ymin, ymax)
-        ax_xy.imshow(np.transpose(self.array[:, :, slice_index[2]]),
-                     origin='lower', extent=self.get_xy_extent())
-        labels = ax_xy.get_yticklabels()
-        pylab.setp(labels, rotation=90, fontsize=12)
-        ax_xy.axis('tight')
         ax_xy.set_aspect('equal', 'datalim')
+        plt.setp(ax_xy.get_yticklabels(), rotation=90, fontsize=12)
 
         # ax_xz
         ax_xz = divider.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax_xy)
         ax_xz.set_xlim(xmin, xmax)
         ax_xz.set_ylim(zmax, zmin)
-        ax_xz.imshow(np.transpose(self.array[:, slice_index[1], :]),
-                     origin='lower', extent=self.get_xz_extent())
-        ax_xz.axis('tight')
 
         # ax_yz
         ax_yz = divider.append_axes('right', size=yz_size, pad=0.05, sharey=ax_xy)
-        ax_yz.yaxis.set_visible(False)
+        plt.setp(ax_yz.get_yticklabels(), visible=False)
         ax_yz.set_xlim(zmin, zmax)
         ax_yz.set_ylim(ymin, ymax)
+        plt.setp(ax_yz.get_xticklabels(), rotation=90, fontsize=12)
+        plt.setp(ax_yz.get_yticklabels(), rotation=90, fontsize=12)
+
+        # color-bar
+        ax_cb = divider.append_axes('bottom', size=cb_size, pad=0.5)
+
+        return ax_xy, ax_xz, ax_yz, ax_cb
+
+    def plot(self, slice_index, handle=False, figure=None, ax_xy=None,
+             vmin=None, vmax=None, cmap=None):
+        import matplotlib.pyplot as plt
+
+        ax_xy, ax_xz, ax_yz, ax_cb = self.get_plot_axes(figure, ax_xy)
+        if figure is None:
+            figure = ax_xy.get_figure()
+
+        hnd = ax_xy.imshow(np.transpose(self.array[:, :, slice_index[2]]),
+                           vmin=vmin, vmax=vmax, cmap=cmap,
+                           origin='lower', extent=self.get_xy_extent())
+        ax_xy.set_adjustable('box-forced')
+        ax_xz.imshow(np.transpose(self.array[:, slice_index[1], :]),
+                     vmin=vmin, vmax=vmax, cmap=cmap,
+                     origin='lower', extent=self.get_xz_extent(), aspect='auto')
+        ax_xz.set_adjustable('box-forced')
         ax_yz.imshow(self.array[slice_index[0], :, :],
-                     origin='lower', extent=self.get_zy_extent())
-        labels = ax_yz.get_xticklabels()
-        pylab.setp(labels, rotation=90, fontsize=12)
-        labels = ax_yz.get_yticklabels()
-        pylab.setp(labels, rotation=90, fontsize=12)
-        ax_yz.axis('tight')
+                     vmin=vmin, vmax=vmax, cmap=cmap,
+                     origin='lower', extent=self.get_zy_extent(), aspect='auto')
+        ax_yz.set_adjustable('box-forced')
+        cb = figure.colorbar(hnd, cax=ax_cb, orientation='horizontal')
 
         if handle:
-            return fig
+            return (ax_xy, ax_xz, ax_yz), cb
         else:
             plt.show()
 
-    def plot_3D_point(self, fig, point, color='r'):
-        ax_xy, ax_xz, ax_yz = fig.get_axes()
+    def plot_3D_point(self, axes, point, color='r'):
+        ax_xy, ax_xz, ax_yz = axes
         ax_xy.scatter(point[0], point[1], color=color)
         ax_xz.scatter(point[0], point[2], color=color)
         ax_yz.scatter(point[2], point[1], color=color)
 
-
-    def plot_ellipsoid(self, fig, ellipsoid=None, mean_xyz=None):
+    def plot_ellipsoid(self, axes, ellipsoid=None, mean_xyz=None):
         from ellipsoid import Vect3D, ellipsiod2Axes, toEllipsoid3D
-        ax_xy, ax_xz, ax_yz = fig.get_axes()
+        ax_xy, ax_xz, ax_yz = axes
 
         if ellipsoid is None:
             ellipsoid = self.get_xyz_ellipsoid()
@@ -449,10 +468,10 @@ def main():
     max_xyz = grd.get_xyz_max()
 
     # Plotting
-    fig = grd.plot(max_ijk, handle=True)
-    grd.plot_3D_point(fig, mean_xyz, color='g')
-    grd.plot_3D_point(fig, max_xyz, color='r')
-    grd.plot_ellipsoid(fig, mean_xyz=mean_xyz)
+    axes, cb = grd.plot(max_ijk, handle=True)
+    grd.plot_3D_point(axes, mean_xyz, color='g')
+    grd.plot_3D_point(axes, max_xyz, color='r')
+    grd.plot_ellipsoid(axes, mean_xyz=mean_xyz)
     plt.show()
 
 

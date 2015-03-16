@@ -5,7 +5,6 @@ import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def bp_plot(config, proj_grid,
@@ -18,60 +17,47 @@ def bp_plot(config, proj_grid,
     LTrig = config.trigger
     lcc_max = config.lcc_max
     out_dir = config.out_dir
-    scmap = config.scmap
     plot_waveforms = config.plot_waveforms
 
     Xmin, Xmax, Ymin, Ymax, Zmin, Zmax = proj_grid.get_extent()
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
-    fig = figure.Figure(figsize=(20, 20))
-    plot_xz_size = ((Zmax - Zmin)/(Xmax - Xmin))*100
-    plot_yz_size = plot_xz_size / ratio
-    plot_cbar_size = 5 #percent
-    xz_size = '%f %%' % plot_xz_size
-    yz_size = '%f %%' % plot_yz_size
-    cb_size = '%f %%' % plot_cbar_size
     sta_smbl_size = 150 / ratio
     eq_smbl_size = 200 / ratio
     trig_smbl_size = 200 / ratio
 
+    scmap = config.scmap
     scmap2 = pylab.cm.jet
     scmap2.set_under('w', LTrig)
     lcc_min = LTrig
 
     if trigger is not None:
-        i_max, j_max, k_max = map(int, (trigger.i, trigger.j, trigger.k))
+        max_ijk = map(int, (trigger.i, trigger.j, trigger.k))
         xx_max, yy_max, zz_max = trigger.x, trigger.y, trigger.z
-
-#--ax1: stacked grid
-#--ax1_xy
-    ax1_xy = fig.add_subplot(221)
-    divider1 = make_axes_locatable(ax1_xy)
-
-    if trigger is not None:
-        i_grid = i_max
-        j_grid = j_max
-        k_grid = k_max
     elif coord_eq:
         x_eq, y_eq, z_eq = coord_eq
-        i_grid, j_grid, k_grid = proj_grid.get_ijk(x_eq[0], y_eq[0], z_eq[0])
+        max_ijk = proj_grid.get_ijk(x_eq[0], y_eq[0], z_eq[0])
     else:
-        i_grid = int(proj_grid.nx / 2.)
-        j_grid = int(proj_grid.ny / 2.)
-        k_grid = int(proj_grid.nz / 2.)
+        max_ijk = map(int, (proj_grid.nx/2., proj_grid.ny/2., proj_grid.nz/2.))
 
-    xx_grid, yy_grid, zz_grid = proj_grid.get_xyz(i_grid, j_grid, k_grid)
+    xx_grid, yy_grid, zz_grid = proj_grid.get_xyz(*max_ijk)
 
-    hnd=ax1_xy.imshow(np.flipud(np.transpose(proj_grid[:,:,k_grid])),
-                             extent=proj_grid.get_xy_extent(), cmap=scmap, rasterized=True)
-    ax1_xy.axis('tight')
-    ax1_xy.set_xlim(Xmin,Xmax)
-    ax1_xy.set_ylim(Ymin,Ymax)
+#--figure
+    fig = figure.Figure(figsize=(20, 20))
+
+#--ax1: stacked grid
+    ax1_xy = fig.add_subplot(221)
+    axes, cb1 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax1_xy, cmap=scmap)
+    cb1.set_label('Stacked Local-CC Amplitude')
+
+    ax1_xy, ax1_xz, ax1_yz = axes
     ax1_xy.set_xlabel('X[km]')
     ax1_xy.set_ylabel('Y[km]')
-    labels = ax1_xy.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    tt1 = st[0].stats.starttime+t_b
-    tt2 = st[0].stats.starttime+t_e
+    ax1_yz.set_xlabel('Z[km]')
+    ax1_xz.set_xlabel('X[km]')
+    ax1_xz.set_ylabel('Z[km]')
+
+    tt1 = st[0].stats.starttime + t_b
+    tt2 = st[0].stats.starttime + t_e
     ax1_xy.set_title('Date: %s, Time: %s.%03d - %s.%03d (%s - %s s), depth: %s km' %
                      (tt1.date,
                       tt1.strftime('%H:%M:%S'),
@@ -93,65 +79,24 @@ def bp_plot(config, proj_grid,
     if trigger is not None:
         ax1_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1,c='g')
-    ax1_xy.set_aspect('equal', 'datalim')
-
-#--ax1_yz
-    ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
-    ax1_yz.imshow(np.flipud(proj_grid[i_grid,:,:]),
-                     extent=proj_grid.get_zy_extent(), cmap=scmap, rasterized=True)
-
-    if trigger is not None:
         ax1_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
-    ax1_yz.axis('tight')
-    ax1_yz.set_xlim(Zmin,Zmax)
-    ax1_yz.set_ylim(Ymin,Ymax)
-    ax1_yz.set_xlabel('Z[km]')
-    labels = ax1_yz.get_xticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    labels = ax1_yz.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    ax1_yz.yaxis.set_visible(False)
-
-#--ax1_xz
-    ax1_xz = divider1.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax1_xy)
-    ax1_xz.imshow(np.flipud(np.transpose(proj_grid[:,j_grid,:])),
-                     extent=proj_grid.get_xz_extent(), cmap=scmap, rasterized=True)
-
-    if trigger is not None:
         ax1_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
-    ax1_xz.axis('tight')
-    ax1_xz.set_xlim(Xmin,Xmax)
-    ax1_xz.set_ylim(Zmin,Zmax)
-    ax1_xz.set_ylim(ax1_xz.get_ylim()[::-1])
-
-    ax1_xz.set_xlabel('X[km]')
-    ax1_xz.set_ylabel('Z[km]')
-
-#--ax1-color-bar
-    ax1_cb = divider1.append_axes('bottom', size=cb_size, pad=0.5)
-    cb1 = fig.colorbar(hnd, cax=ax1_cb, orientation='horizontal')
-    cb1.set_label('Stacked Local-CC Amplitude')
-
-
-
 #--ax2: trigger grid
-#--ax2_xy
     ax2_xy = fig.add_subplot(223)
-    divider11 = make_axes_locatable(ax2_xy)
-    hnd2 = ax2_xy.imshow(np.flipud(np.transpose(proj_grid[:,:,k_grid])),
-                       extent=proj_grid.get_xy_extent(), cmap=scmap2,
-                       vmin=lcc_min, vmax=lcc_max,
-                       rasterized=True)
-    ax2_xy.axis('tight')
-    ax2_xy.set_xlim(Xmin,Xmax)
-    ax2_xy.set_ylim(Ymin,Ymax)
+    axes, cb11 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax2_xy, vmin=lcc_min, vmax=lcc_max, cmap=scmap2)
+    cb11.set_label('Stacked Local-CC Amplitude')
+    cb11.set_ticks([LTrig, LTrig+(lcc_max-LTrig)/2,lcc_max])
+
+    ax2_xy, ax2_xz, ax2_yz = axes
     ax2_xy.set_xlabel('X[km]')
     ax2_xy.set_ylabel('Y[km]')
-    labels = ax2_xy.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
+    ax2_yz.set_xlabel('Z[km]')
+    ax2_xz.set_xlabel('X[km]')
+    ax2_xz.set_ylabel('Z[km]')
+
     if coord_eq:
         ax2_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='w')
     for sta in coord_sta:
@@ -176,53 +121,10 @@ def bp_plot(config, proj_grid,
                              (t_str, trigger.x, trigger.y, trigger.z))
         ax2_xy.scatter(xx_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
-    ax2_xy.set_aspect('equal', 'datalim')
-
-#--ax2_yz
-    ax2_yz = divider11.append_axes('right', size=yz_size, pad=0.05, sharey=ax2_xy)
-    ax2_yz.imshow(np.flipud(proj_grid[i_grid,:,:]),
-                      extent=proj_grid.get_zy_extent(), cmap=scmap2,
-                      vmin=lcc_min, vmax=lcc_max,
-                      rasterized=True)
-
-    if trigger is not None:
         ax2_yz.scatter(zz_max, yy_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
-
-    ax2_yz.axis('tight')
-    ax2_yz.set_xlim(Zmin,Zmax)
-    ax2_yz.set_ylim(Ymin,Ymax)
-    ax2_yz.set_xlabel('Z[km]')
-    labels = ax2_yz.get_xticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    labels = ax2_yz.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    ax2_yz.yaxis.set_visible(False)
-
-#--ax2_xz
-    ax2_xz = divider11.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax2_xy)
-    ax2_xz.imshow(np.flipud(np.transpose(proj_grid[:,j_grid,:])),
-                     extent=proj_grid.get_xz_extent(), cmap=scmap2,
-                     vmin=lcc_min, vmax=lcc_max,
-                     rasterized=True)
-
-    if trigger is not None:
         ax2_xz.scatter(xx_max, zz_max,
                     marker='*', s=trig_smbl_size, linewidths=1, c='g')
-
-    ax2_xz.axis('tight')
-    ax2_xz.set_xlim(Xmin,Xmax)
-    ax2_xz.set_ylim(Zmin,Zmax)
-    ax2_xz.set_ylim(ax2_xz.get_ylim()[::-1])
-
-    ax2_xz.set_xlabel('X[km]')
-    ax2_xz.set_ylabel('Z[km]')
-
-#--ax2-color-bar
-    cbx11 = divider11.append_axes('bottom', size=cb_size, pad=0.5)
-    cb11=fig.colorbar(hnd2, cax=cbx11,orientation='horizontal',
-                      ticks=[LTrig, LTrig+(lcc_max-LTrig)/2,lcc_max])
-    cb11.set_label('Stacked Local-CC Amplitude')
 
 
 #--ax3: traces
@@ -300,9 +202,8 @@ def bp_plot(config, proj_grid,
         ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start,
                     facecolor='g', alpha=0.1)
 
-    note_t='CF of MBFilter; Fq= '+str(np.round(fq[n22]))+\
-            '-'+str(np.round(fq[n1]))+' Hz'
-    #fq_str=str(np.round(fq[n1]))+'_'+str(np.round(fq[n22]))
+    note_t = 'CF of MBFilter; Fq= ' + str(np.round(fq[n22])) +\
+             '-' + str(np.round(fq[n1])) + ' Hz'
     ax3.set_title(note_t, fontsize=15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
@@ -327,13 +228,6 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
 
     Xmin, Xmax, Ymin, Ymax, Zmin, Zmax = grid1.get_extent()
     ratio = (Xmax - Xmin) / (Ymax - Ymin)
-    fig = figure.Figure(figsize=(20, 20))
-    plot_xz_size = ((Zmax - Zmin)/(Xmax - Xmin))*100
-    plot_yz_size = plot_xz_size / ratio
-    plot_cbar_size = 5 #percent
-    xz_size = '%f %%' % plot_xz_size
-    yz_size = '%f %%' % plot_yz_size
-    cb_size = '%f %%' % plot_cbar_size
     sta_smbl_size = 150 / ratio
     eq_smbl_size = 200 / ratio
     trig_smbl_size = 200 / ratio
@@ -342,19 +236,25 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
     y_trig = [ t.y for t in triggers ]
     z_trig = [ t.z for t in triggers ]
 
-#--ax1_xy
+#-- figure
+    fig = figure.Figure(figsize=(20, 20))
+
+#--ax1: summary plot
     ax1_xy = fig.add_subplot(221)
-    divider1 = make_axes_locatable(ax1_xy)
-    ax1_xy.axis('tight')
-    ax1_xy.set_xlim(Xmin, Xmax)
-    ax1_xy.set_ylim(Ymin, Ymax)
+    ax1_xy, ax1_xz, ax1_yz, ax1_cb = grid1.get_plot_axes(figure, ax1_xy)
+    ax1_cb.set_visible(False)
+
     ax1_xy.set_xlabel('X[km]')
     ax1_xy.set_ylabel('Y[km]')
-    labels = ax1_xy.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    note='Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
+    ax1_yz.set_xlabel('Z[km]')
+    ax1_xz.set_xlabel('X[km]')
+    ax1_xz.set_ylabel('Z[km]')
+
+    note = 'Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
     ax1_xy.set_title(note, fontsize=15)
     ax1_xy.scatter(x_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
+    ax1_yz.scatter(z_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
+    ax1_xz.scatter(x_trig, z_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
         ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1,c='k',alpha=0.79)
@@ -363,51 +263,17 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
         ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)
     if coord_eq:
         ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='r')
-    if coord_jma:
-        ax1_xy.scatter(coord_jma[0], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
-    ax1_xy.set_aspect('equal', 'datalim')
-
-#--ax1_yz
-    ax1_yz = divider1.append_axes('right', size=yz_size, pad=0.05, sharey=ax1_xy)
-    ax1_yz.axis('tight')
-    ax1_yz.set_xlim(Zmin,Zmax)
-    ax1_yz.set_ylim(Ymin,Ymax)
-    ax1_yz.set_xlabel('Z[km]')
-    labels = ax1_yz.get_xticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    labels = ax1_yz.get_yticklabels()
-    pylab.setp(labels, rotation=90, fontsize=12)
-    ax1_yz.yaxis.set_visible(False)
-    ax1_yz.scatter(z_trig,y_trig,marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
-    if coord_eq:
         ax1_yz.scatter(coord_eq[2], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='r')
-    if coord_jma:
-        ax1_yz.scatter(coord_jma[2], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
-
-#--ax1_xz
-    ax1_xz = divider1.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax1_xy)
-    ax1_xz.axis('tight')
-    ax1_xz.set_xlim(Xmin,Xmax)
-    ax1_xz.set_ylim(Zmin,Zmax)
-    ax1_xz.set_ylim(ax1_xz.get_ylim()[::-1])
-    ax1_xz.set_xlabel('X[km]')
-    ax1_xz.set_ylabel('Z[km]')
-    ax1_xz.scatter(x_trig,z_trig,marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
-    if coord_eq:
         ax1_xz.scatter(coord_eq[0], coord_eq[2], marker='*', s=eq_smbl_size, linewidths=1, c='r')
     if coord_jma:
+        ax1_xy.scatter(coord_jma[0], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
+        ax1_yz.scatter(coord_jma[2], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
         ax1_xz.scatter(coord_jma[0], coord_jma[2], marker='o', s=eq_smbl_size, linewidths=1, c='m')
-
-#--ax1-color-bar
-    # we create a color bar axis and then make it invisible,
-    # just to keep the same proportions of the other plots
-    ax1_cb = divider1.append_axes('bottom', size=cb_size, pad=0.5)
-    ax1_cb.set_visible(False)
 
 #--ax3: traces
     st_plt = st.copy()
     st_plt.filter('bandpass', freqmin=fq_2, freqmax=fq_1,
-              corners=2, zerophase=True)
+                  corners=2, zerophase=True)
     ax3 = fig.add_subplot(122)
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
     time += config.cut_start
@@ -452,18 +318,16 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
             ax3.plot(time_env, ydata, color, rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
-    note=ch_function+' of MBFilter; Fq. range: '+str(np.round(fq_1))+\
-            '-'+str(np.round(fq_2))+' Hz'
+    note = ch_function + ' of MBFilter; Fq. range: ' + str(np.round(fq_1)) +\
+           '-' + str(np.round(fq_2)) + ' Hz'
     ax3.set_title(note, fontsize=15)
-    ##[ax3.axvline(center_trigWin[m],linewidth=2, color='r',alpha=0.2)\
-    ##     for m in xrange(len(beg_trigWin))]
 
     for t in triggers:
         ax3.axvspan(t.beg_win, t.end_win,
                     facecolor='r', alpha=0.1)
 
-    ax3.axvline(t_bb[0]+config.cut_start,linewidth=1, color='b',alpha=0.9)
-    ax3.axvline(t_bb[-1]+time_lag+config.cut_start,linewidth=1, color='b',alpha=0.9)
+    ax3.axvline(t_bb[0]+config.cut_start, linewidth=1, color='b', alpha=0.9)
+    ax3.axvline(t_bb[-1]+time_lag+config.cut_start, linewidth=1, color='b', alpha=0.9)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
     if config.plot_format == 'pdf':
