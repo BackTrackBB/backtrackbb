@@ -98,7 +98,7 @@ class NLLGrid():
                     self.map_rot = float(vals[7])
                 if vals[1] == 'LAMBERT':
                     self.proj_name = 'LAMBERT'
-                    self.ellipsoid = vals[3]
+                    self.proj_ellipsoid = vals[3]
                     self.orig_lat = float(vals[5])
                     self.orig_lon = float(vals[7])
                     self.first_std_paral = float(vals[9])
@@ -146,7 +146,7 @@ class NLLGrid():
             lines.append('TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f\n' %
                     (self.orig_lat, self.orig_lon, self.map_rot))
         if self.proj_name == 'LAMBERT':
-            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.ellipsoid
+            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.proj_ellipsoid
             line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
             line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f\n' %\
                     (self.first_std_paral, self.second_std_paral, self.map_rot)

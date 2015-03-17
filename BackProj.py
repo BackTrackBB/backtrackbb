@@ -87,7 +87,7 @@ def main():
                       grid1.first_std_paral,
                       grid1.second_std_paral,
                       grid1.map_rot,
-                      grid1.ellipsoid)
+                      grid1.proj_ellipsoid)
 
     #----geographical coordinates of the eq's epicenter----------------------
     coord_eq = None
