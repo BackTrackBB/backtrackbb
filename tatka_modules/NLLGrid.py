@@ -44,6 +44,9 @@ class NLLGrid():
         self.sta_y = float(0)
         self.sta_z = float(0)
         self.array = None
+        self.xyz_mean = None
+        self.xyz_cov = None
+        self.ellipsoid = None
         self.basename = basename
         if basename:
             self.read_hdr_file()
@@ -219,6 +222,7 @@ class NLLGrid():
         xmean = (xarray * self.array).sum()/array_sum
         ymean = (yarray * self.array).sum()/array_sum
         zmean = (zarray * self.array).sum()/array_sum
+        self.xyz_mean = (xmean, ymean, zmean)
         return (xmean, ymean, zmean)
 
     def get_xyz_cov(self):
@@ -240,6 +244,7 @@ class NLLGrid():
         cov[1,1] = (np.power(yarray, 2) * self.array).sum()/array_sum - (xyz_mean[1] * xyz_mean[1])
         cov[1,2] = cov[2,1] = (yarray * zarray * self.array).sum()/array_sum - (xyz_mean[1] * xyz_mean[2])
         cov[2,2] = (np.power(zarray, 2) * self.array).sum()/array_sum - (xyz_mean[2] * xyz_mean[2])
+        self.xyz_cov = cov
         return cov
 
     def get_xyz_ellipsoid(self):
@@ -268,6 +273,8 @@ class NLLGrid():
         ell.dip2 = math.degrees(math.asin(u[2,1]))
         ell.len2 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[1]);
         ell.len3 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[2]);
+
+        self.ellipsoid = ell
         return ell
 
     def get_value(self, x, y, z):
@@ -354,6 +361,7 @@ class NLLGrid():
     def plot(self, slice_index, handle=False, figure=None, ax_xy=None,
              vmin=None, vmax=None, cmap=None):
         import matplotlib.pyplot as plt
+        from matplotlib import ticker
 
         ax_xy, ax_xz, ax_yz, ax_cb = self.get_plot_axes(figure, ax_xy)
         if figure is None:
@@ -371,7 +379,11 @@ class NLLGrid():
                      vmin=vmin, vmax=vmax, cmap=cmap,
                      origin='lower', extent=self.get_zy_extent(), aspect='auto')
         ax_yz.set_adjustable('box-forced')
-        cb = figure.colorbar(hnd, cax=ax_cb, orientation='horizontal')
+
+        fmt = '%.1e' if self.max() <= 0.01 else '%.2f'
+        cb = figure.colorbar(hnd, cax=ax_cb, orientation='horizontal', format=fmt)
+        cb.locator = ticker.LinearLocator(numticks=3)
+        cb.update_ticks()
 
         if handle:
             return (ax_xy, ax_xz, ax_yz), cb
