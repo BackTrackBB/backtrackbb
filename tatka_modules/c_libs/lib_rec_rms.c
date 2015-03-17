@@ -1,20 +1,30 @@
 #include <stdlib.h>
 #include <math.h>
 
-void _recursive_rms(const double *signal, double *rms_signal, int npts, float C_WIN)
+void _recursive_rms(const double *signal, double *rms_signal, int npts, float C_WIN,
+        double *mean_sq, int memory_sample, int initialize)
 {
     int i,j;
-    int n_win;
-    double mean_sq = 0;
+    int n_win = (int) 1/C_WIN;
+    double _mean_sq = *mean_sq;
 
-    n_win = (int) 1/C_WIN;
-    for(j=0;j<n_win;j++){
-	mean_sq = mean_sq + pow(signal[j],2);
+    if (memory_sample < 0 || memory_sample >= npts) {
+        memory_sample = npts-1;
     }
-    mean_sq = sqrt(mean_sq/n_win);
+
+    if (initialize) {
+        for (j=0; j<n_win; j++) {
+            _mean_sq = _mean_sq + pow(signal[j], 2);
+        }
+        _mean_sq = sqrt(_mean_sq/n_win);
+    }
 
     for (i=0; i<npts; i++) {
-        mean_sq = sqrt(C_WIN * pow(signal[i], 2.) + (1 - C_WIN) * pow(mean_sq, 2.));
-        rms_signal[i] = mean_sq;
+        _mean_sq = sqrt(C_WIN * pow(signal[i], 2.) + (1 - C_WIN) * pow(_mean_sq, 2.));
+        rms_signal[i] = _mean_sq;
+        /* save memory values */
+        if (i == memory_sample) {
+            *mean_sq = _mean_sq;
+        }
     }
 }

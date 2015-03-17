@@ -11,8 +11,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 def bp_plot(config, proj_grid,
             coord_eq, t_b, t_e, datestr, fq_str,
             coord_sta,
-            st, sta, st_CF,
-            time, time_env,
+            st, st_CF,
             fq, n1, n22, trigger,
             arrival_times=None, Mtau=None):
 
@@ -231,7 +230,9 @@ def bp_plot(config, proj_grid,
     st_plt.filter('bandpass', freqmin=fq[n22], freqmax=fq[n1],
               corners=2, zerophase=True)
     ax3 = fig.add_subplot(122)
+    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
     time += config.cut_start
+    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
     time_env += config.cut_start
     ax3.set_xlim(min(time), max(time))
     sta_y = [coord_sta[sta][1] for sta in coord_sta]
@@ -316,7 +317,7 @@ def bp_plot(config, proj_grid,
     canvas.print_figure(file_out_fig)
 
 
-def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
+def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                    triggers, t_bb, datestr, fq_1, fq_2,
                    coord_eq, coord_jma, file_out_fig):
 
@@ -408,8 +409,10 @@ def plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
     st_plt.filter('bandpass', freqmin=fq_2, freqmax=fq_1,
               corners=2, zerophase=True)
     ax3 = fig.add_subplot(122)
-    time +=config.cut_start
-    time_env +=config.cut_start
+    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
+    time += config.cut_start
+    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
+    time_env += config.cut_start
     ax3.set_xlim(min(time), max(time))
     sta_y = [coord_sta[sta][1] for sta in coord_sta]
     ax3.set_ylim(min(sta_y), max(sta_y))

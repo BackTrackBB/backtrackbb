@@ -28,6 +28,7 @@ def read_locationTremor(infile,hour,lat_or,lon_or,depth=35.):
             ZZ.append(depth)
     return XX, YY, ZZ
 
+
 def read_locationEQ(infile,day,hours,lat_zero,lon_zero,depth=35.):
     f = open(infile,"r")
     vardict = {'yyyy':0,'mm':1,'dd':2,'hh':3,'min':4,'sec':5,

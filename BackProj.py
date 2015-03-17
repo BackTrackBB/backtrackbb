@@ -7,15 +7,17 @@ import numpy as np
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
 from tatka_modules.read_grids import read_grids
-from tatka_modules.summary_cf import summary_cf
+from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.mod_groupe_trigs import groupe_triggers
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.parse_config import parse_config
+from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
 from multiprocessing import Pool
 
+DEBUG = False
 
 def main():
     if len(sys.argv) != 2:
@@ -32,13 +34,13 @@ def main():
     var_twin = config.varWin_stationPair
     print 'use of var time window for location:', var_twin
     #---Reading data---------------------------------------------------------
-    st, stations = read_traces(config)
+    st = read_traces(config)
     #------------------------------------------------------------------------
-    t_bb = np.arange(config.start_t, config.end_t, config.t_overlap)
+    t_bb = np.arange(config.start_t, config.end_t, config.time_lag - config.t_overlap)
     # selecting the time windows that do not exceed the length of the data---
     t_ee = t_bb + config.time_lag
     data_length = st[0].stats.endtime - st[0].stats.starttime
-    t_bb = t_ee[t_ee<=data_length] - config.time_lag    
+    t_bb = t_ee[t_ee<=data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
 
     loc_infile = None
@@ -50,45 +52,30 @@ def main():
     #------------------------------------------------------------------------
 
     #--Read grids of theoretical travel-times--------------------------------
-    GRD_sta, coord_sta = read_grids(config, stations)
-
-    #--- cut the data to the selected length dt------------------------------
-    if config.cut_data:
-        st.trim(st[0].stats.starttime+config.cut_start,
-                st[0].stats.starttime+config.cut_start+config.cut_delta)
-    else:
-        config.cut_start = 0.
-
-    #---- resample data -----------------------------------------------------
-    if config.sampl_rate_data:
-        for tr in st:
-            f_tr = tr.stats.sampling_rate
-            if f_tr > config.sampl_rate_data:
-                dec_ct = int(f_tr/config.sampl_rate_data)
-                tr.decimate(dec_ct, strict_length=False, no_filter=True)
+    GRD_sta, coord_sta = read_grids(config)
 
     #---remove mean and trend------------------------------------------------
     st.detrend(type='constant')
     st.detrend(type='linear')
 
-    #---Some simple parameters from trace------------------------------------
-    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-    delta = st[0].stats.delta
-
     #---Calculating frequencies for MBFilter---------------------------------
     if config.band_spacing == 'lin':
-        frequencies = make_LinFq(config.f_min, config.f_max, delta, config.n_freq_bands)
+        frequencies = make_LinFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
     elif config.band_spacing == 'log':
-        frequencies = make_LogFq(config.f_min, config.f_max, delta, config.n_freq_bands)
+        frequencies = make_LogFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
     n1 = 0
     n2 = len(frequencies)
     n22 = len(frequencies) - 1
     print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
 
-    #----MB filtering and calculating Summary characteristic functions:------
-    st_CF = summary_cf(config, stations, st, frequencies)
-
-    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
+    if config.recursive_memory:
+        rec_memory = init_recursive_memory(config)
+        st_CF = empty_cf(config, st)
+        if DEBUG:
+            st_CF2 = summary_cf(config, st, frequencies)
+    else:
+        rec_memory = None
+        st_CF = summary_cf(config, st, frequencies)
 
     #---Take the first grid as reference ------------------------------------
     grid1 = GRD_sta.values()[0].values()[0]
@@ -140,28 +127,35 @@ def main():
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
     #---running program------------------------------------------------------
-    arglist = [
-               (idd,config,
-                st, st_CF, frequencies,
-                stations, coord_sta, GRD_sta,
-                coord_eq)
-               for idd in xrange(len(t_bb))
-              ]
-    if config.ncpu > 1:
-        # parallel execution
-        print 'Running on %d threads' % config.ncpu
-        p = Pool(config.ncpu)  #defining number of jobs
-        p_outputs = p.map(run_BackProj, arglist)
-        p.close()      #no more tasks
-        p.join()       #wrap up current tasks
+    if config.ncpu > 1 and config.recursive_memory:
+        # We use plot_pool to run asynchronus plotting in run_Backproj
+        plot_pool = Pool(config.ncpu)
     else:
-        # serial execution (useful for debugging)
-        print 'Running on 1 thread'
-        p_outputs = []
-        for args in arglist:
-            p_outputs.append(run_BackProj(args))
+        plot_pool = None
 
+    arglist = [
+               (config,
+                st, st_CF, t_begin, frequencies,
+                coord_sta, GRD_sta,
+                coord_eq, rec_memory, plot_pool)
+               for t_begin in t_bb
+              ]
+    print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
+    if config.ncpu > 1 and not config.recursive_memory:
+        # parallel execution
+        p = Pool(config.ncpu) #defining number of jobs
+        p_outputs = p.map(run_BackProj, arglist)
+        p.close() #no more tasks
+        p.join() #wrap up current tasks
+    else:
+        # serial execution
+        # (but there might be a parallelization step
+        # inside run_BackProj, if we're using recursive_memory)
+        p_outputs = map(run_BackProj, arglist)
     triggers = filter(None, p_outputs)
+
+    if config.ncpu > 1 and config.recursive_memory:
+        plot_pool.close()
 
     #----------Outputs-------------------------------------------------------
     #writing output
@@ -184,7 +178,7 @@ def main():
         #----sorting triggers----and grouping triggered locations----------------
         sorted_trigs = copy.copy(triggers)
         sorted_trigs = groupe_triggers(sorted_trigs,config)
-        
+
         #writing sorted triggers in a second output file-------------------------
         #writing output
         eventids = []
@@ -201,17 +195,29 @@ def main():
                 # sort picks by station
                 picks = sorted(trigger.picks, key=lambda x: x.station)
                 for pick in picks:
-                    f.write(str(pick) + '\n')                   
-            
+                    f.write(str(pick) + '\n')
+
         #-plotting output-------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
+        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                        sorted_trigs, t_bb, datestr, frequencies[n1], frequencies[n22],
                        coord_eq, coord_jma, file_out_fig)
     else:
     #-plotting output--------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, time_env, time, coord_sta,
+        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                        triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
                        coord_eq, coord_jma, file_out_fig)
+
+    if DEBUG and config.recursive_memory:
+        import matplotlib.pyplot as plt
+        CF = st_CF.select(station=config.stations[0])[0]
+        CF2 = st_CF2.select(station=config.stations[0])[0]
+        fig = plt.figure()
+        ax1 = fig.add_subplot(211)
+        ax1.plot(CF, linewidth=2)
+        ax1.plot(CF2[0:len(CF)])
+        ax2 = fig.add_subplot(212, sharex=ax1)
+        ax2.plot(CF - CF2[0:len(CF)])
+        plt.show()
 
 
 if __name__ == '__main__':

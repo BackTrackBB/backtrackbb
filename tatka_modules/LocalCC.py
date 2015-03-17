@@ -3,12 +3,7 @@ import scipy as sp
 from rec_cc import local_CCr
 
 
-def LocalCC(in_signal1, in_signal2, samp_rate, max_time_lag, zero_time, config):
-
-    if config.do_smooth_lcc:
-        sigma = config.smooth_lcc
-    else:
-        sigma = None
+def LocalCC(in_signal1, in_signal2, samp_rate, max_time_lag, zero_time, sigma=None):
 
     n_lags = 2 * int(max_time_lag * samp_rate)
     cc_time_lags = sp.linspace(-n_lags/2/samp_rate,

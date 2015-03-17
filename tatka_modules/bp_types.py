@@ -1,6 +1,7 @@
 # bp_types.py
 # Data types for BackProj
 from obspy import UTCDateTime
+from ctypes import c_double
 
 class Trigger():
     def __init__(self,
@@ -103,3 +104,38 @@ class Pick():
         #TODO: read and write these fields?
         #self.travel_time = None
         #self.time_dev = None
+
+
+class RecursiveMemory():
+    def __init__(self, trid=None, wave=None, band=None, nsamples=0, overlap=0):
+        self.trid = trid
+        self.wave = wave
+        self.band = band
+        self.nsamples = int(nsamples)
+        self.overlap = int(overlap)
+        self.filterH1 = c_double(0)
+        self.filterH2 = c_double(0)
+        self.filterL1 = c_double(0)
+        self.filterL2 = c_double(0)
+        self.prev_sample_value = c_double(0)
+        self.memory_sample = self.nsamples - self.overlap - 1
+        self.mean_sq = c_double(0)
+        self.mean = c_double(0)
+        self.var = c_double(1)
+        self.hos = c_double(0)
+        self.initialize = True
+
+    def __str__(self):
+        s = '%s %s %s\n' % (self.trid, self.wave, self.band)
+        s += 'filterH1: %f\n' % self.filterH1.value
+        s += 'filterH2: %f\n' % self.filterH2.value
+        s += 'filterL1: %f\n' % self.filterL1.value
+        s += 'filterL2: %f\n' % self.filterL2.value
+        s += 'prev_sample_value: %f\n' % self.prev_sample_value.value
+        s += 'memory_sample: %d\n' % self.memory_sample
+        s += 'mean_sq: %f\n' % self.mean_sq.value
+        s += 'mean: %f\n' % self.mean.value
+        s += 'var: %f\n' % self.var.value
+        s += 'hos: %f\n' % self.hos.value
+        s += 'initialize: %s\n' % self.initialize
+        return s
