@@ -15,8 +15,13 @@ def bp_plot(config, proj_grid,
             fq, n1, n22, trigger,
             arrival_times=None, Mtau=None):
 
-    LTrig = config.trigger
-    lcc_max = config.lcc_max
+    if trigger is not None:
+        LTrig = trigger.trigger_level
+        lcc_max = proj_grid.max()
+    else:
+        LTrig = config.trigger
+        lcc_max = 1
+    lcc_min = LTrig
     out_dir = config.out_dir
     plot_waveforms = config.plot_waveforms
 
@@ -29,7 +34,6 @@ def bp_plot(config, proj_grid,
     scmap = config.scmap
     scmap2 = pylab.cm.jet
     scmap2.set_under('w', LTrig)
-    lcc_min = LTrig
 
     if trigger is not None:
         max_ijk = map(int, (trigger.i, trigger.j, trigger.k))
@@ -38,16 +42,20 @@ def bp_plot(config, proj_grid,
         x_eq, y_eq, z_eq = coord_eq
         max_ijk = proj_grid.get_ijk(x_eq[0], y_eq[0], z_eq[0])
     else:
-        max_ijk = map(int, (proj_grid.nx/2., proj_grid.ny/2., proj_grid.nz/2.))
+        max_ijk = proj_grid.get_ijk_max()
 
-    xx_grid, yy_grid, zz_grid = proj_grid.get_xyz(*max_ijk)
+    try:
+        box_idx = proj_grid.box_idx
+        i1, i2, j1, j2, k1, k2 = box_idx
+    except AttributeError:
+        box_idx = None
 
 #--figure
     fig = figure.Figure(figsize=(20, 20))
 
 #--ax1: stacked grid
     ax1_xy = fig.add_subplot(221)
-    axes, cb1 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax1_xy, cmap=scmap)
+    axes, cb1 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax1_xy, vmin=0, cmap=scmap)
     cb1.set_label('Stacked Local-CC Amplitude')
 
     ax1_xy, ax1_xz, ax1_yz = axes
@@ -85,29 +93,43 @@ def bp_plot(config, proj_grid,
                        marker='*', s=trig_smbl_size, linewidths=1, c='g')
         ax1_xz.scatter(xx_max, zz_max,
                        marker='*', s=trig_smbl_size, linewidths=1, c='g')
+    if proj_grid.ellipsoid is not None:
+        proj_grid.plot_ellipsoid(axes, proj_grid.ellipsoid, proj_grid.xyz_mean)
+    if box_idx is not None:
+        x_xy = np.array((i1, i2, i2, i1, i1)) * proj_grid.dx + proj_grid.x_orig
+        y_xy = np.array((j1, j1, j2, j2, j1)) * proj_grid.dy + proj_grid.y_orig
+        z_yz = np.array((k1, k2, k2, k1, k1)) * proj_grid.dz + proj_grid.z_orig
+        y_yz = np.array((j1, j1, j2, j2, j1)) * proj_grid.dy + proj_grid.y_orig
+        x_xz = np.array((i1, i2, i2, i1, i1)) * proj_grid.dx + proj_grid.x_orig
+        z_xz = np.array((k1, k1, k2, k2, k1)) * proj_grid.dz + proj_grid.z_orig
+        ax1_xy.plot(x_xy, y_xy, color='w')
+        ax1_yz.plot(z_yz, y_yz, color='w')
+        ax1_xz.plot(x_xz, z_xz, color='w')
+
 
 #--ax2: trigger grid
-    ax2_xy = fig.add_subplot(223)
-    axes, cb11 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax2_xy, vmin=lcc_min, vmax=lcc_max, cmap=scmap2)
-    cb11.set_label('Stacked Local-CC Amplitude')
-    cb11.set_ticks([LTrig, LTrig+(lcc_max-LTrig)/2,lcc_max])
-
-    ax2_xy, ax2_xz, ax2_yz = axes
-    ax2_xy.set_xlabel('X[km]')
-    ax2_xy.set_ylabel('Y[km]')
-    ax2_yz.set_xlabel('Z[km]')
-    ax2_xz.set_xlabel('X[km]')
-    ax2_xz.set_ylabel('Z[km]')
-
-    if coord_eq:
-        ax2_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='w')
-    for sta in coord_sta:
-        x_sta, y_sta = coord_sta[sta]
-        ax2_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1, c='k', alpha=0.79)
-        trans = ax2_xy.transData + ax2_xy.transAxes.inverted()
-        x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
-        ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
     if trigger is not None:
+        ax2_xy = fig.add_subplot(223)
+        axes, cb11 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax2_xy, vmin=lcc_min, vmax=lcc_max, cmap=scmap2)
+        cb11.set_label('Stacked Local-CC Amplitude')
+        cb11.set_ticks([LTrig, LTrig+(lcc_max-LTrig)/2, lcc_max])
+
+        ax2_xy, ax2_xz, ax2_yz = axes
+        ax2_xy.set_xlabel('X[km]')
+        ax2_xy.set_ylabel('Y[km]')
+        ax2_yz.set_xlabel('Z[km]')
+        ax2_xz.set_xlabel('X[km]')
+        ax2_xz.set_ylabel('Z[km]')
+
+        if coord_eq:
+            ax2_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='w')
+        for sta in coord_sta:
+            x_sta, y_sta = coord_sta[sta]
+            ax2_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1, c='k', alpha=0.79)
+            trans = ax2_xy.transData + ax2_xy.transAxes.inverted()
+            x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
+            ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
+
         t = trigger.origin_time
         if t is not None:
             t_str = '%s.%03d, ' %\

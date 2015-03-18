@@ -14,6 +14,16 @@ from summary_cf import summary_cf
 from multiprocessing import Pool
 
 
+def slice_indexes(i, j, k, si, sj, sk, ni, nj, nk):
+    i1= i - si if i - si > 0 else 0
+    i2 = i + si if i + si < ni else ni
+    j1 = j - sj if j - sj > 0 else 0
+    j2 = j + sj if j + sj < nj else nj
+    k1 = k - sk if k - sk > 0 else 0
+    k2 = k + sk if k + sk < nk else nk
+    return i1, i2, j1, j2, k1, k2
+
+
 def run_BackProj(args):
     return _run_BackProj(*args)
 
@@ -109,8 +119,50 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         delta_tt_array = GRD_sta[sta2][wave2].array - GRD_sta[sta1][wave1].array
         stack_grid.array += proj_function(delta_tt_array.flatten()).reshape(delta_tt_array.shape)
     stack_grid.array /= len(outputs)
+    stack_grid.array **= config.grid_power
 
-    i_max, j_max, k_max = np.unravel_index(stack_grid.array.argmax(), stack_grid.array.shape)
+    i_max, j_max, k_max = stack_grid.get_ijk_max()
+
+    do_trigger = False
+    if config.trigger is not None:
+        if stack_grid.max() >= config.trigger:
+            do_trigger = True
+            trigger_level = config.trigger
+    if config.trigger_ellipsoid_max_axis is not None and not do_trigger:
+        gp_ell = config.grid_power_ellipsoid
+        gp = config.grid_power
+        if gp_ell != gp:
+            pwr = gp_ell/gp
+            stack_grid_pwr = stack_grid.copy()
+            stack_grid_pwr.array **= pwr
+            ell = stack_grid_pwr.get_xyz_ellipsoid()
+            stack_grid.ellipsoid = ell
+            stack_grid.xyz_mean = stack_grid_pwr.get_xyz_mean()
+        else:
+            ell = stack_grid.get_xyz_ellipsoid()
+        max_ax = config.trigger_ellipsoid_max_axis
+        if (ell.len1 <= max_ax and
+            stack_grid.max() >= config.trigger_ellipsoid):
+            do_trigger = True
+            trigger_level = config.trigger_ellipsoid
+    if config.trigger_probability_range is not None and not do_trigger:
+        rng = config.trigger_probability_range
+        i_range = int(rng / stack_grid.dx)
+        j_range = int(rng / stack_grid.dy)
+        k_range = int(rng / stack_grid.dz)
+        mask = np.zeros(stack_grid.array.shape)
+        ni, nj, nk = mask.shape
+        idx = slice_indexes(i_max, j_max, k_max,
+                            i_range, j_range, k_range,
+                            ni, nj, nk)
+        stack_grid.box_idx = idx
+        i1, i2, j1, j2, k1, k2 = idx
+        mask[i1:i2, j1:j2, k1:k2] = 1
+        mask_array = stack_grid.array * mask
+        prob = mask_array.sum() / stack_grid.array.sum()
+        if prob >= config.trigger_probability:
+            do_trigger = True
+            trigger_level = 0.5 * (stack_grid.array.max() - stack_grid.array.min())
 
     if config.cut_data:
         start_tw = config.cut_start + t_begin
@@ -119,17 +171,18 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         config.cut_start = 0.
 
     trigger = None
-    if stack_grid[i_max, j_max, k_max] >= config.trigger:
+    if do_trigger:
         if config.max_subdivide is not None:
             #We "zoom" the grid in a region close to the maximum
             zoom_factor = float(config.max_subdivide)
-            #TODO: slicing will not work if the maximum
-            #is close to the grid edge!
             slice_factor = 4 #this is hardcoded, for now
             sf = int(slice_factor)
-            slice_grid = stack_grid[i_max-sf:i_max+sf,
-                                    j_max-sf:j_max+sf,
-                                    k_max-sf:k_max+sf]
+            ni, nj, nk = stack_grid.array.shape
+            idx = slice_indexes(i_max, j_max, k_max,
+                                sf, sf, sf,
+                                ni, nj, nk)
+            i1, i2, j1, j2, k1, k2 = idx
+            slice_grid = stack_grid[i1:i2, j1:j2, k1:k2]
             zoom_slice_grid = zoom(slice_grid, zoom_factor)
             # check if zoom_slice_grid is not empty.
             # TODO: why can it be empty?
@@ -142,6 +195,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
                 k_max = zoom_k_max + k_max-sf
 
         trigger = Trigger()
+        trigger.trigger_level = trigger_level
         trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
         trigger.max_grid = np.round(stack_grid.max(), 4)

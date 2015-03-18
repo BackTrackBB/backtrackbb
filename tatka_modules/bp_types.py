@@ -23,6 +23,7 @@ class Trigger():
         self.beg_win = beg_win
         self.end_win = end_win
         self.center_win = center_win
+        self.trigger_level = None
         self.lat = None
         self.lon = None
         self.origin_time = None

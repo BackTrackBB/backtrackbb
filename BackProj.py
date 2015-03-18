@@ -43,6 +43,26 @@ def main():
     t_bb = t_ee[t_ee<=data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
 
+    #--Grid power
+    try:
+        config.grid_power = int(config.grid_power)
+    except:
+        if config.grid_power == 'nsta':
+            config.grid_power = len(config.stations)
+        else:
+            config.grid_power = 1
+    try:
+        config.grid_power_ellipsoid = int(config.grid_power_ellipsoid)
+    except:
+        if config.grid_power_ellipsoid == 'nsta':
+            config.grid_power_ellipsoid = len(config.stations)
+        else:
+            config.grid_power_ellipsoid = config.grid_power
+    if config.trigger is not None:
+        config.trigger **= config.grid_power
+    if config.trigger_ellipsoid is not None:
+        config.trigger_ellipsoid **= config.grid_power
+
     loc_infile = None
     location_jma = None
     if config.catalog_dir:
