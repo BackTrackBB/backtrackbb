@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
 from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import matplotlib.patheffects as path_effects
 
 
 def bp_plot(config, proj_grid,
@@ -58,31 +59,32 @@ def bp_plot(config, proj_grid,
 
     tt1 = st[0].stats.starttime + t_b
     tt2 = st[0].stats.starttime + t_e
-    ax1_xy.set_title('Date: %s, Time: %s.%03d - %s.%03d (%s - %s s), depth: %s km' %
+    ax1_xy.set_title('Date: %s, Time: %s.%03d - %s.%03d (%s - %s s)' %
                      (tt1.date,
                       tt1.strftime('%H:%M:%S'),
                       int(round(tt1.microsecond/1000.)),
                       tt2.strftime('%H:%M:%S'),
                       int(round(tt2.microsecond/1000.)),
                       t_b + config.cut_start,
-                      t_e + config.cut_start,
-                      zz_grid))
+                      t_e + config.cut_start))
     if coord_eq:
         ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1,c='w')
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
-        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1, c='k', alpha=0.79)
+        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1, c='w', alpha=0.79)
         trans = ax1_xy.transData + ax1_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
-        ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)
+        ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='w',
+                    transform=ax1_xy.transAxes,
+                    path_effects=[path_effects.withStroke(linewidth=2, foreground='k')])
 
     if trigger is not None:
         ax1_xy.scatter(xx_max, yy_max,
-                    marker='*', s=trig_smbl_size, linewidths=1,c='g')
+                       marker='*', s=trig_smbl_size, linewidths=1, c='g')
         ax1_yz.scatter(zz_max, yy_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
+                       marker='*', s=trig_smbl_size, linewidths=1, c='g')
         ax1_xz.scatter(xx_max, zz_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
+                       marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
 #--ax2: trigger grid
     ax2_xy = fig.add_subplot(223)
@@ -120,11 +122,11 @@ def bp_plot(config, proj_grid,
             ax2_xy.set_title('%sX: %.2f km, Y: %.2f km, Depth: %.2f km' %
                              (t_str, trigger.x, trigger.y, trigger.z))
         ax2_xy.scatter(xx_max, yy_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
+                       marker='*', s=trig_smbl_size, linewidths=1, c='g')
         ax2_yz.scatter(zz_max, yy_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
+                       marker='*', s=trig_smbl_size, linewidths=1, c='g')
         ax2_xz.scatter(xx_max, zz_max,
-                    marker='*', s=trig_smbl_size, linewidths=1, c='g')
+                       marker='*', s=trig_smbl_size, linewidths=1, c='g')
 
 
 #--ax3: traces
