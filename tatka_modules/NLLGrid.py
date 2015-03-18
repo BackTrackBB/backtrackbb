@@ -190,6 +190,14 @@ class NLLGrid():
             return None
         return np.unravel_index(self.array.argmax(), self.array.shape)
 
+    def get_ijk_min(self):
+        '''
+        Returns the indexes (i,j,k) of the grid min point
+        '''
+        if self.array is None:
+            return None
+        return np.unravel_index(self.array.argmin(), self.array.shape)
+
     def get_xyz_max(self):
         '''
         Returns the coordinates (x,y,z) of the grid max point
@@ -198,6 +206,15 @@ class NLLGrid():
         if ijk_max is None:
             return None
         return self.get_xyz(*ijk_max)
+
+    def get_xyz_min(self):
+        '''
+        Returns the coordinates (x,y,z) of the grid min point
+        '''
+        ijk_min = self.get_ijk_min()
+        if ijk_min is None:
+            return None
+        return self.get_xyz(*ijk_min)
 
     def get_ijk_mean(self):
         '''
@@ -358,7 +375,7 @@ class NLLGrid():
 
         return ax_xy, ax_xz, ax_yz, ax_cb
 
-    def plot(self, slice_index, handle=False, figure=None, ax_xy=None,
+    def plot(self, slice_index=None, handle=False, figure=None, ax_xy=None,
              vmin=None, vmax=None, cmap=None):
         import matplotlib.pyplot as plt
         from matplotlib import ticker
@@ -366,6 +383,13 @@ class NLLGrid():
         ax_xy, ax_xz, ax_yz, ax_cb = self.get_plot_axes(figure, ax_xy)
         if figure is None:
             figure = ax_xy.get_figure()
+
+        if slice_index is None:
+            slice_index = map(int, (self.nx/2, self.ny/2, self.nz/2))
+        if slice_index == 'max':
+            slice_index = self.get_ijk_max()
+        if slice_index == 'min':
+            slice_index = self.get_ijk_min()
 
         hnd = ax_xy.imshow(np.transpose(self.array[:, :, slice_index[2]]),
                            vmin=vmin, vmax=vmax, cmap=cmap,
