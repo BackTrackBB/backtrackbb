@@ -357,11 +357,6 @@ class NLLGrid():
         ax_xy.set_aspect('equal', 'datalim')
         plt.setp(ax_xy.get_yticklabels(), rotation=90, fontsize=12)
 
-        # ax_xz
-        ax_xz = divider.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax_xy)
-        ax_xz.set_xlim(xmin, xmax)
-        ax_xz.set_ylim(zmax, zmin)
-
         # ax_yz
         ax_yz = divider.append_axes('right', size=yz_size, pad=0.05, sharey=ax_xy)
         plt.setp(ax_yz.get_yticklabels(), visible=False)
@@ -369,6 +364,11 @@ class NLLGrid():
         ax_yz.set_ylim(ymin, ymax)
         plt.setp(ax_yz.get_xticklabels(), rotation=90, fontsize=12)
         plt.setp(ax_yz.get_yticklabels(), rotation=90, fontsize=12)
+
+        # ax_xz
+        ax_xz = divider.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax_xy)
+        ax_xz.set_xlim(xmin, xmax)
+        ax_xz.set_ylim(zmax, zmin)
 
         # color-bar
         ax_cb = divider.append_axes('bottom', size=cb_size, pad=0.5)
