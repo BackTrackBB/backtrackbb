@@ -127,7 +127,7 @@ def main():
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
     #---running program------------------------------------------------------
-    if config.recursive_memory:
+    if config.ncpu > 1 and config.recursive_memory:
         # We use plot_pool to run asynchronus plotting in run_Backproj
         plot_pool = Pool(config.ncpu)
     else:
@@ -154,7 +154,7 @@ def main():
         p_outputs = map(run_BackProj, arglist)
     triggers = filter(None, p_outputs)
 
-    if config.recursive_memory:
+    if config.ncpu > 1 and config.recursive_memory:
         plot_pool.close()
 
     #----------Outputs-------------------------------------------------------
