@@ -9,7 +9,7 @@ import matplotlib.patheffects as path_effects
 
 
 def bp_plot(config, proj_grid,
-            coord_eq, t_b, t_e, datestr, fq_str,
+            coord_eq, t_begin, t_end, datestr, fq_str,
             coord_sta,
             st, st_CF,
             fq, n1, n22, trigger,
@@ -65,16 +65,16 @@ def bp_plot(config, proj_grid,
     ax1_xz.set_xlabel('X[km]')
     ax1_xz.set_ylabel('Z[km]')
 
-    tt1 = st[0].stats.starttime + t_b
-    tt2 = st[0].stats.starttime + t_e
+    tt1 = st[0].stats.starttime + t_begin
+    tt2 = st[0].stats.starttime + t_end
     ax1_xy.set_title('Date: %s, Time: %s.%03d - %s.%03d (%s - %s s)' %
                      (tt1.date,
                       tt1.strftime('%H:%M:%S'),
                       int(round(tt1.microsecond/1000.)),
                       tt2.strftime('%H:%M:%S'),
                       int(round(tt2.microsecond/1000.)),
-                      t_b + config.cut_start,
-                      t_e + config.cut_start))
+                      t_begin + config.cut_start,
+                      t_end + config.cut_start))
     if coord_eq:
         ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1,c='w')
     for sta in coord_sta:
@@ -154,13 +154,19 @@ def bp_plot(config, proj_grid,
 #--ax3: traces
     st_plt = st.copy()
     st_plt.filter('bandpass', freqmin=fq[n22], freqmax=fq[n1],
-              corners=2, zerophase=True)
+                  corners=2, zerophase=True)
+    st_CF_plt = st_CF.copy()
+    if config.plot_time_win_size is not None:
+        time_win_size = config.plot_time_win_size
+        t_extra = (time_win_size - (t_end - t_begin)) / 2
+        st_plt.trim(config.starttime + t_begin - t_extra,
+                    config.starttime + t_end + t_extra)
+        st_CF_plt.trim(config.starttime + t_begin - t_extra,
+                       config.starttime + t_end + t_extra)
+    else:
+        t_extra = 0
+
     ax3 = fig.add_subplot(122)
-    time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
-    time += config.cut_start
-    time_env = np.arange(st_CF[0].stats.npts) / st_CF[0].stats.sampling_rate
-    time_env += config.cut_start
-    ax3.set_xlim(min(time), max(time))
     sta_y = [coord_sta[sta][1] for sta in coord_sta]
     ax3.set_ylim(min(sta_y), max(sta_y))
     ax3.set_xlabel('Time[sec]')
@@ -185,10 +191,15 @@ def bp_plot(config, proj_grid,
             signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
+            time = np.arange(tr.stats.npts) / tr.stats.sampling_rate
+            time += config.cut_start + t_begin - t_extra
+            # remove negative times by shifting
+            if time.min() < 0:
+                time -= time.min()
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
         # Project signal to Axes coordinates:
         for wave in config.wave_type:
-            tr_CF = st_CF.select(station=sta, channel=wave)[0]
+            tr_CF = st_CF_plt.select(station=sta, channel=wave)[0]
             signal = tr_CF.data/abs(tr_CF.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
@@ -196,7 +207,13 @@ def bp_plot(config, proj_grid,
                 color = 'blue'
             if wave == 'S':
                 color = 'red'
-            ax3.plot(time_env, ydata, color, rasterized=True)
+            time_CF = np.arange(tr_CF.stats.npts) / tr_CF.stats.sampling_rate
+            time_CF += config.cut_start + t_begin - t_extra
+            # remove negative times by shifting
+            if time_CF.min() < 0:
+                time_CF -= time_CF.min()
+            ax3.plot(time_CF, ydata, color, rasterized=True)
+        ax3.set_xlim(min(time), max(time))
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
         ## plotting vertical bars corresponding to LCCmax in given time window
@@ -209,21 +226,18 @@ def bp_plot(config, proj_grid,
                     color = 'blue'
                 if wave == 'S':
                     color = 'red'
-                #for p_times in arrival_times[sta][wave]:
-                #    LCCmax_time = p_times - st[0].stats.starttime + config.cut_start
-                #    ax3.plot((LCCmax_time, LCCmax_time), (y_min, y_max), linewidth=1, color=color)
-                pick_time = trigger.origin_time + pick.pick_time - st[0].stats.starttime + config.cut_start
                 theor_time = trigger.origin_time + pick.theor_time - st[0].stats.starttime + config.cut_start
                 if pick.pick_time != -10.:
+                    pick_time = trigger.origin_time + pick.pick_time - st[0].stats.starttime + config.cut_start
                     ax3.plot((pick_time, pick_time), (y_min, y_max), linewidth=2.0, color=color)
                 ax3.plot((theor_time, theor_time), (y_min, y_max), linewidth=2.0, color=color, linestyle='--')
 
     if Mtau is not None:
         for tt in Mtau:
-            ax3.axvspan(t_b+config.cut_start, t_b+tt+config.cut_start,
+            ax3.axvspan(t_begin+config.cut_start, t_begin+tt+config.cut_start,
                         facecolor='g', alpha=0.1)
     else:
-        ax3.axvspan(t_b+config.cut_start, t_e+config.cut_start,
+        ax3.axvspan(t_begin+config.cut_start, t_end+config.cut_start,
                     facecolor='g', alpha=0.1)
 
     note_t = 'CF of MBFilter; Fq= ' + str(np.round(fq[n22])) +\
@@ -233,7 +247,7 @@ def bp_plot(config, proj_grid,
 
 
     file_out_fig = datestr + '_t' +\
-                   str('%06.1f' % (config.cut_start+t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
+                   str('%06.1f' % (config.cut_start+t_begin)) + 's_' + fq_str + '_fig.' + config.plot_format
     file_out_fig = os.path.join(out_dir, file_out_fig)
     if config.plot_format == 'pdf':
         fig.patch.set_alpha(0.0)
