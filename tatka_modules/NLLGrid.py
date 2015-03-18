@@ -369,16 +369,25 @@ class NLLGrid():
 
         hnd = ax_xy.imshow(np.transpose(self.array[:, :, slice_index[2]]),
                            vmin=vmin, vmax=vmax, cmap=cmap,
-                           origin='lower', extent=self.get_xy_extent())
+                           origin='lower', extent=self.get_xy_extent(),
+                           zorder=-10)
         ax_xy.set_adjustable('box-forced')
         ax_xz.imshow(np.transpose(self.array[:, slice_index[1], :]),
                      vmin=vmin, vmax=vmax, cmap=cmap,
-                     origin='lower', extent=self.get_xz_extent(), aspect='auto')
+                     origin='lower', extent=self.get_xz_extent(), aspect='auto',
+                     zorder=-10)
         ax_xz.set_adjustable('box-forced')
         ax_yz.imshow(self.array[slice_index[0], :, :],
                      vmin=vmin, vmax=vmax, cmap=cmap,
-                     origin='lower', extent=self.get_zy_extent(), aspect='auto')
+                     origin='lower', extent=self.get_zy_extent(), aspect='auto',
+                     zorder=-10)
         ax_yz.set_adjustable('box-forced')
+
+        x_slice, y_slice, z_slice = self.get_xyz(*slice_index)
+        ax_xy.axhline(y_slice, color='w', linestyle='dashed', zorder=-1)
+        ax_xy.axvline(x_slice, color='w', linestyle='dashed', zorder=-1)
+        ax_xz.axhline(z_slice, color='w', linestyle='dashed', zorder=-1)
+        ax_yz.axvline(z_slice, color='w', linestyle='dashed', zorder=-1)
 
         fmt = '%.1e' if self.max() <= 0.01 else '%.2f'
         cb = figure.colorbar(hnd, cax=ax_cb, orientation='horizontal', format=fmt)
