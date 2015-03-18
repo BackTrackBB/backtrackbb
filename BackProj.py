@@ -176,6 +176,8 @@ def main():
 
     if config.ncpu > 1 and config.recursive_memory:
         plot_pool.close()
+        # wait for processes to end
+        plot_pool.join()
 
     #----------Outputs-------------------------------------------------------
     #writing output
