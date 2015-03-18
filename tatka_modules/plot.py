@@ -233,7 +233,7 @@ def bp_plot(config, proj_grid,
 
 
     file_out_fig = datestr + '_t' +\
-                   str('%05.1f' % (config.cut_start+t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
+                   str('%06.1f' % (config.cut_start+t_b)) + 's_' + fq_str + '_fig.' + config.plot_format
     file_out_fig = os.path.join(out_dir, file_out_fig)
     if config.plot_format == 'pdf':
         fig.patch.set_alpha(0.0)
