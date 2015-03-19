@@ -225,15 +225,11 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     if config.plot_results == 'True' or\
             (config.plot_results == 'trigger_only' and trigger is not None):
 
-        n1 = 0
-        n22 = len(frequencies) - 1
-        fq_str = str(np.round(frequencies[n1])) + '_' + str(np.round(frequencies[n22]))
-        datestr = st[0].stats.starttime.strftime('%y%m%d%H')
 
         args = (config, stack_grid,
-                coord_eq, t_begin, t_end, datestr, fq_str,
+                coord_eq, t_begin, t_end,
                 coord_sta, st, st_CF,
-                frequencies, n1, n22, trigger, arrival_times, Mtau)
+                frequencies, trigger, arrival_times, Mtau)
         if plot_pool is not None:
             # When using recursive_memory, plotting
             # is run asynchronously

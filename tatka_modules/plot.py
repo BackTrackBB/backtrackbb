@@ -9,10 +9,10 @@ import matplotlib.patheffects as path_effects
 
 
 def bp_plot(config, proj_grid,
-            coord_eq, t_begin, t_end, datestr, fq_str,
+            coord_eq, t_begin, t_end,
             coord_sta,
             st, st_CF,
-            fq, n1, n22, trigger,
+            freqs, trigger,
             arrival_times=None, Mtau=None):
 
     if trigger is not None:
@@ -153,7 +153,7 @@ def bp_plot(config, proj_grid,
 
 #--ax3: traces
     st_plt = st.copy()
-    st_plt.filter('bandpass', freqmin=fq[n22], freqmax=fq[n1],
+    st_plt.filter('bandpass', freqmin=freqs[-1], freqmax=freqs[0],
                   corners=2, zerophase=True)
     st_CF_plt = st_CF.copy()
     if config.plot_time_win_size is not None:
@@ -244,11 +244,14 @@ def bp_plot(config, proj_grid,
         ax3.axvspan(t_begin+config.cut_start, t_end+config.cut_start,
                     facecolor='g', alpha=0.1)
 
-    note_t = 'CF of MBFilter; Fq= ' + str(np.round(fq[n22])) +\
-             '-' + str(np.round(fq[n1])) + ' Hz'
+    note_t = 'CF of MBFilter; Fq= ' + str(np.round(freqs[-1])) +\
+             '-' + str(np.round(freqs[0])) + ' Hz'
     ax3.set_title(note_t, fontsize=15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
+
+    fq_str = str(np.round(freqs[-1])) + '_' + str(np.round(freqs[0]))
+    datestr = st[0].stats.starttime.strftime('%y%m%d%H')
 
     file_out_fig = datestr + '_t' +\
                    str('%06.1f' % (config.cut_start+t_begin)) + 's_' + fq_str + '_fig.' + config.plot_format
