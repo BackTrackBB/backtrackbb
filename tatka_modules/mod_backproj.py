@@ -21,7 +21,7 @@ def init_worker():
 
 
 def slice_indexes(i, j, k, si, sj, sk, ni, nj, nk):
-    i1= i - si if i - si > 0 else 0
+    i1 = i - si if i - si > 0 else 0
     i2 = i + si if i + si < ni else ni
     j1 = j - sj if j - sj > 0 else 0
     j2 = j + sj if j + sj < nj else nj
