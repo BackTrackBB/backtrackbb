@@ -149,7 +149,7 @@ def main():
     #---running program------------------------------------------------------
     if config.ncpu > 1 and config.recursive_memory:
         # We use plot_pool to run asynchronus plotting in run_Backproj
-        #global plot_pool
+        global plot_pool
         plot_pool = Pool(config.ncpu, init_worker)
     else:
         plot_pool = None
@@ -157,8 +157,7 @@ def main():
     arglist = [
                (config,
                 st, st_CF, t_begin, frequencies,
-                coord_sta, GRD_sta,
-                coord_eq, rec_memory, plot_pool)
+                coord_sta, GRD_sta, coord_eq, rec_memory, plot_pool)
                for t_begin in t_bb
               ]
     print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
@@ -166,8 +165,10 @@ def main():
         # parallel execution
         global pool
         pool = Pool(config.ncpu, init_worker)
-        # we need to use map_async() (with a very long timeout) due to a python bug
-        # (http://stackoverflow.com/questions/1408356/keyboard-interrupts-with-pythons-multiprocessing-pool)
+        # we need to use map_async() (with a very long timeout)
+        # due to a python bug
+        # (http://stackoverflow.com/questions/1408356/
+        #  keyboard-interrupts-with-pythons-multiprocessing-pool)
         p_outputs = pool.map_async(run_BackProj, arglist).get(9999999)
         pool.close()
         pool.join()
@@ -255,7 +256,6 @@ if __name__ == '__main__':
     try:
         pool = None
         plot_pool = None
-        rm_pool = None
         main()
     except KeyboardInterrupt:
         if pool is not None:
@@ -264,8 +264,5 @@ if __name__ == '__main__':
         if plot_pool is not None:
             plot_pool.terminate()
             plot_pool.join()
-        if rm_pool is not None:
-            rm_pool.terminate()
-            rm_pool.join()
         print ''
         print 'Aborting.'

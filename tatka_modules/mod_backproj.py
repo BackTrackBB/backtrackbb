@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+import sys
 import os
 import numpy as np
 import itertools
@@ -105,11 +106,19 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     if config.recursive_memory and config.ncpu > 1:
         # When using recursive_memory, parallelization is
         # done here
-        global rm_pool
         rm_pool = Pool(config.ncpu, init_worker)
-        # we need to use map_async() (with a very long timeout) due to a python bug
-        # (http://stackoverflow.com/questions/1408356/keyboard-interrupts-with-pythons-multiprocessing-pool)
-        outputs = rm_pool.map_async(sta_GRD_Proj, arglist).get(9999999)
+        try:
+            # we need to use map_async() (with a very long timeout)
+            # due to a python bug
+            # (http://stackoverflow.com/questions/1408356/
+            #  keyboard-interrupts-with-pythons-multiprocessing-pool)
+            outputs = rm_pool.map_async(sta_GRD_Proj, arglist).get(9999999)
+        except KeyboardInterrupt:
+            rm_pool.terminate()
+            rm_pool.join()
+            print ''
+            print 'Aborting.'
+            sys.exit()
         rm_pool.close()
         rm_pool.join()
     else:
