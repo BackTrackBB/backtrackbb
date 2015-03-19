@@ -14,6 +14,11 @@ from summary_cf import summary_cf
 from multiprocessing import Pool
 
 
+def init_worker():
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
 def slice_indexes(i, j, k, si, sj, sk, ni, nj, nk):
     i1= i - si if i - si > 0 else 0
     i2 = i + si if i + si < ni else ni
@@ -100,10 +105,13 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     if config.recursive_memory and config.ncpu > 1:
         # When using recursive_memory, parallelization is
         # done here
-        p = Pool(config.ncpu)
-        outputs = p.map(sta_GRD_Proj, arglist)
-        p.close()
-        p.join()
+        global rm_pool
+        rm_pool = Pool(config.ncpu, init_worker)
+        # we need to use map_async() (with a very long timeout) due to a python bug
+        # (http://stackoverflow.com/questions/1408356/keyboard-interrupts-with-pythons-multiprocessing-pool)
+        outputs = rm_pool.map_async(sta_GRD_Proj, arglist).get(9999999)
+        rm_pool.close()
+        rm_pool.join()
     else:
         outputs = map(sta_GRD_Proj, arglist)
 
