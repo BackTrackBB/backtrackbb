@@ -163,8 +163,6 @@ def bp_plot(config, proj_grid,
                     config.starttime + t_end + t_extra)
         st_CF_plt.trim(config.starttime + t_begin - t_extra,
                        config.starttime + t_end + t_extra)
-    else:
-        t_extra = 0
 
     ax3 = fig.add_subplot(122)
     sta_y = [coord_sta[sta][1] for sta in coord_sta]
@@ -192,10 +190,13 @@ def bp_plot(config, proj_grid,
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
             ydata = invtrans.transform(xydata)[:,1]
             time = np.arange(tr.stats.npts) / tr.stats.sampling_rate
-            time += config.cut_start + t_begin - t_extra
-            # remove negative times by shifting
-            if time.min() < 0:
-                time -= time.min()
+            if config.plot_time_win_size is not None:
+                time += config.cut_start + t_begin - t_extra
+                # remove negative times by shifting
+                if time.min() < 0:
+                    time -= time.min()
+            else:
+                time += config.cut_start
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
         # Project signal to Axes coordinates:
         for wave in config.wave_type:
@@ -208,10 +209,13 @@ def bp_plot(config, proj_grid,
             if wave == 'S':
                 color = 'red'
             time_CF = np.arange(tr_CF.stats.npts) / tr_CF.stats.sampling_rate
-            time_CF += config.cut_start + t_begin - t_extra
-            # remove negative times by shifting
-            if time_CF.min() < 0:
-                time_CF -= time_CF.min()
+            if config.plot_time_win_size is not None:
+                time_CF += config.cut_start + t_begin - t_extra
+                # remove negative times by shifting
+                if time_CF.min() < 0:
+                    time_CF -= time_CF.min()
+            else:
+                time_CF += config.cut_start
             ax3.plot(time_CF, ydata, color, rasterized=True)
         ax3.set_xlim(min(time), max(time))
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
