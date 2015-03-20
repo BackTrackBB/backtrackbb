@@ -2,7 +2,6 @@
 # -*- coding: utf8 -*-
 import sys
 import os
-import copy
 import numpy as np
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
@@ -10,7 +9,6 @@ from tatka_modules.read_grids import read_grids
 from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
-from tatka_modules.mod_group_trigs import group_triggers
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.parse_config import parse_config
 from tatka_modules.rec_memory import init_recursive_memory
@@ -137,11 +135,8 @@ def main():
         'trig' + str(config.trigger)
         ))
 
-    file_out_data = file_out_base + '_OUT2.dat'
-    file_out_data = os.path.join(config.out_dir, file_out_data)
-
-    file_out_data2 = file_out_base + '_OUT2_grouped.dat'
-    file_out_data2 = os.path.join(config.out_dir, file_out_data2)
+    file_out_triggers = file_out_base + '_OUT2.dat'
+    file_out_triggers = os.path.join(config.out_dir, file_out_triggers)
 
     file_out_fig = file_out_base + '_FIG2.' + config.plot_format
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
@@ -187,7 +182,7 @@ def main():
     #----------Outputs-------------------------------------------------------
     #writing output
     eventids = []
-    with open(file_out_data,'w') as f:
+    with open(file_out_triggers, 'w') as f:
         for trigger in triggers:
             # check if eventid already exists
             while trigger.eventid in eventids:
@@ -201,38 +196,11 @@ def main():
             picks = sorted(trigger.picks, key=lambda x: x.station)
             for pick in picks:
                 f.write(str(pick) + '\n')
-    if triggers:
-        #----sorting triggers----and grouping triggered locations----------------
-        sorted_trigs = copy.copy(triggers)
-        sorted_trigs = group_triggers(config, sorted_trigs)
 
-        #writing sorted triggers in a second output file-------------------------
-        #writing output
-        eventids = []
-        with open(file_out_data2,'w') as f:
-            for trigger in sorted_trigs:
-                # check if eventid already exists
-                while trigger.eventid in eventids:
-                    # increment the last letter by one
-                    evid = list(trigger.eventid)
-                    evid[-1] = chr(ord(evid[-1]) + 1)
-                    trigger.eventid = ''.join(evid)
-                eventids.append(trigger.eventid)
-                f.write(str(trigger) + '\n')
-                # sort picks by station
-                picks = sorted(trigger.picks, key=lambda x: x.station)
-                for pick in picks:
-                    f.write(str(pick) + '\n')
-
-        #-plotting output-------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
-                       sorted_trigs, t_bb, datestr, frequencies[n1], frequencies[n22],
-                       coord_eq, coord_jma, file_out_fig)
-    else:
-    #-plotting output--------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
-                       triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
-                       coord_eq, coord_jma, file_out_fig)
+    #-plot summary output----------------------------------------------------
+    plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
+                   triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
+                   coord_eq, coord_jma, file_out_fig)
 
     if DEBUG and config.recursive_memory:
         import matplotlib.pyplot as plt
