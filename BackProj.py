@@ -10,7 +10,7 @@ from tatka_modules.read_grids import read_grids
 from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
-from tatka_modules.mod_groupe_trigs import groupe_triggers
+from tatka_modules.mod_group_trigs import group_triggers
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.parse_config import parse_config
 from tatka_modules.rec_memory import init_recursive_memory
@@ -204,7 +204,7 @@ def main():
     if triggers:
         #----sorting triggers----and grouping triggered locations----------------
         sorted_trigs = copy.copy(triggers)
-        sorted_trigs = groupe_triggers(sorted_trigs,config)
+        sorted_trigs = group_triggers(config, sorted_trigs)
 
         #writing sorted triggers in a second output file-------------------------
         #writing output
