@@ -98,6 +98,12 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         trace2 = st_CF_cut.select(station=sta2, channel=wave2)[0]
         sig1 = trace1.data/max(abs(trace1.data))
         sig2 = trace2.data/max(abs(trace2.data))
+        len1 = sig1.size
+        len2 = sig2.size
+        if 0 < abs(len1-len2) < 3:
+            min_len = min(len1, len2)
+            sig1 = sig1[:min_len]
+            sig2 = sig2[:min_len]
 
         arglist.append((config, sta_wave1, sta_wave2,
                         sig1, sig2, t_begin, tau_max))
