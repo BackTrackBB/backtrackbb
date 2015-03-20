@@ -22,13 +22,10 @@ def main():
         print "this_code  <input_config_file>"
         sys.exit(1)
     else:
-        Config_file = sys.argv[1]
-    if not os.path.isfile(Config_file):
-        print "File {0} does not exist".format(Config_file)
-        sys.exit(1)
+        config_file = sys.argv[1]
 
     #---Input parameters for BProj run----------------------------------------
-    config = parse_config(Config_file)
+    config = parse_config(config_file)
     var_twin = config.varWin_stationPair
     print 'use of var time window for location:', var_twin
     #---Reading data---------------------------------------------------------
