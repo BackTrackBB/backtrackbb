@@ -23,6 +23,7 @@ class Trigger():
         self.beg_win = beg_win
         self.end_win = end_win
         self.center_win = center_win
+        self.trigger_level = None
         self.lat = None
         self.lon = None
         self.origin_time = None
@@ -32,7 +33,9 @@ class Trigger():
         s += 'X %s ' % self.x
         s += 'Y %s ' % self.y
         s += 'Z %s ' % self.z
-        s += 'MaxStack %.3f ' % (self.max_grid)
+        s += 'MaxStack '
+        fmt = '%.1e ' if self.max_grid < 0.01 else '%.3f '
+        s += fmt % (self.max_grid)
         s += 'BEG %s ' % self.beg_win
         s += 'END %s ' % self.end_win
         if (self.lat is not None and

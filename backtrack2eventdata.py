@@ -2,35 +2,30 @@
 # -*- coding: utf8 -*-
 import sys
 import os
+from tatka_modules.parse_config import parse_config
 from tatka_modules.bp_types import Trigger, Pick
-from obspy import read
+from tatka_modules.read_traces import read_traces
 from obspy.core import AttribDict
 
 """
 using output file xxx_OUT2_grouped.dat of BackProj.py
 to create events data
-to run: ./backtrack2eventdata.py xxx_OUT2_grouped.dat (station.dat --> optional)
+to run: ./backtrack2eventdata.py config_file xxx_OUT2_grouped.dat (station.dat --> optional)
 """
 
 def main():
-    main_folder = 'Eventdata'
-    basepath_data = 'example_data'
-    out_data_format = "SAC"
-
-    # data length to cut before and after the P-wave arrival (in seconds)
-    pre_P = 20.0
-    post_P = 150.0
-    ##
-    if len(sys.argv) == 1:
-        print "this_code  <triggered_location xxx_OUT2_grouped.dat>"
+    if len(sys.argv) < 3:
+        print "this_code config_file xxx_OUT2_grouped.dat [station_file]"
         sys.exit(1)
     else:
-        infile = sys.argv[1]
-    ##
-    if len(sys.argv) > 2:
-        station_file = sys.argv[2]
-    if len(sys.argv) == 2:
-        station_file = None
+        config_file = sys.argv[1]
+        infile = sys.argv[2]
+        try:
+            station_file = sys.argv[3]
+        except IndexError:
+            station_file = None
+
+    config = parse_config(config_file)
 
     ##--reading station information
     coord_sta = {}
@@ -55,48 +50,31 @@ def main():
                 continue
 
     ##---creating output directories if they do not exist----------------------------------------------
-    if not os.path.exists(main_folder):
-        os.mkdir(main_folder)
+    if not os.path.exists(config.event_dir):
+        os.mkdir(config.event_dir)
+
+    #---Reading data-----------------------------------------------------------------------------------
+    st = read_traces(config)
+
     for trigger in triggers:
-        evt_folder = trigger.eventid[0:4]+"-"+trigger.eventid[4:6]+"-"+trigger.eventid[6:8]+\
-              "-"+trigger.eventid[9:-1]
-        out_event_folder = os.path.join(main_folder, evt_folder)        
-        if not os.path.exists(out_event_folder):
-            os.mkdir(out_event_folder)
+        print trigger.eventid
+        out_event_dir = os.path.join(config.event_dir, trigger.eventid)
+        if not os.path.exists(out_event_dir):
+            os.mkdir(out_event_dir)
 
-    ##---outputting event files and data--------------------------------------------------------------
-
-    ##-------writting eventid.dat file ---------------------------------------------------------------
+        ##-------writing eventid.dat file -------------------------------------------------------------
         event_dat_base = '.'.join((trigger.eventid, 'dat'))
-        event_dat = os.path.join(out_event_folder, event_dat_base)
+        event_dat = os.path.join(out_event_dir, event_dat_base)
         with open(event_dat, 'w') as f:
             f.write(str(trigger) + '\n')
             for pick in trigger.picks:
                 f.write(str(pick) + '\n')
-    
-    ##-------writing eventid_nll.obs file -----------------------------------------------------------
-        event_dat_base1 = '.'.join((trigger.eventid + '_nll', 'obs'))
-        event_dat_base2 = '.'.join((evt_folder , 'pick'))
-        event_dat1 = os.path.join(out_event_folder, event_dat_base1)
-        event_dat2 = os.path.join(out_event_folder, event_dat_base2)        
 
-        with open(event_dat1, 'w') as f:
-            f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
-            for pick in trigger.picks:
-                f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
-                if pick.arrival_type is 'P':
-                    time = trigger.origin_time + pick.pick_time
-                else:
-                    time = trigger.origin_time + pick.theor_time
-                f.write('%s ' % time.strftime('%Y%m%d'))
-                f.write('%s ' % time.strftime('%H%M'))
-                f.write('%s.' % time.strftime('%S'))
-                msec = int(round(int(time.strftime('%f'))/100.))
-                f.write('%04d ' % msec)
-                f.write('GAU  5.00e-02  0.00e+00  0.00e+00  0.00e+00')
-                f.write('\n')
-                
-        with open(event_dat2, 'w') as f:
+        ##-------writing eventid_nll.obs file ---------------------------------------------------------
+        event_dat_base = '.'.join((trigger.eventid , 'pick'))
+        event_dat = os.path.join(out_event_dir, event_dat_base)
+
+        with open(event_dat, 'w') as f:
             #f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
             for pick in trigger.picks:
                 f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
@@ -109,30 +87,32 @@ def main():
                 f.write('%s.' % time.strftime('%S'))
                 msec = int(round(int(time.strftime('%f'))/100.))
                 f.write('%04d ' % msec)
-                f.write('GAU  5.00e-02  0.00e+00  0.00e+00  0.00e+00')
-                f.write('\n')                
+                # We approximate the error with decay_const/10
+                # TODO: improve this?
+                decay_const = float(config.decay_const)
+                f.write('GAU  %.2e  0.00e+00  0.00e+00  0.00e+00' % (decay_const/10.))
+                f.write('\n')
 
-    ## reading data, cutting events and saving data in specified format-------------------------------
+        ## cutting events and saving data in specified format------------------------------------------
         for pick in trigger.picks:
             if pick.arrival_type is not 'P':
                 continue
 
-            read_starttime = trigger.origin_time + pick.theor_time - pre_P
-            read_endtime = trigger.origin_time + pick.theor_time + post_P
-            filename = os.path.join(basepath_data, '*' + pick.station + '*')
+            trim_starttime = trigger.origin_time + pick.theor_time - config.pre_P
+            trim_endtime = trigger.origin_time + pick.theor_time + config.post_P
 
-            st = read(filename, starttime=read_starttime,
-                      endtime=read_endtime)
+            st_select = st.copy().select(station=pick.station)
+            st_select.trim(trim_starttime, trim_endtime)
 
-            for tr in st:
+            for tr in st_select:
                 file_out_base = '.'.join((trigger.eventid,
                                          tr.stats.station,
                                          tr.stats.channel,
                                          tr.stats.network,
                                          tr.stats.location,
-                                          out_data_format))
-                file_out_data = os.path.join(out_event_folder, file_out_base)
-                if out_data_format == 'SAC':
+                                         config.out_data_format))
+                file_out_data = os.path.join(out_event_dir, file_out_base)
+                if config.out_data_format == 'sac':
                     tr.stats.sac = AttribDict()
                     tr.stats.sac.kevnm = str(trigger.eventid)
                     if station_file:
@@ -140,7 +120,7 @@ def main():
                         tr.stats.sac.stlo = coord_sta[tr.stats.station][1]
                         tr.stats.sac.stel = coord_sta[tr.stats.station][2]
 
-                tr.write(file_out_data, format=out_data_format)
+                tr.write(file_out_data, format=config.out_data_format)
 
 
 if __name__ == '__main__':

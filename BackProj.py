@@ -43,6 +43,26 @@ def main():
     t_bb = t_ee[t_ee<=data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
 
+    #--Grid power
+    try:
+        config.grid_power = int(config.grid_power)
+    except:
+        if config.grid_power == 'nsta':
+            config.grid_power = len(config.stations)
+        else:
+            config.grid_power = 1
+    try:
+        config.grid_power_ellipsoid = int(config.grid_power_ellipsoid)
+    except:
+        if config.grid_power_ellipsoid == 'nsta':
+            config.grid_power_ellipsoid = len(config.stations)
+        else:
+            config.grid_power_ellipsoid = config.grid_power
+    if config.trigger is not None:
+        config.trigger **= config.grid_power
+    if config.trigger_ellipsoid is not None:
+        config.trigger_ellipsoid **= config.grid_power
+
     loc_infile = None
     location_jma = None
     if config.catalog_dir:
@@ -87,7 +107,7 @@ def main():
                       grid1.first_std_paral,
                       grid1.second_std_paral,
                       grid1.map_rot,
-                      grid1.ellipsoid)
+                      grid1.proj_ellipsoid)
 
     #----geographical coordinates of the eq's epicenter----------------------
     coord_eq = None
@@ -129,24 +149,29 @@ def main():
     #---running program------------------------------------------------------
     if config.ncpu > 1 and config.recursive_memory:
         # We use plot_pool to run asynchronus plotting in run_Backproj
-        plot_pool = Pool(config.ncpu)
+        global plot_pool
+        plot_pool = Pool(config.ncpu, init_worker)
     else:
         plot_pool = None
 
     arglist = [
                (config,
                 st, st_CF, t_begin, frequencies,
-                coord_sta, GRD_sta,
-                coord_eq, rec_memory, plot_pool)
+                coord_sta, GRD_sta, coord_eq, rec_memory, plot_pool)
                for t_begin in t_bb
               ]
     print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
     if config.ncpu > 1 and not config.recursive_memory:
         # parallel execution
-        p = Pool(config.ncpu) #defining number of jobs
-        p_outputs = p.map(run_BackProj, arglist)
-        p.close() #no more tasks
-        p.join() #wrap up current tasks
+        global pool
+        pool = Pool(config.ncpu, init_worker)
+        # we need to use map_async() (with a very long timeout)
+        # due to a python bug
+        # (http://stackoverflow.com/questions/1408356/
+        #  keyboard-interrupts-with-pythons-multiprocessing-pool)
+        p_outputs = pool.map_async(run_BackProj, arglist).get(9999999)
+        pool.close()
+        pool.join()
     else:
         # serial execution
         # (but there might be a parallelization step
@@ -156,6 +181,8 @@ def main():
 
     if config.ncpu > 1 and config.recursive_memory:
         plot_pool.close()
+        # wait for processes to end
+        plot_pool.join()
 
     #----------Outputs-------------------------------------------------------
     #writing output
@@ -220,5 +247,22 @@ def main():
         plt.show()
 
 
+def init_worker():
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
 if __name__ == '__main__':
-    main()
+    try:
+        pool = None
+        plot_pool = None
+        main()
+    except KeyboardInterrupt:
+        if pool is not None:
+            pool.terminate()
+            pool.join()
+        if plot_pool is not None:
+            plot_pool.terminate()
+            plot_pool.join()
+        print ''
+        print 'Aborting.'
