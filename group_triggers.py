@@ -2,23 +2,15 @@
 # -*- coding: utf8 -*-
 import sys
 import os
-from tatka_modules.parse_config import parse_config
+from tatka_modules.mod_setup import configure
 from tatka_modules.bp_types import Trigger, Pick
 from tatka_modules.mod_group_trigs import group_triggers
 
 def main():
-    progname = sys.argv[0]
-    if len(sys.argv) < 3:
-        print 'Usage: %s config_file trigger_file' % progname
-        sys.exit(1)
-    else:
-        config_file = sys.argv[1]
-        trigger_file = sys.argv[2]
-
-    config = parse_config(config_file)
+    config = configure('group_triggers')
 
     triggers = []
-    for line in open(trigger_file, 'r'):
+    for line in open(config.options.trigger_file, 'r'):
         try:
             trigger = Trigger()
             trigger.from_str(line)
@@ -33,7 +25,7 @@ def main():
 
     sorted_trigs = group_triggers(config, triggers)
 
-    trigger_file_out = os.path.basename(trigger_file)
+    trigger_file_out = os.path.basename(config.options.trigger_file)
     trigger_file_out = os.path.splitext(trigger_file_out)[0]
     trigger_file_out = trigger_file_out + '.grouped.dat'
 

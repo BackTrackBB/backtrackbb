@@ -1,9 +1,65 @@
 # -*- coding: utf8 -*-
+'''
+Setup functions
+'''
 import sys
 import os
+from argparse import ArgumentParser
 from configobj import ConfigObj
 from validate import Validator
 from Config import Config
+
+
+# Setup ipython shell
+if sys.stdout.isatty():
+    import IPython
+    ip_version = map(int, IPython.__version__.split('.'))
+    if ip_version[0] == 0:
+        if ip_version[1] >= 11:
+        # ipython >= 0.11
+            try:
+                from IPython.frontend.terminal.embed import InteractiveShellEmbed
+                ipshell = InteractiveShellEmbed()
+            except ImportError:
+                ipshell = None
+        else:
+        # ipython < 0.11
+            try:
+                from IPython.Shell import IPShellEmbed
+                ipshell = IPShellEmbed()
+            except ImportError:
+                ipshell = None
+    elif ip_version[0] > 0:
+    # ipython >= 1.0.0
+        try:
+            from IPython.terminal.embed import InteractiveShellEmbed
+            ipshell = InteractiveShellEmbed()
+        except ImportError:
+            ipshell = None
+else:
+    ipshell = None
+
+
+
+def _parse_args(progname):
+    '''
+    Parse command line arguments
+    '''
+    parser = ArgumentParser()
+    parser.add_argument('config_file', metavar='config_file', type=str,
+                        help='configuration file')
+    if (progname == 'backtrack2eventdata' or
+        progname == 'group_triggers'):
+        parser.add_argument('trigger_file', metavar='trigger_file', type=str,
+                            help='trigger file (output from BackProj.py)')
+    if progname == 'backtrack2eventdata':
+        parser.add_argument('station_file', metavar='station_file', type=str,
+                            help='file with station coordinates (optional)', nargs='?')
+
+    options = parser.parse_known_args()
+
+    return options
+
 
 
 def _str2bool(arg):
@@ -11,7 +67,7 @@ def _str2bool(arg):
     return v.lower() in ("yes", "true", "t", "1")
 
 
-def __parse_configspec():
+def _parse_configspec():
     try:
         configspec_file = os.path.join(os.path.dirname(__file__), 'configspec.conf')
         configspec = ConfigObj(configspec_file, interpolation=False,
@@ -25,7 +81,7 @@ def __parse_configspec():
     return configspec
 
 
-def __write_sample_config(configspec, progname):
+def _write_sample_config(configspec, progname):
     c = ConfigObj(configspec=configspec)
     val = Validator()
     c.validate(val)
@@ -37,8 +93,8 @@ def __write_sample_config(configspec, progname):
     print 'Sample config file written to: ' + configfile
 
 
-def parse_config(config_file):
-    configspec = __parse_configspec()
+def _parse_config(config_file):
+    configspec = _parse_configspec()
     try:
         config_obj = ConfigObj(config_file, configspec=configspec, file_error=True)
     except IOError, message:
@@ -50,17 +106,14 @@ def parse_config(config_file):
 
     val = Validator()
     test = config_obj.validate(val)
-    if test is True:
-        # no problem
-        pass
-    elif test is False:
-        sys.stderr.write('No configuration value present!\n')
-        sys.exit(1)
-    else:
+    if isinstance(test, dict):
         for entry in test:
-            if test[entry] == False:
+            if not test[entry]:
                 sys.stderr.write('Invalid value for "%s": "%s"\n'
                         % (entry, config_obj[entry]))
+        sys.exit(1)
+    if not test:
+        sys.stderr.write('No configuration value present!\n')
         sys.exit(1)
 
     # Fields needing special treatment:
@@ -98,9 +151,37 @@ def parse_config(config_file):
     if config_obj['grid_type'] == 'PS':
         config_obj['grid_type'] = ['P', 'S']
     else:
-        config_obj['grid_type'] = config_obj['wave_type']        
+        config_obj['grid_type'] = config_obj['wave_type']
+
+    # Grid power
+    try:
+        config_obj['grid_power'] = int(config_obj['grid_power'])
+    except:
+        if config_obj['grid_power'] == 'nsta':
+            config_obj['grid_power'] = len(config_obj['stations'])
+        else:
+            config_obj['grid_power'] = 1
+    try:
+        config_obj['grid_power_ellipsoid'] = int(config_obj['grid_power_ellipsoid'])
+    except:
+        if config_obj['grid_power_ellipsoid'] == 'nsta':
+            config_obj['grid_power_ellipsoid'] = len(config_obj['stations'])
+        else:
+            config_obj['grid_power_ellipsoid'] = config_obj['grid_power']
+    if config_obj['trigger'] is not None:
+        config_obj['trigger'] **= config_obj['grid_power']
+    if config_obj['trigger_ellipsoid'] is not None:
+        config_obj['trigger_ellipsoid'] **= config_obj['grid_power']
 
     # Create a Config object
     config = Config(config_obj.dict().copy())
 
+    return config
+
+
+def configure(progname=None):
+    options = _parse_args(progname)
+    config = _parse_config(options[0].config_file)
+    #add options to config:
+    config.options = options[0]
     return config

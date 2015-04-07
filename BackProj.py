@@ -3,6 +3,7 @@
 import sys
 import os
 import numpy as np
+from tatka_modules.mod_setup import configure
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
 from tatka_modules.read_grids import read_grids
@@ -10,7 +11,6 @@ from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.plot import plt_SummaryOut
-from tatka_modules.parse_config import parse_config
 from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
 from multiprocessing import Pool
@@ -18,14 +18,8 @@ from multiprocessing import Pool
 DEBUG = False
 
 def main():
-    if len(sys.argv) != 2:
-        print "this_code  <input_config_file>"
-        sys.exit(1)
-    else:
-        config_file = sys.argv[1]
+    config = configure()
 
-    #---Input parameters for BProj run----------------------------------------
-    config = parse_config(config_file)
     var_twin = config.varWin_stationPair
     print 'use of var time window for location:', var_twin
     #---Reading data---------------------------------------------------------
@@ -37,26 +31,6 @@ def main():
     data_length = st[0].stats.endtime - st[0].stats.starttime
     t_bb = t_ee[t_ee<=data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
-
-    #--Grid power
-    try:
-        config.grid_power = int(config.grid_power)
-    except:
-        if config.grid_power == 'nsta':
-            config.grid_power = len(config.stations)
-        else:
-            config.grid_power = 1
-    try:
-        config.grid_power_ellipsoid = int(config.grid_power_ellipsoid)
-    except:
-        if config.grid_power_ellipsoid == 'nsta':
-            config.grid_power_ellipsoid = len(config.stations)
-        else:
-            config.grid_power_ellipsoid = config.grid_power
-    if config.trigger is not None:
-        config.trigger **= config.grid_power
-    if config.trigger_ellipsoid is not None:
-        config.trigger_ellipsoid **= config.grid_power
 
     loc_infile = None
     location_jma = None
