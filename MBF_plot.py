@@ -14,7 +14,7 @@ import matplotlib.transforms as transforms
 def main():
     line_width = 0.5
 
-    config = parse_config(Config_file)
+    config = configure()
     #---Reading data---------------------------------------------------------
     st_n = read_traces(config)
     st = st_n.select(station=config.stations[0])
