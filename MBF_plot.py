@@ -3,7 +3,7 @@ import sys
 import os
 import numpy as np
 from tatka_modules.mod_filter_picker import make_LogFq,make_LinFq,MBfilter_CF,GaussConv
-from tatka_modules.parse_config import parse_config
+from tatka_modules.mod_setup import configure
 from tatka_modules.read_traces import read_traces
 import matplotlib
 import matplotlib.pyplot as plt
@@ -14,18 +14,9 @@ import matplotlib.transforms as transforms
 def main():
     line_width = 0.5
 
-    if len(sys.argv) != 2:
-        print "this_code  <input_config_file>"
-        sys.exit(1)
-    else:
-        Config_file = sys.argv[1]
-    if not os.path.isfile(Config_file):
-        print "File {0} does not exist".format(Config_file)
-        sys.exit(1)
-
     config = parse_config(Config_file)
+    #---Reading data---------------------------------------------------------
     st_n = read_traces(config)
-
     st = st_n.select(station=config.stations[0])
     st.detrend(type='constant')
     st.detrend(type='linear')
