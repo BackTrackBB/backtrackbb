@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 import sys
 import os
-from tatka_modules.parse_config import parse_config
+from tatka_modules.mod_setup import configure
 from tatka_modules.bp_types import Trigger, Pick
 from tatka_modules.read_traces import read_traces
 from obspy.core import AttribDict
@@ -14,29 +14,18 @@ to run: ./backtrack2eventdata.py config_file xxx_OUT2_grouped.dat (station.dat -
 """
 
 def main():
-    if len(sys.argv) < 3:
-        print "this_code config_file xxx_OUT2_grouped.dat [station_file]"
-        sys.exit(1)
-    else:
-        config_file = sys.argv[1]
-        infile = sys.argv[2]
-        try:
-            station_file = sys.argv[3]
-        except IndexError:
-            station_file = None
-
-    config = parse_config(config_file)
+    config = configure('backtrack2eventdata')
 
     ##--reading station information
     coord_sta = {}
-    if station_file:
+    if config.options.station_file:
         for line in open(station_file, 'r'):
             data = line.split()
             coord_sta[data[0]] = map(float, data[2:5])
 
     ## -----reading output file saving parameters as trigger type--------------------------------------
     triggers = []
-    for line in open(infile, 'r'):
+    for line in open(config.options.trigger_file, 'r'):
         try:
             trigger = Trigger()
             trigger.from_str(line)
@@ -115,7 +104,7 @@ def main():
                 if config.out_data_format == 'sac':
                     tr.stats.sac = AttribDict()
                     tr.stats.sac.kevnm = str(trigger.eventid)
-                    if station_file:
+                    if config.options.station_file:
                         tr.stats.sac.stla = coord_sta[tr.stats.station][0]
                         tr.stats.sac.stlo = coord_sta[tr.stats.station][1]
                         tr.stats.sac.stel = coord_sta[tr.stats.station][2]

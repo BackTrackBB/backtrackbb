@@ -2,17 +2,15 @@
 # -*- coding: utf8 -*-
 import sys
 import os
-import copy
 import numpy as np
+from tatka_modules.mod_setup import configure
 from tatka_modules.read_traces import read_traces
 from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
 from tatka_modules.read_grids import read_grids
 from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
 from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
-from tatka_modules.mod_groupe_trigs import groupe_triggers
 from tatka_modules.plot import plt_SummaryOut
-from tatka_modules.parse_config import parse_config
 from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
 from multiprocessing import Pool
@@ -20,17 +18,8 @@ from multiprocessing import Pool
 DEBUG = False
 
 def main():
-    if len(sys.argv) != 2:
-        print "this_code  <input_config_file>"
-        sys.exit(1)
-    else:
-        Config_file = sys.argv[1]
-    if not os.path.isfile(Config_file):
-        print "File {0} does not exist".format(Config_file)
-        sys.exit(1)
+    config = configure()
 
-    #---Input parameters for BProj run----------------------------------------
-    config = parse_config(Config_file)
     var_twin = config.varWin_stationPair
     print 'use of var time window for location:', var_twin
     #---Reading data---------------------------------------------------------
@@ -42,26 +31,6 @@ def main():
     data_length = st[0].stats.endtime - st[0].stats.starttime
     t_bb = t_ee[t_ee<=data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
-
-    #--Grid power
-    try:
-        config.grid_power = int(config.grid_power)
-    except:
-        if config.grid_power == 'nsta':
-            config.grid_power = len(config.stations)
-        else:
-            config.grid_power = 1
-    try:
-        config.grid_power_ellipsoid = int(config.grid_power_ellipsoid)
-    except:
-        if config.grid_power_ellipsoid == 'nsta':
-            config.grid_power_ellipsoid = len(config.stations)
-        else:
-            config.grid_power_ellipsoid = config.grid_power
-    if config.trigger is not None:
-        config.trigger **= config.grid_power
-    if config.trigger_ellipsoid is not None:
-        config.trigger_ellipsoid **= config.grid_power
 
     loc_infile = None
     location_jma = None
@@ -137,11 +106,8 @@ def main():
         'trig' + str(config.trigger)
         ))
 
-    file_out_data = file_out_base + '_OUT2.dat'
-    file_out_data = os.path.join(config.out_dir, file_out_data)
-
-    file_out_data2 = file_out_base + '_OUT2_grouped.dat'
-    file_out_data2 = os.path.join(config.out_dir, file_out_data2)
+    file_out_triggers = file_out_base + '_OUT2.dat'
+    file_out_triggers = os.path.join(config.out_dir, file_out_triggers)
 
     file_out_fig = file_out_base + '_FIG2.' + config.plot_format
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
@@ -187,7 +153,7 @@ def main():
     #----------Outputs-------------------------------------------------------
     #writing output
     eventids = []
-    with open(file_out_data,'w') as f:
+    with open(file_out_triggers, 'w') as f:
         for trigger in triggers:
             # check if eventid already exists
             while trigger.eventid in eventids:
@@ -201,38 +167,11 @@ def main():
             picks = sorted(trigger.picks, key=lambda x: x.station)
             for pick in picks:
                 f.write(str(pick) + '\n')
-    if triggers:
-        #----sorting triggers----and grouping triggered locations----------------
-        sorted_trigs = copy.copy(triggers)
-        sorted_trigs = groupe_triggers(sorted_trigs,config)
 
-        #writing sorted triggers in a second output file-------------------------
-        #writing output
-        eventids = []
-        with open(file_out_data2,'w') as f:
-            for trigger in sorted_trigs:
-                # check if eventid already exists
-                while trigger.eventid in eventids:
-                    # increment the last letter by one
-                    evid = list(trigger.eventid)
-                    evid[-1] = chr(ord(evid[-1]) + 1)
-                    trigger.eventid = ''.join(evid)
-                eventids.append(trigger.eventid)
-                f.write(str(trigger) + '\n')
-                # sort picks by station
-                picks = sorted(trigger.picks, key=lambda x: x.station)
-                for pick in picks:
-                    f.write(str(pick) + '\n')
-
-        #-plotting output-------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
-                       sorted_trigs, t_bb, datestr, frequencies[n1], frequencies[n22],
-                       coord_eq, coord_jma, file_out_fig)
-    else:
-    #-plotting output--------------------------------------------------------
-        plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
-                       triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
-                       coord_eq, coord_jma, file_out_fig)
+    #-plot summary output----------------------------------------------------
+    plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
+                   triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
+                   coord_eq, coord_jma, file_out_fig)
 
     if DEBUG and config.recursive_memory:
         import matplotlib.pyplot as plt
