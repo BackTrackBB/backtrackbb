@@ -70,7 +70,7 @@ def main():
     grid1 = GRD_sta.values()[0].values()[0]
 
     #---init map projection--------------------------------------------------
-    if grid1.proj_name!='NONE':
+    if grid1.proj_name:
         get_transform(grid1.proj_name,
                       grid1.orig_lat, grid1.orig_lon,
                       grid1.first_std_paral,
