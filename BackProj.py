@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-import sys
 import os
 import numpy as np
 from tatka_modules.mod_setup import configure
