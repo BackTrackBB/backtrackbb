@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+import sys
 import os
 from glob import glob
 from obspy.core import read, Stream,UTCDateTime
@@ -34,6 +35,9 @@ def read_traces(config):
     # Retain only requested channel and stations:
     st = Stream(tr for tr in tmpst.select(channel=config.channel)
                 if tr.stats.station in stations)
+    if not st:
+        print 'Could not read any trace!'
+        sys.exit(1)
     st.sort()
 
     # Check sampling rate
