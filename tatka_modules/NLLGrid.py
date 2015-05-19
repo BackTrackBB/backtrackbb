@@ -48,14 +48,21 @@ class NLLGrid():
         self.xyz_mean = None
         self.xyz_cov = None
         self.ellipsoid = None
-        self.basename = basename
-        if basename:
+        if basename is not None:
+            self.basename = self.remove_extension(basename)
             self.read_hdr_file()
             self.read_buf_file()
+        else:
+            self.basename = None
 
     def __getitem__(self, key):
         if self.array is not None:
             return self.array[key]
+
+    def remove_extension(self, basename):
+        '''remove '.hdr' or '.buf' suffixes, if there.'''
+        bntmp = basename.rsplit('.hdr', 1)[0]
+        return bntmp.rsplit('.buf', 1)[0]
 
     def init_array(self):
         self.array = np.zeros((self.nx, self.ny, self.nz), float)
@@ -65,7 +72,7 @@ class NLLGrid():
         Reads header file of NLL grid format
         '''
         if basename is not None:
-            self.basename = basename
+            self.basename = self.remove_extension(basename)
         filename = self.basename + '.hdr'
 
         # read header file
@@ -116,7 +123,7 @@ class NLLGrid():
         Reads buf file as a 3d array
         '''
         if basename is not None:
-            self.basename = basename
+            self.basename = self.remove_extension(basename)
         filename = self.basename + '.buf'
 
         with open(filename, 'rb') as fp:
