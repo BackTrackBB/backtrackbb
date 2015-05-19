@@ -34,6 +34,7 @@ class NLLGrid():
         self.dz = dz
         self.type = None
         self.proj_name = None
+        self.proj_ellipsoid = None
         self.orig_lat = float(0)
         self.orig_lon = float(0)
         self.first_std_paral = None
