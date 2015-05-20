@@ -55,6 +55,21 @@ class NLLGrid():
         else:
             self.basename = None
 
+    def __str__(self):
+        s = 'basename: %s\n' % self.basename
+        s += 'nx: %d ny: %d nz: %d\n'\
+                % (self.nx, self.ny, self.nz)
+        s += 'x_orig: %f y_orig: %f z_orig: %f\n'\
+                % (self.x_orig, self.y_orig, self.z_orig)
+        s += 'dx: %f dy: %f dz: %f\n'\
+                % (self.dx, self.dy, self.dz)
+        s += 'grid_type: %s\n' % self.type
+        if self.station is not None:
+            s += 'station: %s sta_x: %f sta_y: %f sta_z: %f\n'\
+                    % (self.station, self.sta_x, self.sta_y, self.sta_z)
+        s += 'transform: %s' % self.get_transform_line()
+        return s
+
     def __getitem__(self, key):
         if self.array is not None:
             return self.array[key]
@@ -148,17 +163,7 @@ class NLLGrid():
         if self.station is not None:
             lines.append('%s %.6f %.6f %.6f\n' %
                     (self.station, self.sta_x, self.sta_y, self.sta_z))
-        if self.proj_name == 'NONE':
-            lines.append('TRANSFORM  NONE\n')
-        if self.proj_name == 'SIMPLE':
-            lines.append('TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f\n' %
-                    (self.orig_lat, self.orig_lon, self.map_rot))
-        if self.proj_name == 'LAMBERT':
-            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.proj_ellipsoid
-            line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
-            line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f\n' %\
-                    (self.first_std_paral, self.second_std_paral, self.map_rot)
-            lines.append(line)
+        lines.append('%s\n' % self.get_transform_line())
 
         with open(filename, 'w') as fp:
             for line in lines:
@@ -177,6 +182,19 @@ class NLLGrid():
 
         with open(filename, 'wb') as fp:
             self.array.astype(np.float32).tofile(fp)
+
+    def get_transform_line(self):
+        if self.proj_name == 'NONE':
+            return 'TRANSFORM  NONE'
+        if self.proj_name == 'SIMPLE':
+            return 'TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f' %\
+                    (self.orig_lat, self.orig_lon, self.map_rot)
+        if self.proj_name == 'LAMBERT':
+            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.proj_ellipsoid
+            line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
+            line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f' %\
+                    (self.first_std_paral, self.second_std_paral, self.map_rot)
+            return line
 
     def get_xyz(self, i, j, k):
         x = i * self.dx + self.x_orig
@@ -512,6 +530,7 @@ def main():
     grd = NLLGrid(nx=nx, ny=ny, nz=nz,
                   dx=1, dy=1, dz=1,
                   x_orig=x_orig, y_orig=y_orig)
+    print grd
     grd.init_array()
     grd.array = gauss3D((nx, ny, nz), 20, 10, 2, 30)
 
