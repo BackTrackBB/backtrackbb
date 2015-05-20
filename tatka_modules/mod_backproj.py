@@ -213,9 +213,12 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
                 zoom_i_max, zoom_j_max, zoom_k_max =\
                      [a[0]/zoom_factor
                       for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
-                i_max = zoom_i_max + i_max-sf
-                j_max = zoom_j_max + j_max-sf
-                k_max = zoom_k_max + k_max-sf
+                i_max = zoom_i_max + i_max - sf
+                i_max = i_max if i_max > 0 else 0
+                j_max = zoom_j_max + j_max - sf
+                j_max = j_max if j_max > 0 else 0
+                k_max = zoom_k_max + k_max - sf
+                k_max = k_max if k_max > 0 else 0
 
         trigger = Trigger()
         trigger.trigger_level = trigger_level
