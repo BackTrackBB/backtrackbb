@@ -68,7 +68,12 @@ def empty_cf(config, st):
     fs_data = st[0].stats.sampling_rate
     if config.sampl_rate_cf:
         if config.sampl_rate_cf < fs_data:
-            st_CF.resample(config.sampl_rate_cf)
+            # we don't need to resample if there are less than 2 points
+            if len(st_CF[0]) < 2:
+                for tr_CF in st_CF:
+                    tr_CF.stats.sampling_rate = config.sampl_rate_cf
+            else:
+                st_CF.resample(config.sampl_rate_cf)
     else:
         config.sampl_rate_cf = fs_data
 
