@@ -65,16 +65,28 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         st_CF_cut = st_CF.copy()
         st_CF_cut = st_CF_cut.trim(config.starttime + t_begin, config.starttime + t_end)
 
+    if config.ignore_noisy_CF:
+        sums = [('%s.%s' % (str(tr.stats.station), tr.stats.channel), (tr.data/tr.max()).sum())
+                for tr in st_CF_cut]
+        min_sum = min(s[1] for s in sums)
+        # A noisy CF has an integral at least two times larger than the smaller one
+        # TODO: parametrize?
+        noisy_sta_wave = [s[0] for s in sums if s[1] >= 2*min_sum]
+    else:
+        noisy_sta_wave = []
+
     # Prepare the arglist for sta_Grd_Proj()
     Mtau = []
     arrival_times = defaultdict(dict)
     arglist = []
-    sta_wave = [(sta, wave) for wave in config.wave_type for sta in config.stations]
+    sta_wave = ['%s.%s' % (sta, wave)
+                for wave in config.wave_type for sta in config.stations
+                if not '%s.%s' % (sta, wave) in noisy_sta_wave]
+    if len(sta_wave) < 3:
+        return
     for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
-        sta1 = sta_wave1[0]
-        sta2 = sta_wave2[0]
-        wave1 = sta_wave1[1]
-        wave2 = sta_wave2[1]
+        sta1, wave1 = sta_wave1.split('.')
+        sta2, wave2 = sta_wave2.split('.')
         arrival_times[sta1][wave1] = []
         arrival_times[sta2][wave2] = []
 
@@ -133,10 +145,8 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     # Parse outputs and update stack_grid
     for out in outputs:
         proj_function, arrival1, arrival2, sta_wave1, sta_wave2 = out
-        sta1 = sta_wave1[0]
-        sta2 = sta_wave2[0]
-        wave1 = sta_wave1[1]
-        wave2 = sta_wave2[1]
+        sta1, wave1 = sta_wave1.split('.')
+        sta2, wave2 = sta_wave2.split('.')
         arrival_times[sta1][wave1].append(arrival1)
         arrival_times[sta2][wave2].append(arrival2)
         delta_tt_array = GRD_sta[sta2][wave2].array - GRD_sta[sta1][wave1].array
@@ -225,6 +235,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
         trigger.max_grid = np.round(stack_grid.max(), 4)
+        trigger.ntraces = len(sta_wave)
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + config.time_lag
         trigger.center_win = start_tw + config.time_lag/2.
@@ -255,7 +266,10 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         args = (config, stack_grid,
                 coord_eq, t_begin, t_end,
                 coord_sta, st, st_CF,
-                frequencies, trigger, arrival_times, Mtau)
+                frequencies, trigger,
+                arrival_times,
+                noisy_sta_wave,
+                Mtau)
         if plot_pool is not None:
             # When using recursive_memory, plotting
             # is run asynchronously

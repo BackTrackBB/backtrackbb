@@ -13,7 +13,9 @@ def bp_plot(config, proj_grid,
             coord_sta,
             st, st_CF,
             freqs, trigger,
-            arrival_times=None, Mtau=None):
+            arrival_times=None,
+            unused_CF=None,
+            Mtau=None):
 
     if trigger is not None:
         LTrig = trigger.trigger_level
@@ -216,7 +218,13 @@ def bp_plot(config, proj_grid,
                     time_CF -= time_CF.min()
             else:
                 time_CF += config.cut_start
-            ax3.plot(time_CF, ydata, color, rasterized=True)
+            if '%s.%s' % (sta, wave) in unused_CF:
+                linestyle = '--'
+            else:
+                linestyle = '-'
+            ax3.plot(time_CF, ydata,
+                     color=color, linestyle=linestyle,
+                     rasterized=True)
         ax3.set_xlim(min(time), max(time))
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
