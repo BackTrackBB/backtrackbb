@@ -7,6 +7,7 @@
 #                 Claudio Satriano <satriano@ipgp.fr>
 import math
 import numpy as np
+from scipy.ndimage import zoom
 from array import array
 from copy import deepcopy
 
@@ -163,7 +164,9 @@ class NLLGrid():
         if self.station is not None:
             lines.append('%s %.6f %.6f %.6f\n' %
                     (self.station, self.sta_x, self.sta_y, self.sta_z))
-        lines.append('%s\n' % self.get_transform_line())
+        line = self.get_transform_line()
+        if line is not None:
+            lines.append('%s\n' % line)
 
         with open(filename, 'w') as fp:
             for line in lines:
@@ -354,6 +357,18 @@ class NLLGrid():
     def max(self):
         if self.array is not None:
             return self.array.max()
+
+    def resample(self, dx, dy, dz):
+        zoom_x = self.dx / dx
+        zoom_y = self.dy / dy
+        zoom_z = self.dz / dz
+        self.array = zoom(self.array, (zoom_x, zoom_y, zoom_z))
+        self.nx, self.ny, self.nz = self.array.shape
+        if self.type == 'SLOW_LEN':
+            self.array *= dx / self.dx
+        self.dx = dx
+        self.dy = dy
+        self.dz = dz
 
     def get_plot_axes(self, figure=None, ax_xy=None):
         import matplotlib.pyplot as plt
