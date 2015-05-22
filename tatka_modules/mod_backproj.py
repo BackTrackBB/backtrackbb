@@ -80,10 +80,11 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     arrival_times = defaultdict(dict)
     arglist = []
     sta_wave = ['%s.%s' % (sta, wave)
-                for wave in config.wave_type for sta in config.stations
-                if not '%s.%s' % (sta, wave) in noisy_sta_wave]
-    if len(sta_wave) < 3:
-        return
+                for wave in config.wave_type for sta in config.stations]
+    # Remove noisy CFs, if this leaves us with at least 3 CFs
+    # (otherwhise use all the CFs)
+    if (len(sta_wave) - len(noisy_sta_wave)) >= 3:
+        sta_wave = [s for s in sta_wave if not s in noisy_sta_wave]
     for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
         sta1, wave1 = sta_wave1.split('.')
         sta2, wave2 = sta_wave2.split('.')
