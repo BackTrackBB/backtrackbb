@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-import sys
 import os
 from tatka_modules.mod_setup import configure
 from tatka_modules.bp_types import Trigger, Pick
@@ -19,7 +18,7 @@ def main():
     ##--reading station information
     coord_sta = {}
     if config.options.station_file:
-        for line in open(station_file, 'r'):
+        for line in open(config.options.station_file, 'r'):
             data = line.split()
             coord_sta[data[0]] = map(float, data[2:5])
 
