@@ -45,6 +45,10 @@ def main():
     st = read_traces(config)
 
     for trigger in triggers:
+        if trigger.ntraces < config.min_ntraces:
+            continue
+        if trigger.max_grid < config.min_trigger:
+            continue
         print trigger.eventid
         out_event_dir = os.path.join(config.event_dir, trigger.eventid)
         if not os.path.exists(out_event_dir):
