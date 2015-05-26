@@ -12,6 +12,7 @@ from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
+from tatka_modules.AsyncPlotter import AsyncPlotter
 from multiprocessing import Pool
 
 DEBUG = False
@@ -112,17 +113,17 @@ def main():
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
     #---running program------------------------------------------------------
-    if config.ncpu > 1 and config.recursive_memory:
-        # We use plot_pool to run asynchronus plotting in run_Backproj
-        global plot_pool
-        plot_pool = Pool(config.ncpu, init_worker)
+    if config.ncpu > 1 and config.recursive_memory and config.plot_results != 'False':
+        global async_plotter
+        async_plotter = AsyncPlotter()
     else:
-        plot_pool = None
+        async_plotter = None
 
     arglist = [
                (config,
                 st, st_CF, t_begin, frequencies,
-                coord_sta, GRD_sta, coord_eq, rec_memory, plot_pool)
+                coord_sta, GRD_sta, coord_eq,
+                rec_memory, async_plotter)
                for t_begin in t_bb
               ]
     print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
@@ -144,10 +145,8 @@ def main():
         p_outputs = map(run_BackProj, arglist)
     triggers = filter(None, p_outputs)
 
-    if config.ncpu > 1 and config.recursive_memory:
-        plot_pool.close()
-        # wait for processes to end
-        plot_pool.join()
+    if async_plotter is not None:
+        async_plotter.join()
 
     #----------Outputs-------------------------------------------------------
     #writing output
@@ -193,14 +192,13 @@ def init_worker():
 if __name__ == '__main__':
     try:
         pool = None
-        plot_pool = None
+        async_plotter = None
         main()
     except KeyboardInterrupt:
         if pool is not None:
             pool.terminate()
             pool.join()
-        if plot_pool is not None:
-            plot_pool.terminate()
-            plot_pool.join()
+        if async_plotter is not None:
+            async_plotter.terminate()
         print ''
         print 'Aborting.'

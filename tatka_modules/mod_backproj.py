@@ -35,7 +35,8 @@ def run_BackProj(args):
 
 
 def _run_BackProj(config, st, st_CF, t_begin, frequencies,
-                  coord_sta, GRD_sta, coord_eq, rec_memory=None, plot_pool=None):
+                  coord_sta, GRD_sta, coord_eq,
+                  rec_memory=None, async_plotter=None):
 
     t_end = t_begin + config.time_lag
 
@@ -264,18 +265,12 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
             (config.plot_results == 'trigger_only' and trigger is not None):
 
 
-        args = (config, stack_grid,
+        bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end,
                 coord_sta, st, st_CF,
                 frequencies, trigger,
                 arrival_times,
                 noisy_sta_wave,
-                Mtau)
-        if plot_pool is not None:
-            # When using recursive_memory, plotting
-            # is run asynchronously
-            plot_pool.apply_async(bp_plot, args)
-        else:
-            bp_plot(*args)
+                Mtau, async_plotter)
 
     return trigger

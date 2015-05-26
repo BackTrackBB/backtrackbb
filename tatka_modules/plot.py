@@ -15,7 +15,8 @@ def bp_plot(config, proj_grid,
             freqs, trigger,
             arrival_times=None,
             unused_CF=None,
-            Mtau=None):
+            Mtau=None,
+            async_plotter=None):
 
     if trigger is not None:
         LTrig = trigger.trigger_level
@@ -268,7 +269,10 @@ def bp_plot(config, proj_grid,
         fig.patch.set_alpha(0.0)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
-    canvas.print_figure(file_out_fig)
+    if async_plotter is not None:
+        async_plotter.save(canvas, file_out_fig)
+    else:
+        canvas.print_figure(file_out_fig)
 
 
 def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
