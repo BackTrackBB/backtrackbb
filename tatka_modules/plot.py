@@ -156,6 +156,7 @@ def bp_plot(config, proj_grid,
 
 #--ax3: traces
     st_plt = st.copy()
+    st_plt.detrend(type='constant')
     st_plt.filter('bandpass', freqmin=freqs[-1], freqmax=freqs[0],
                   corners=2, zerophase=True)
     st_CF_plt = st_CF.copy()
@@ -330,6 +331,7 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
 
 #--ax3: traces
     st_plt = st.copy()
+    st_plt.detrend(type='constant')
     st_plt.filter('bandpass', freqmin=fq_2, freqmax=fq_1,
                   corners=2, zerophase=True)
     ax3 = fig.add_subplot(122)
