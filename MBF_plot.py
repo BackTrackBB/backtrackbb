@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import sys
-import os
 import numpy as np
 from tatka_modules.mod_filter_picker import make_LogFq,make_LinFq,MBfilter_CF,GaussConv
 from tatka_modules.mod_setup import configure
@@ -40,6 +38,7 @@ def main():
                                          CF_type=config.ch_function,
                                          order=config.hos_order,
                                          CF_decay_win=config.decay_const,
+                                         filter_type=config.filter_type,
                                          filter_strength=config.filter_strength,
                                          hos_sigma=hos_sigma[config.stations[0]])
     print 'Creating characteristic function: %s' % (st[0].stats.station)
@@ -143,10 +142,11 @@ def main():
     # end ax4
     #------------------------------------------------------------------------------
 
-    if len(st) == 2:
-        name_fig_out = 'MBFplot.' + config.ch_function + '.' + st[0].stats.station + '.horiz'
-    if len(st) == 1:
-        name_fig_out = 'MBFplot.' + config.ch_function + '.' + st[0].id
+    #import os
+    #if len(st) == 2:
+    #    name_fig_out = 'MBFplot.' + config.ch_function + '.' + st[0].stats.station + '.horiz'
+    #if len(st) == 1:
+    #    name_fig_out = 'MBFplot.' + config.ch_function + '.' + st[0].id
 
     #fig.savefig(os.path.join(config.out_dir,name_fig_out), format=config.plot_format)
     plt.show()
