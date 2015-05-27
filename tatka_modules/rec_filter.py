@@ -80,9 +80,16 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     signal = np.zeros(500)
     signal[100] += 1
-    signal_filt_BP = recursive_filter(signal, 0.9, 0.09)
+    delta = 0.01
+    freq = 1.
+    Tn = 1./freq
+    filter_strength = 2
+    wn = Tn/(filter_strength*np.pi)
+    C_HP = wn/(wn+delta)        # high-pass filter constant
+    C_LP = delta/(wn+delta)        # low-pass filter constant
+    signal_filt_BP = recursive_filter(signal, C_HP, C_LP)
     signal_filt_BP /= signal_filt_BP.max()
-    signal_filt_HP = recursive_filter(signal, 0.9)
+    signal_filt_HP = recursive_filter(signal, C_HP)
     signal_filt_HP /= signal_filt_HP.max()
     plt.plot(signal, label='original')
     plt.plot(signal_filt_BP, label='band-pass')

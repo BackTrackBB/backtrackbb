@@ -40,6 +40,7 @@ def main():
                                          CF_type=config.ch_function,
                                          order=config.hos_order,
                                          CF_decay_win=config.decay_const,
+                                         filter_strength=config.filter_strength,
                                          hos_sigma=hos_sigma[config.stations[0]])
     print 'Creating characteristic function: %s' % (st[0].stats.station)
     if config.ch_function == 'kurtosis':
