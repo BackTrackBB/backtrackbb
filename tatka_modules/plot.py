@@ -273,6 +273,7 @@ def bp_plot(config, proj_grid,
         async_plotter.save(canvas, file_out_fig)
     else:
         canvas.print_figure(file_out_fig)
+    fig.clf()
 
 
 def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
@@ -392,3 +393,4 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
+    fig.clf()
