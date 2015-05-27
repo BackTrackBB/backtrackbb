@@ -83,8 +83,8 @@ if __name__ == '__main__':
     delta = 0.01
     freq = 1.
     Tn = 1./freq
-    filter_strength = 2
-    wn = Tn/(filter_strength*np.pi)
+    filter_strength = 1
+    wn = Tn/(filter_strength*2*np.pi)
     C_HP = wn/(wn+delta)        # high-pass filter constant
     C_LP = delta/(wn+delta)        # low-pass filter constant
     signal_filt_BP = recursive_filter(signal, C_HP, C_LP)

@@ -34,7 +34,7 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 def MBfilter_CF(st, frequencies, var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
                 filter_type='bandpass',
-                filter_strength=2,
+                filter_strength=1,
                 order=4, rosenberger_decay_win=1.0,
                 wave_type='P', hos_sigma=None,
                 rec_memory=None,
@@ -47,7 +47,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
     delta = st[0].stats.delta
     Nb = len(frequencies)
     Tn = 1./frequencies
-    wn = Tn/(filter_strength*np.pi)
+    wn = Tn/(filter_strength*2*np.pi)
     CN_HP = wn/(wn+delta)        # high-pass filter constant
     if filter_type == 'bandpass':
         CN_LP = delta/(wn+delta)        # low-pass filter constant
