@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 import sys
 from obspy.signal.util import smooth
-from rec_filter import recursive_filter
+from rec_filter import rec_filter_coeff, recursive_filter
 from rec_rms import recursive_rms
 from rec_hos import recursive_hos
 from rec_gauss_filter import recursive_gauss_filter
@@ -34,7 +34,7 @@ def make_LogFq(f_min, f_max, delta, nfreq):
 def MBfilter_CF(st, frequencies, var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
                 filter_type='bandpass',
-                filter_strength=1,
+                filter_npoles=2,
                 order=4, rosenberger_decay_win=1.0,
                 wave_type='P', hos_sigma=None,
                 rec_memory=None,
@@ -45,16 +45,11 @@ def MBfilter_CF(st, frequencies, var_w=True,
     for each band.
     """
     delta = st[0].stats.delta
+    Tn = 1. / frequencies
     Nb = len(frequencies)
-    Tn = 1./frequencies
-    wn = Tn/(filter_strength*2*np.pi)
-    CN_HP = wn/(wn+delta)        # high-pass filter constant
-    if filter_type == 'bandpass':
-        CN_LP = delta/(wn+delta)        # low-pass filter constant
-    elif filter_type == 'highpass':
+    CN_HP, CN_LP = rec_filter_coeff(frequencies, delta)
+    if filter_type == 'highpass':
         CN_LP = [None,] * len(CN_HP)
-    else:
-        raise ValueError, 'Wrong filter type: %s' % filter_type
     CF_decay_nsmps = int(CF_decay_win / delta)
     rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
 
@@ -76,7 +71,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
             else:
                 rmem = None
 
-            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n], rmem)
+            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n], filter_npoles, rmem)
 
             if var_w and CF_type == 'envelope':
                 CF_decay_nsmps_mb = (Tn[n]/delta) * CF_decay_nsmps
@@ -126,9 +121,9 @@ def MBfilter_CF(st, frequencies, var_w=True,
                 rmem2 = None
                 rmem3 = None
 
-            YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n], rmem1)
-            YN2[n] = recursive_filter(y2, CN_HP[n], CN_LP[n], rmem2)
-            YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n], rmem3)
+            YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n], filter_npoles, rmem1)
+            YN2[n] = recursive_filter(y2, CN_HP[n], CN_LP[n], filter_npoles, rmem2)
+            YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n], filter_npoles, rmem3)
 
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
@@ -209,7 +204,6 @@ if __name__ == '__main__':
     #    delta = data[0].stats.sampling_rate
     #else:
     delta = 0.01
-    print 'Sampling interval = {}'.format(delta)
 
     tr = Trace(signal)
     tr.stats.delta = delta
@@ -232,6 +226,6 @@ if __name__ == '__main__':
         ax2.plot(CF[n])
 
     ax1.plot(signal, 'g')
-    ax2.plot(recursive_hos(signal, 0.1, 0.001, 4, 2, 2),'g')
+    ax2.plot(recursive_hos(signal, 0.1, 0.001, 4),'g')
 
     plt.show()

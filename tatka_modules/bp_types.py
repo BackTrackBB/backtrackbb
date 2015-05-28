@@ -2,6 +2,7 @@
 # Data types for BackProj
 from obspy import UTCDateTime
 from ctypes import c_double
+import numpy as np
 
 class Trigger():
     def __init__(self,
@@ -114,16 +115,16 @@ class Pick():
 
 
 class RecursiveMemory():
-    def __init__(self, trid=None, wave=None, band=None, nsamples=0, overlap=0):
+    def __init__(self, trid=None, wave=None, band=None,
+                 nsamples=0, overlap=0, filter_npoles=2):
         self.trid = trid
         self.wave = wave
         self.band = band
         self.nsamples = int(nsamples)
         self.overlap = int(overlap)
-        self.filterH1 = c_double(0)
-        self.filterH2 = c_double(0)
-        self.filterL1 = c_double(0)
-        self.filterL2 = c_double(0)
+        self.filter_npoles = filter_npoles
+        self.filterH = np.zeros(self.filter_npoles)
+        self.filterL = np.zeros(self.filter_npoles)
         self.prev_sample_value = c_double(0)
         self.memory_sample = self.nsamples - self.overlap - 1
         self.mean_sq = c_double(0)
