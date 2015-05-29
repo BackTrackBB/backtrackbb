@@ -53,14 +53,33 @@ def recursive_filter(signal, C_HP, C_LP=None, npoles=2, rec_memory=None):
     return filt_signal
 
 
-def rec_filter_coeff(freq, delta):
-    if isinstance(freq, tuple) or isinstance(freq, list):
-        freq = np.array(freq)
-    T = 1. / freq
+def rec_filter_coeff(freqs, delta):
+    freqs = np.array(freqs, ndmin=1)
+    nyq = 1. / (2*delta)
+    T = 1. / freqs
     w = T / (2*np.pi)
+    rel_freqs = freqs / nyq
+    # empirical approach to fix filter shape close to the Nyquist:
+    w[rel_freqs >= 0.2] /= (rel_freqs[rel_freqs >= 0.2] * 7)
     C_HP = w / (w + delta)      # high-pass filter constant
     C_LP = delta / (w + delta)  # low-pass filter constant
     return C_HP, C_LP
+
+
+def rec_filter_norm(freqs, delta, C_HP, C_LP, npoles):
+    '''
+        Empirical approach for computing
+        filter normalization coefficients
+    '''
+    freqs = np.array(freqs, ndmin=1)
+    norm = np.zeros(len(freqs))
+    for n, freq in enumerate(freqs):
+        length = 4. / freq
+        time = np.arange(0, length+delta, delta)
+        signal = np.sin(freq * 2 * np.pi * time)
+        signal_filt = recursive_filter(signal, C_HP[n], C_LP[n], npoles)
+        norm[n] = signal_filt.max()
+    return norm
 
 
 if __name__ == '__main__':
@@ -69,7 +88,7 @@ if __name__ == '__main__':
         npts = len(signal)
         if not npts % 2:
             npts -= 1
-        fft = np.fft.rfft(signal, n=npts) * delta
+        fft = np.fft.rfft(signal, n=npts)
         fftfreq = np.fft.fftfreq(len(signal), d=delta)
         fftfreq = fftfreq[0:fft.size]
         return fftfreq, fft
@@ -80,16 +99,24 @@ if __name__ == '__main__':
     signal[int(npts/2.)] += 1
     delta = 0.01
 
+    freqs = (0.1, 1, 10, 20, 40)
+    C_HP, C_LP = rec_filter_coeff(freqs, delta)
+    norm_2 = rec_filter_norm(freqs, delta, C_HP, C_LP, npoles=2)
+    norm_4 = rec_filter_norm(freqs, delta, C_HP, C_LP, npoles=4)
+    norm_6 = rec_filter_norm(freqs, delta, C_HP, C_LP, npoles=6)
+
     fig, ax = plt.subplots(1)
     ax.set_xlim((1./(npts*delta), 1./(2*delta)))
-    ax.set_ylim((1e-7, 1e-1))
+    ax.set_ylim((1e-6, 100))
     ax.grid(True, which='both')
     ax.set_xlabel('Frequency (Hz)')
-    for freq in (0.1, 1, 10, 30, 40):
-        C_HP, C_LP = rec_filter_coeff(freq, delta)
-        signal_filt_BP_2 = recursive_filter(signal, C_HP, C_LP, npoles=2)
-        signal_filt_BP_4 = recursive_filter(signal, C_HP, C_LP, npoles=4)
-        signal_filt_BP_6 = recursive_filter(signal, C_HP, C_LP, npoles=6)
+    for n, freq in enumerate(freqs):
+        signal_filt_BP_2 = recursive_filter(signal, C_HP[n], C_LP[n], npoles=2)
+        signal_filt_BP_2 /= norm_2[n]
+        signal_filt_BP_4 = recursive_filter(signal, C_HP[n], C_LP[n], npoles=4)
+        signal_filt_BP_4 /= norm_4[n]
+        signal_filt_BP_6 = recursive_filter(signal, C_HP[n], C_LP[n], npoles=6)
+        signal_filt_BP_6 /= norm_6[n]
 
         ax.axvline(freq, color='gray', lw=2)
         fftfreq, fft = do_fft(signal_filt_BP_2)
