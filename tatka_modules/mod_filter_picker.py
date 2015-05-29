@@ -37,7 +37,8 @@ def MBfilter_CF(st, frequencies,
                 var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
                 order=4, rosenberger_decay_win=1.0,
-                wave_type='P', hos_sigma=None,
+                wave_type='P',
+                hos_sigma=None,
                 rec_memory=None,
                 full_output=False):
     """
@@ -86,7 +87,7 @@ def MBfilter_CF(st, frequencies,
 
             if CF_type == 'kurtosis':
                 CF1[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
-                                      hos_sigma, order, rmem)
+                                       order, hos_sigma, rmem)
 
     # More than 3 components
     else:
@@ -157,16 +158,16 @@ def MBfilter_CF(st, frequencies,
             if CF_type == 'kurtosis':
                 if wave_type == 'P':
                     CF1[n] = recursive_hos(filteredDataP[n], 1./CF_decay_nsmps_mb,
-                                          hos_sigma, order, rmem1)
+                                           order, hos_sigma, rmem1)
                     if full_output:
                         CF2[n] = recursive_hos(filteredDataS[n], 1./CF_decay_nsmps_mb,
-                                          hos_sigma, order, rmem2)
+                                               order, hos_sigma, -1, rmem2)
                 else:
                     CF1[n] = recursive_hos(filteredDataS[n], 1./CF_decay_nsmps_mb,
-                                          hos_sigma, order, rmem1)
+                                           order, hos_sigma, rmem1)
                     if full_output:
                         CF2[n] = recursive_hos(filteredDataP[n], 1./CF_decay_nsmps_mb,
-                                          hos_sigma, order, rmem2)
+                                               order, hos_sigma, rmem2)
 
     if full_output:
         return YN1, CF1, CF2, Tn, Nb, filteredDataP, filteredDataS
@@ -231,6 +232,6 @@ if __name__ == '__main__':
         ax2.plot(CF[n])
 
     ax1.plot(signal, 'g')
-    ax2.plot(recursive_hos(signal, 0.1, 0.001, 4),'g')
+    ax2.plot(recursive_hos(signal, 0.1, order=4),'g')
 
     plt.show()
