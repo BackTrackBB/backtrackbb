@@ -2,7 +2,7 @@ import numpy as np
 from obspy import Stream
 from mod_filter_picker import MBfilter_CF, GaussConv
 
-def summary_cf(config, st, frequencies, rec_memory=None):
+def summary_cf(config, st, rec_memory=None):
 
     # Compute decay constants
     delta = config.delta
@@ -22,24 +22,23 @@ def summary_cf(config, st, frequencies, rec_memory=None):
             tr_CF.stats.channel = wave_type
             st_CF.append(tr_CF)
             hos_sigma = config['hos_sigma_' + wave_type]
-            HP2, env_rec, Tn2, Nb2 = MBfilter_CF(st_select, frequencies,
-                    var_w=config.win_type,
-                    CF_type=config.ch_function,
-                    CF_decay_win=decay_const,
-                    filter_type=config.filter_type,
-                    filter_npoles=config.filter_npoles,
-                    order=config.hos_order,
-                    rosenberger_decay_win=rosenberger_decay_const,
-                    wave_type=wave_type,
-                    hos_sigma=hos_sigma[station],
-                    rec_memory=rec_memory)
+            HP2, CF, Tn2, Nb2 = \
+                MBfilter_CF(st_select, config.frequencies,
+                            config.CN_HP, config.CN_LP,
+                            config.filter_norm, config.filter_npoles,
+                            var_w=config.win_type,
+                            CF_type=config.ch_function,
+                            CF_decay_win=decay_const,
+                            order=config.hos_order,
+                            rosenberger_decay_win=rosenberger_decay_const,
+                            wave_type=wave_type,
+                            hos_sigma=hos_sigma[station],
+                            rec_memory=rec_memory)
 
-            CF = env_rec[:]
-
-            if config.ch_function=='envelope':
+            if config.ch_function == 'envelope':
                 tr_CF.data = np.sqrt(np.power(CF, 2).mean(axis=0))
-            if config.ch_function=='kurtosis':
-                kurt_argmax = np.amax(env_rec,axis=0)
+            if config.ch_function == 'kurtosis':
+                kurt_argmax = np.amax(CF, axis=0)
                 tr_CF.data = GaussConv(kurt_argmax, sigma_gauss)
 
     #-----resampling CF if wanted-------------------------------------------

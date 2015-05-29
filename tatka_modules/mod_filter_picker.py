@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 import sys
 from obspy.signal.util import smooth
-from rec_filter import rec_filter_coeff, recursive_filter
+from rec_filter import recursive_filter
 from rec_rms import recursive_rms
 from rec_hos import recursive_hos
 from rec_gauss_filter import recursive_gauss_filter
@@ -17,7 +17,7 @@ def make_LinFq(f_min, f_max, delta, nfreq):
     if f_max > f_ny:
         f_max = f_ny
     freq = np.linspace(f_min, f_max, nfreq)
-    return freq[::-1]
+    return freq
 
 
 def make_LogFq(f_min, f_max, delta, nfreq):
@@ -28,13 +28,14 @@ def make_LogFq(f_min, f_max, delta, nfreq):
     if f_max > f_ny:
         f_max = f_ny
     freq = np.logspace(np.log2(f_min), np.log2(f_max), nfreq, base=2)
-    return freq[::-1]
+    return freq
 
 
-def MBfilter_CF(st, frequencies, var_w=True,
+def MBfilter_CF(st, frequencies,
+                CN_HP, CN_LP,
+                filter_norm, filter_npoles=2,
+                var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
-                filter_type='bandpass',
-                filter_npoles=2,
                 order=4, rosenberger_decay_win=1.0,
                 wave_type='P', hos_sigma=None,
                 rec_memory=None,
@@ -47,9 +48,6 @@ def MBfilter_CF(st, frequencies, var_w=True,
     delta = st[0].stats.delta
     Tn = 1. / frequencies
     Nb = len(frequencies)
-    CN_HP, CN_LP = rec_filter_coeff(frequencies, delta)
-    if filter_type == 'highpass':
-        CN_LP = [None,] * len(CN_HP)
     CF_decay_nsmps = int(CF_decay_win / delta)
     rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
 
@@ -72,6 +70,7 @@ def MBfilter_CF(st, frequencies, var_w=True,
                 rmem = None
 
             YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n], filter_npoles, rmem)
+            YN1[n] /= filter_norm[n]
 
             if var_w and CF_type == 'envelope':
                 CF_decay_nsmps_mb = (Tn[n]/delta) * CF_decay_nsmps
@@ -122,8 +121,11 @@ def MBfilter_CF(st, frequencies, var_w=True,
                 rmem3 = None
 
             YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n], filter_npoles, rmem1)
+            YN1[n] /= filter_norm[n]
             YN2[n] = recursive_filter(y2, CN_HP[n], CN_LP[n], filter_npoles, rmem2)
+            YN2[n] /= filter_norm[n]
             YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n], filter_npoles, rmem3)
+            YN3[n] /= filter_norm[n]
 
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
@@ -182,6 +184,7 @@ def GaussConv(data_in, sigma):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from generate_signal import generate_signal_noise2, generate_signal_expSin
+    from rec_filter import rec_filter_coeff, rec_filter_norm
     from obspy.core import read, Trace, Stream
 
     #if arguments, read the file
@@ -211,8 +214,10 @@ if __name__ == '__main__':
     st = Stream(tr)
 
     frequencies = make_LinFq(1, 40, delta, 8)
-    YN, CF, Tn, Nb = MBfilter_CF(st, frequencies, var_w=False,
-                                 CF_type='kurtosis', CF_decay_win=0.1)
+    CN_HP, CN_LP = rec_filter_coeff(frequencies, delta)
+    filter_norm = rec_filter_norm(frequencies, delta, CN_HP, CN_LP, 2)
+    YN, CF, Tn, Nb = MBfilter_CF(st, frequencies, CN_HP, CN_LP, filter_norm,
+                                 var_w=False, CF_type='kurtosis', CF_decay_win=0.1)
 
     fig1 = plt.figure()
     fig2 = plt.figure()

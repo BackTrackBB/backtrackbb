@@ -34,7 +34,7 @@ def run_BackProj(args):
     return _run_BackProj(*args)
 
 
-def _run_BackProj(config, st, st_CF, t_begin, frequencies,
+def _run_BackProj(config, st, st_CF, t_begin,
                   coord_sta, GRD_sta, coord_eq,
                   rec_memory=None, async_plotter=None):
 
@@ -59,7 +59,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     if rec_memory is not None:
         st_cut = st.copy()
         st_cut = st_cut.trim(config.starttime + t_begin, config.starttime + t_end)
-        st_CF_cut = summary_cf(config, st_cut, frequencies, rec_memory=rec_memory)
+        st_CF_cut = summary_cf(config, st_cut, rec_memory=rec_memory)
         st_CF += st_CF_cut
         st_CF.merge(method=1)
     else:
@@ -268,7 +268,7 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
         bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end,
                 coord_sta, st, st_CF,
-                frequencies, trigger,
+                trigger,
                 arrival_times,
                 noisy_sta_wave,
                 Mtau, async_plotter)

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import numpy as np
-from tatka_modules.mod_filter_picker import make_LogFq,make_LinFq,MBfilter_CF,GaussConv
 from tatka_modules.mod_setup import configure
 from tatka_modules.read_traces import read_traces
+from tatka_modules.init_filter import init_filter
+from tatka_modules.mod_filter_picker import MBfilter_CF, GaussConv
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams['pdf.fonttype'] = 42
@@ -26,21 +27,18 @@ def main():
 
     dt1 = st[0].stats.delta
 
-    if config.band_spacing == 'lin':
-        frequencies = make_LinFq(config.f_min, config.f_max, dt1, config.n_freq_bands)
-    elif config.band_spacing == 'log':
-        frequencies = make_LogFq(config.f_min, config.f_max, dt1, config.n_freq_bands)
-    frequencies = frequencies[::-1]
+    init_filter(config)
 
     #---------------------------MB filtering------------------------------------
-    HP2_1, MBkurt_1, Tn2_1, Nb2_1 = MBfilter_CF(st, frequencies,
-                                         var_w=config.win_type,
-                                         CF_type=config.ch_function,
-                                         order=config.hos_order,
-                                         CF_decay_win=config.decay_const,
-                                         filter_type=config.filter_type,
-                                         filter_npoles=config.filter_npoles,
-                                         hos_sigma=hos_sigma[config.stations[0]])
+    HP2_1, MBkurt_1, Tn2_1, Nb2_1 =\
+            MBfilter_CF(st, config.frequencies,
+                        config.CN_HP, config.CN_LP,
+                        config.filter_norm, config.filter_npoles,
+                        var_w=config.win_type,
+                        CF_type=config.ch_function,
+                        order=config.hos_order,
+                        CF_decay_win=config.decay_const,
+                        hos_sigma=hos_sigma[config.stations[0]])
     print 'Creating characteristic function: %s' % (st[0].stats.station)
     if config.ch_function == 'kurtosis':
         MBkurt_1max_gauss = GaussConv(np.amax(MBkurt_1,axis=0),int(config.decay_const/dt1/2))
