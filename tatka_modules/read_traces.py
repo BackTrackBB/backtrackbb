@@ -43,6 +43,8 @@ def read_traces(config):
     # Check sampling rate
     config.delta = None
     for tr in st:
+        tr.detrend(type='constant')
+        tr.taper(type='hann', max_percentage=0.005, side='left')
         sampling_rate = tr.stats.sampling_rate
         # Resample data, if requested
         if config.sampl_rate_data:
