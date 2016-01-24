@@ -8,6 +8,10 @@ int get_transform(int n_proj, char* in_line) {
     // SDC
     double dlt1, dlt2, del, r, bc;
 
+    /* Init constants */
+    cPI = 4. * atan(1.); /* PI */
+    cRPD = cPI / 180.; /* radians per degree */
+    c111 = 10000.0 / 90.0; /* kilometers per degree */
 
     map_itype[n_proj] = MAP_TRANS_UNDEF;
     GeometryMode = MODE_RECT;

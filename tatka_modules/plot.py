@@ -12,8 +12,11 @@ def bp_plot(config, proj_grid,
             coord_eq, t_begin, t_end,
             coord_sta,
             st, st_CF,
-            freqs, trigger,
-            arrival_times=None, Mtau=None):
+            trigger,
+            arrival_times=None,
+            unused_CF=None,
+            Mtau=None,
+            async_plotter=None):
 
     if trigger is not None:
         LTrig = trigger.trigger_level
@@ -153,7 +156,10 @@ def bp_plot(config, proj_grid,
 
 #--ax3: traces
     st_plt = st.copy()
-    st_plt.filter('bandpass', freqmin=freqs[-1], freqmax=freqs[0],
+    st_plt.detrend(type='constant')
+    st_plt.filter('bandpass',
+                  freqmin=config.frequencies[0],
+                  freqmax=config.frequencies[-1],
                   corners=2, zerophase=True)
     st_CF_plt = st_CF.copy()
     if config.plot_time_win_size is not None:
@@ -216,7 +222,13 @@ def bp_plot(config, proj_grid,
                     time_CF -= time_CF.min()
             else:
                 time_CF += config.cut_start
-            ax3.plot(time_CF, ydata, color, rasterized=True)
+            if '%s.%s' % (sta, wave) in unused_CF:
+                linestyle = '--'
+            else:
+                linestyle = '-'
+            ax3.plot(time_CF, ydata,
+                     color=color, linestyle=linestyle,
+                     rasterized=True)
         ax3.set_xlim(min(time), max(time))
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
@@ -244,13 +256,13 @@ def bp_plot(config, proj_grid,
         ax3.axvspan(t_begin+config.cut_start, t_end+config.cut_start,
                     facecolor='g', alpha=0.1)
 
-    note_t = 'CF of MBFilter; Fq= ' + str(np.round(freqs[-1])) +\
-             '-' + str(np.round(freqs[0])) + ' Hz'
+    note_t = 'CF of MBFilter; Fq= ' + str(np.round(config.frequencies[0])) +\
+             '-' + str(np.round(config.frequencies[-1])) + ' Hz'
     ax3.set_title(note_t, fontsize=15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
 
-    fq_str = str(np.round(freqs[-1])) + '_' + str(np.round(freqs[0]))
+    fq_str = str(np.round(config.frequencies[0])) + '_' + str(np.round(config.frequencies[-1]))
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
 
     file_out_fig = datestr + '_t' +\
@@ -260,11 +272,15 @@ def bp_plot(config, proj_grid,
         fig.patch.set_alpha(0.0)
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
-    canvas.print_figure(file_out_fig)
+    if async_plotter is not None:
+        async_plotter.save(canvas, file_out_fig)
+    else:
+        canvas.print_figure(file_out_fig)
+    fig.clf()
 
 
 def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
-                   triggers, t_bb, datestr, fq_1, fq_2,
+                   triggers, t_bb, datestr,
                    coord_eq, coord_jma, file_out_fig):
 
     plot_waveforms = config.plot_waveforms
@@ -317,7 +333,10 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
 
 #--ax3: traces
     st_plt = st.copy()
-    st_plt.filter('bandpass', freqmin=fq_2, freqmax=fq_1,
+    st_plt.detrend(type='constant')
+    st_plt.filter('bandpass',
+                  freqmin=config.frequencies[0],
+                  freqmax=config.frequencies[-1],
                   corners=2, zerophase=True)
     ax3 = fig.add_subplot(122)
     time = np.arange(st[0].stats.npts) / st[0].stats.sampling_rate
@@ -363,8 +382,9 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
             ax3.plot(time_env, ydata, color, rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
-    note = ch_function + ' of MBFilter; Fq. range: ' + str(np.round(fq_1)) +\
-           '-' + str(np.round(fq_2)) + ' Hz'
+    note = ch_function + ' of MBFilter; Fq. range: ' +\
+           str(np.round(config.frequencies[0])) +\
+           '-' + str(np.round(config.frequencies[-1])) + ' Hz'
     ax3.set_title(note, fontsize=15)
 
     for t in triggers:
@@ -380,3 +400,4 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
     # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
+    fig.clf()

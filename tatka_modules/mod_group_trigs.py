@@ -6,14 +6,18 @@ def trig_dist(trg1, trg2):
     return dist, time_diff
 
 def group_triggers(config, triggers):
-    sorted_trg = sorted(triggers, key=lambda x: x.max_grid,
-                        reverse=True)
 
-    for n, trg1 in enumerate(sorted_trg):
-        for trg2 in sorted_trg[n+1:]:
+    for n, trg1 in enumerate(triggers):
+        # we assume (for speed) than no more than
+        # 10 triggers need to be grouped
+        for trg2 in triggers[n+1:n+10]:
             dist, time_diff = trig_dist(trg1, trg2)
             if (dist <= config.group_min_dist and
                 time_diff <= config.group_min_time_diff):
-                sorted_trg.remove(trg2)
+                if trg2.max_grid <= trg1.max_grid:
+                    triggers.remove(trg2)
+                else:
+                    triggers.remove(trg1)
+                    break
 
-    return sorted(sorted_trg, key=lambda x: x.beg_win)
+    return triggers

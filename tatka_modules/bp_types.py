@@ -2,6 +2,7 @@
 # Data types for BackProj
 from obspy import UTCDateTime
 from ctypes import c_double
+import numpy as np
 
 class Trigger():
     def __init__(self,
@@ -9,6 +10,7 @@ class Trigger():
                  x=None, y=None, z=None,
                  i=None, j=None, k=None,
                  max_grid=None,
+                 ntraces=None,
                  beg_win=None, end_win=None,
                  center_win=None):
         self.eventid = None
@@ -20,6 +22,7 @@ class Trigger():
         self.j = j
         self.k = k
         self.max_grid = max_grid
+        self.ntraces = ntraces
         self.beg_win = beg_win
         self.end_win = end_win
         self.center_win = center_win
@@ -36,6 +39,7 @@ class Trigger():
         s += 'MaxStack '
         fmt = '%.1e ' if self.max_grid < 0.01 else '%.3f '
         s += fmt % (self.max_grid)
+        s += 'Ntraces %s ' % self.ntraces
         s += 'BEG %s ' % self.beg_win
         s += 'END %s ' % self.end_win
         if (self.lat is not None and
@@ -49,7 +53,7 @@ class Trigger():
         word = string.split()
         # sanity check
         try:
-            if word[1] != 'X' or word[17] != 'T_ORIG':
+            if word[1] != 'X' or word[19] != 'T_ORIG':
                 raise ValueError, 'Not a valid trigger string'
         except IndexError:
             raise ValueError, 'Not a valid trigger string'
@@ -58,11 +62,12 @@ class Trigger():
         self.y = float(word[4])
         self.z = float(word[6])
         self.max_grid = float(word[8])
-        self.beg_win = float(word[10])
-        self.end_win = float(word[12])
-        self.lat = float(word[14])
-        self.lon = float(word[16])
-        self.origin_time = UTCDateTime(word[18])
+        self.ntraces = int(word[10])
+        self.beg_win = float(word[12])
+        self.end_win = float(word[14])
+        self.lat = float(word[16])
+        self.lon = float(word[18])
+        self.origin_time = UTCDateTime(word[20])
 
     def add_pick(self, pick):
         self.picks.append(pick)
@@ -110,16 +115,16 @@ class Pick():
 
 
 class RecursiveMemory():
-    def __init__(self, trid=None, wave=None, band=None, nsamples=0, overlap=0):
+    def __init__(self, trid=None, wave=None, band=None,
+                 nsamples=0, overlap=0, filter_npoles=2):
         self.trid = trid
         self.wave = wave
         self.band = band
         self.nsamples = int(nsamples)
         self.overlap = int(overlap)
-        self.filterH1 = c_double(0)
-        self.filterH2 = c_double(0)
-        self.filterL1 = c_double(0)
-        self.filterL2 = c_double(0)
+        self.filter_npoles = filter_npoles
+        self.filterH = np.zeros(self.filter_npoles)
+        self.filterL = np.zeros(self.filter_npoles)
         self.prev_sample_value = c_double(0)
         self.memory_sample = self.nsamples - self.overlap - 1
         self.mean_sq = c_double(0)

@@ -155,18 +155,22 @@ def _parse_config(config_file):
 
     # Grid power
     try:
-        config_obj['grid_power'] = int(config_obj['grid_power'])
+        config_obj['grid_power'] = eval(config_obj['grid_power'],
+                                        {'__builtins__': None},
+                                        {'nsta': len(config_obj['stations'])})
     except:
-        if config_obj['grid_power'] == 'nsta':
-            config_obj['grid_power'] = len(config_obj['stations'])
-        else:
-            config_obj['grid_power'] = 1
-    try:
-        config_obj['grid_power_ellipsoid'] = int(config_obj['grid_power_ellipsoid'])
-    except:
-        if config_obj['grid_power_ellipsoid'] == 'nsta':
-            config_obj['grid_power_ellipsoid'] = len(config_obj['stations'])
-        else:
+        sys.stderr.write('Unable to parse "grid_power". Using 1.\n')
+        config_obj['grid_power'] = 1
+    if config_obj['grid_power_ellipsoid'] is None:
+        config_obj['grid_power_ellipsoid'] = config_obj['grid_power']
+    else:
+        try:
+            config_obj['grid_power_ellipsoid'] =\
+                    eval(config_obj['grid_power_ellipsoid'],
+                         {'__builtins__': None},
+                         {'nsta': len(config_obj['stations'])})
+        except:
+            sys.stderr.write('Unable to parse "grid_power_ellipsoid". Using "grid_power".\n')
             config_obj['grid_power_ellipsoid'] = config_obj['grid_power']
     if config_obj['trigger'] is not None:
         config_obj['trigger'] **= config_obj['grid_power']

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-import sys
 import os
 import numpy as np
 from tatka_modules.mod_setup import configure
 from tatka_modules.read_traces import read_traces
-from tatka_modules.mod_filter_picker import make_LinFq, make_LogFq
+from tatka_modules.init_filter import init_filter
 from tatka_modules.read_grids import read_grids
 from tatka_modules.summary_cf import summary_cf, empty_cf
 from tatka_modules.map_project import get_transform
@@ -13,6 +12,7 @@ from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
 from tatka_modules.plot import plt_SummaryOut
 from tatka_modules.rec_memory import init_recursive_memory
 from tatka_modules.mod_backproj import run_BackProj
+from tatka_modules.AsyncPlotter import AsyncPlotter
 from multiprocessing import Pool
 
 DEBUG = False
@@ -47,24 +47,17 @@ def main():
     st.detrend(type='constant')
     st.detrend(type='linear')
 
-    #---Calculating frequencies for MBFilter---------------------------------
-    if config.band_spacing == 'lin':
-        frequencies = make_LinFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
-    elif config.band_spacing == 'log':
-        frequencies = make_LogFq(config.f_min, config.f_max, config.delta, config.n_freq_bands)
-    n1 = 0
-    n2 = len(frequencies)
-    n22 = len(frequencies) - 1
-    print 'frequencies for filtering in (Hz):', frequencies[n1:n2]
+    #---init filtering parameters
+    init_filter(config)
 
     if config.recursive_memory:
         rec_memory = init_recursive_memory(config)
         st_CF = empty_cf(config, st)
         if DEBUG:
-            st_CF2 = summary_cf(config, st, frequencies)
+            st_CF2 = summary_cf(config, st)
     else:
         rec_memory = None
-        st_CF = summary_cf(config, st, frequencies)
+        st_CF = summary_cf(config, st)
 
     #---Take the first grid as reference ------------------------------------
     grid1 = GRD_sta.values()[0].values()[0]
@@ -82,11 +75,11 @@ def main():
     coord_eq = None
     if loc_infile:
         coord_eq = read_locationTremor(loc_infile, config.data_hours,
-                                           config.lat_orig, config.lon_orig)
+                                       config.lat_orig, config.lon_orig)
     coord_jma = None
     if location_jma:
         coord_jma = read_locationEQ(location_jma, config.data_day, config.data_hours,
-                                        config.lat_orig, config.lon_orig)
+                                    config.lat_orig, config.lon_orig)
     #------------------------------------------------------------------------
     print 'starting BPmodule'
 
@@ -95,10 +88,10 @@ def main():
         os.mkdir(config.out_dir)
 
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
-    fq_str = str(np.round(frequencies[n1])) + '_' + str(np.round(frequencies[n22]))
+    fq_str = str(np.round(config.frequencies[0])) + '_' + str(np.round(config.frequencies[-1]))
     file_out_base = '_'.join((
         datestr,
-        str(len(frequencies)) + 'fq' + fq_str + 'hz',
+        str(len(config.frequencies)) + 'fq' + fq_str + 'hz',
         str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
         config.ch_function,
         config.channel,
@@ -113,17 +106,17 @@ def main():
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
     #---running program------------------------------------------------------
-    if config.ncpu > 1 and config.recursive_memory:
-        # We use plot_pool to run asynchronus plotting in run_Backproj
-        global plot_pool
-        plot_pool = Pool(config.ncpu, init_worker)
+    if config.ncpu > 1 and config.recursive_memory and config.plot_results != 'False':
+        global async_plotter
+        async_plotter = AsyncPlotter()
     else:
-        plot_pool = None
+        async_plotter = None
 
     arglist = [
                (config,
-                st, st_CF, t_begin, frequencies,
-                coord_sta, GRD_sta, coord_eq, rec_memory, plot_pool)
+                st, st_CF, t_begin,
+                coord_sta, GRD_sta, coord_eq,
+                rec_memory, async_plotter)
                for t_begin in t_bb
               ]
     print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
@@ -145,10 +138,8 @@ def main():
         p_outputs = map(run_BackProj, arglist)
     triggers = filter(None, p_outputs)
 
-    if config.ncpu > 1 and config.recursive_memory:
-        plot_pool.close()
-        # wait for processes to end
-        plot_pool.join()
+    if async_plotter is not None:
+        async_plotter.join()
 
     #----------Outputs-------------------------------------------------------
     #writing output
@@ -170,7 +161,7 @@ def main():
 
     #-plot summary output----------------------------------------------------
     plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
-                   triggers, t_bb, datestr, frequencies[n1], frequencies[n22],
+                   triggers, t_bb, datestr,
                    coord_eq, coord_jma, file_out_fig)
 
     if DEBUG and config.recursive_memory:
@@ -194,14 +185,13 @@ def init_worker():
 if __name__ == '__main__':
     try:
         pool = None
-        plot_pool = None
+        async_plotter = None
         main()
     except KeyboardInterrupt:
         if pool is not None:
             pool.terminate()
             pool.join()
-        if plot_pool is not None:
-            plot_pool.terminate()
-            plot_pool.join()
+        if async_plotter is not None:
+            async_plotter.terminate()
         print ''
         print 'Aborting.'

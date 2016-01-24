@@ -7,6 +7,7 @@
 #                 Claudio Satriano <satriano@ipgp.fr>
 import math
 import numpy as np
+from scipy.ndimage import zoom
 from array import array
 from copy import deepcopy
 
@@ -34,6 +35,7 @@ class NLLGrid():
         self.dz = dz
         self.type = None
         self.proj_name = None
+        self.proj_ellipsoid = None
         self.orig_lat = float(0)
         self.orig_lon = float(0)
         self.first_std_paral = None
@@ -47,14 +49,36 @@ class NLLGrid():
         self.xyz_mean = None
         self.xyz_cov = None
         self.ellipsoid = None
-        self.basename = basename
-        if basename:
+        if basename is not None:
+            self.basename = self.remove_extension(basename)
             self.read_hdr_file()
             self.read_buf_file()
+        else:
+            self.basename = None
+
+    def __str__(self):
+        s = 'basename: %s\n' % self.basename
+        s += 'nx: %d ny: %d nz: %d\n'\
+                % (self.nx, self.ny, self.nz)
+        s += 'x_orig: %f y_orig: %f z_orig: %f\n'\
+                % (self.x_orig, self.y_orig, self.z_orig)
+        s += 'dx: %f dy: %f dz: %f\n'\
+                % (self.dx, self.dy, self.dz)
+        s += 'grid_type: %s\n' % self.type
+        if self.station is not None:
+            s += 'station: %s sta_x: %f sta_y: %f sta_z: %f\n'\
+                    % (self.station, self.sta_x, self.sta_y, self.sta_z)
+        s += 'transform: %s' % self.get_transform_line()
+        return s
 
     def __getitem__(self, key):
         if self.array is not None:
             return self.array[key]
+
+    def remove_extension(self, basename):
+        '''remove '.hdr' or '.buf' suffixes, if there.'''
+        bntmp = basename.rsplit('.hdr', 1)[0]
+        return bntmp.rsplit('.buf', 1)[0]
 
     def init_array(self):
         self.array = np.zeros((self.nx, self.ny, self.nz), float)
@@ -64,7 +88,7 @@ class NLLGrid():
         Reads header file of NLL grid format
         '''
         if basename is not None:
-            self.basename = basename
+            self.basename = self.remove_extension(basename)
         filename = self.basename + '.hdr'
 
         # read header file
@@ -115,7 +139,7 @@ class NLLGrid():
         Reads buf file as a 3d array
         '''
         if basename is not None:
-            self.basename = basename
+            self.basename = self.remove_extension(basename)
         filename = self.basename + '.buf'
 
         with open(filename, 'rb') as fp:
@@ -140,17 +164,9 @@ class NLLGrid():
         if self.station is not None:
             lines.append('%s %.6f %.6f %.6f\n' %
                     (self.station, self.sta_x, self.sta_y, self.sta_z))
-        if self.proj_name == 'NONE':
-            lines.append('TRANSFORM  NONE\n')
-        if self.proj_name == 'SIMPLE':
-            lines.append('TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f\n' %
-                    (self.orig_lat, self.orig_lon, self.map_rot))
-        if self.proj_name == 'LAMBERT':
-            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.proj_ellipsoid
-            line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
-            line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f\n' %\
-                    (self.first_std_paral, self.second_std_paral, self.map_rot)
-            lines.append(line)
+        line = self.get_transform_line()
+        if line is not None:
+            lines.append('%s\n' % line)
 
         with open(filename, 'w') as fp:
             for line in lines:
@@ -169,6 +185,19 @@ class NLLGrid():
 
         with open(filename, 'wb') as fp:
             self.array.astype(np.float32).tofile(fp)
+
+    def get_transform_line(self):
+        if self.proj_name == 'NONE':
+            return 'TRANSFORM  NONE'
+        if self.proj_name == 'SIMPLE':
+            return 'TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f' %\
+                    (self.orig_lat, self.orig_lon, self.map_rot)
+        if self.proj_name == 'LAMBERT':
+            line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.proj_ellipsoid
+            line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
+            line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f' %\
+                    (self.first_std_paral, self.second_std_paral, self.map_rot)
+            return line
 
     def get_xyz(self, i, j, k):
         x = i * self.dx + self.x_orig
@@ -328,6 +357,18 @@ class NLLGrid():
     def max(self):
         if self.array is not None:
             return self.array.max()
+
+    def resample(self, dx, dy, dz):
+        zoom_x = self.dx / dx
+        zoom_y = self.dy / dy
+        zoom_z = self.dz / dz
+        self.array = zoom(self.array, (zoom_x, zoom_y, zoom_z))
+        self.nx, self.ny, self.nz = self.array.shape
+        if self.type == 'SLOW_LEN':
+            self.array *= dx / self.dx
+        self.dx = dx
+        self.dy = dy
+        self.dz = dz
 
     def get_plot_axes(self, figure=None, ax_xy=None):
         import matplotlib.pyplot as plt
@@ -504,6 +545,7 @@ def main():
     grd = NLLGrid(nx=nx, ny=ny, nz=nz,
                   dx=1, dy=1, dz=1,
                   x_orig=x_orig, y_orig=y_orig)
+    print grd
     grd.init_array()
     grd.array = gauss3D((nx, ny, nz), 20, 10, 2, 30)
 

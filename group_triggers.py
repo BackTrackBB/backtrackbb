@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-import sys
 import os
 from tatka_modules.mod_setup import configure
 from tatka_modules.bp_types import Trigger, Pick

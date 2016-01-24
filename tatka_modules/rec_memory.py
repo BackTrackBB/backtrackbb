@@ -12,7 +12,8 @@ def init_recursive_memory(config):
     for trid, wave in itertools.product(config.trids, config.wave_type):
         # Each entry of the dictionary is a list of memory objects (with n_bands elements)
         rec_memory[(trid, wave)] = [RecursiveMemory(trid=trid, wave=wave, band=n,
-                                                    nsamples=nsamples, overlap=overlap)
+                                                    nsamples=nsamples, overlap=overlap,
+                                                    filter_npoles=config.filter_npoles)
                                     for n in xrange(n_bands)]
 
     return rec_memory

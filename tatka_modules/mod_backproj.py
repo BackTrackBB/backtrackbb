@@ -34,8 +34,9 @@ def run_BackProj(args):
     return _run_BackProj(*args)
 
 
-def _run_BackProj(config, st, st_CF, t_begin, frequencies,
-                  coord_sta, GRD_sta, coord_eq, rec_memory=None, plot_pool=None):
+def _run_BackProj(config, st, st_CF, t_begin,
+                  coord_sta, GRD_sta, coord_eq,
+                  rec_memory=None, async_plotter=None):
 
     t_end = t_begin + config.time_lag
 
@@ -58,23 +59,36 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     if rec_memory is not None:
         st_cut = st.copy()
         st_cut = st_cut.trim(config.starttime + t_begin, config.starttime + t_end)
-        st_CF_cut = summary_cf(config, st_cut, frequencies, rec_memory=rec_memory)
+        st_CF_cut = summary_cf(config, st_cut, rec_memory=rec_memory)
         st_CF += st_CF_cut
         st_CF.merge(method=1)
     else:
         st_CF_cut = st_CF.copy()
         st_CF_cut = st_CF_cut.trim(config.starttime + t_begin, config.starttime + t_end)
 
+    if config.ignore_noisy_CF:
+        sums = [('%s.%s' % (str(tr.stats.station), tr.stats.channel), (tr.data/tr.max()).sum())
+                for tr in st_CF_cut]
+        min_sum = min(s[1] for s in sums)
+        # A noisy CF has an integral at least two times larger than the smaller one
+        # TODO: parametrize?
+        noisy_sta_wave = [s[0] for s in sums if s[1] >= 2*min_sum]
+    else:
+        noisy_sta_wave = []
+
     # Prepare the arglist for sta_Grd_Proj()
     Mtau = []
     arrival_times = defaultdict(dict)
     arglist = []
-    sta_wave = [(sta, wave) for wave in config.wave_type for sta in config.stations]
+    sta_wave = ['%s.%s' % (sta, wave)
+                for wave in config.wave_type for sta in config.stations]
+    # Remove noisy CFs, if this leaves us with at least 3 CFs
+    # (otherwhise use all the CFs)
+    if (len(sta_wave) - len(noisy_sta_wave)) >= 3:
+        sta_wave = [s for s in sta_wave if not s in noisy_sta_wave]
     for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
-        sta1 = sta_wave1[0]
-        sta2 = sta_wave2[0]
-        wave1 = sta_wave1[1]
-        wave2 = sta_wave2[1]
+        sta1, wave1 = sta_wave1.split('.')
+        sta2, wave2 = sta_wave2.split('.')
         arrival_times[sta1][wave1] = []
         arrival_times[sta2][wave2] = []
 
@@ -133,10 +147,8 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
     # Parse outputs and update stack_grid
     for out in outputs:
         proj_function, arrival1, arrival2, sta_wave1, sta_wave2 = out
-        sta1 = sta_wave1[0]
-        sta2 = sta_wave2[0]
-        wave1 = sta_wave1[1]
-        wave2 = sta_wave2[1]
+        sta1, wave1 = sta_wave1.split('.')
+        sta2, wave2 = sta_wave2.split('.')
         arrival_times[sta1][wave1].append(arrival1)
         arrival_times[sta2][wave2].append(arrival2)
         delta_tt_array = GRD_sta[sta2][wave2].array - GRD_sta[sta1][wave1].array
@@ -213,15 +225,19 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
                 zoom_i_max, zoom_j_max, zoom_k_max =\
                      [a[0]/zoom_factor
                       for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
-                i_max = zoom_i_max + i_max-sf
-                j_max = zoom_j_max + j_max-sf
-                k_max = zoom_k_max + k_max-sf
+                i_max = zoom_i_max + i_max - sf
+                i_max = i_max if i_max > 0 else 0
+                j_max = zoom_j_max + j_max - sf
+                j_max = j_max if j_max > 0 else 0
+                k_max = zoom_k_max + k_max - sf
+                k_max = k_max if k_max > 0 else 0
 
         trigger = Trigger()
         trigger.trigger_level = trigger_level
         trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
         trigger.max_grid = np.round(stack_grid.max(), 4)
+        trigger.ntraces = len(sta_wave)
         trigger.beg_win = start_tw
         trigger.end_win = start_tw + config.time_lag
         trigger.center_win = start_tw + config.time_lag/2.
@@ -249,15 +265,12 @@ def _run_BackProj(config, st, st_CF, t_begin, frequencies,
             (config.plot_results == 'trigger_only' and trigger is not None):
 
 
-        args = (config, stack_grid,
+        bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end,
                 coord_sta, st, st_CF,
-                frequencies, trigger, arrival_times, Mtau)
-        if plot_pool is not None:
-            # When using recursive_memory, plotting
-            # is run asynchronously
-            plot_pool.apply_async(bp_plot, args)
-        else:
-            bp_plot(*args)
+                trigger,
+                arrival_times,
+                noisy_sta_wave,
+                Mtau, async_plotter)
 
     return trigger

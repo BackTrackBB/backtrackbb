@@ -1,64 +1,80 @@
+/*
+ * lib_rec_filter.c
+ *
+ * Recursive bandpass (or highpass) filtering
+ *
+ * (c) 2013-2015 - Natalia Poiata <poiata@ipgp.fr>,
+ *                 Claudio Satriano <satriano@ipgp.fr>
+ */
 #include <stdlib.h>
 
-void _recursive_filter_BP(const double *signal, double *filt_signal, int npts, float C_HP, float C_LP,
-        double *filterH1, double *filterH2, double *filterL1, double *filterL2, double *prev_sample_value,
-        int memory_sample)
+/*
+ * Bandpass (or highpass) filtering by cascade of simple, first-order
+ * recursive highpass and lowpass filters. The number of poles gives the
+ * number of filter stages.
+ */
+void _recursive_filter(const double *signal, double *filt_signal, int npts,
+                       float C_HP, float C_LP, int npoles,
+                       double *filterH, double *filterL,
+                       double *prev_sample_value, int memory_sample)
 {
-    int i;
-    double filterH1_0 = 0;
-    double _filterH1 = *filterH1;
-    double _filterH2 = *filterH2;
-    double _filterL1 = *filterL1;
-    double _filterL2 = *filterL2;
+    int i, n;
+    double *_filterH;
+    double *_filterH0;
+    double *_filterL;
     double _prev_sample_value = *prev_sample_value;
+    double s0, s1;
+
+    _filterH = (double *) malloc(npoles * sizeof(double));
+    _filterH0 = (double *) malloc(npoles * sizeof(double));
+    _filterL = (double *) malloc(npoles * sizeof(double));
+    for (n=0; n<npoles; n++) {
+        _filterH[n] = filterH[n];
+        _filterH0[n] = 0;
+        _filterL[n] = filterL[n];
+    }
 
     if (memory_sample < 0 || memory_sample >= npts) {
         memory_sample = npts-1;
     }
 
     for (i=0; i<npts; i++) {
-        filterH1_0 = _filterH1;
-        _filterH1 = C_HP * (_filterH1 + signal[i] - _prev_sample_value);
-        _filterH2 = C_HP * (_filterH2 + _filterH1 - filterH1_0);
-        _filterL1 = _filterL1 + C_LP * (_filterH2 - _filterL1);
-        _filterL2 = _filterL2 + C_LP * (_filterL1 - _filterL2);
-        filt_signal[i] = _filterL2;
+        for (n=0; n<npoles; n++) {
+            if (n == 0) {
+                s0 = _prev_sample_value;
+                s1 = signal[i];
+            } else {
+                s0 = _filterH0[n-1];
+                s1 = _filterH[n-1];
+            }
+            _filterH0[n] = _filterH[n];
+            _filterH[n] = C_HP * (_filterH[n] + s1 - s0);
+        }
+        if (C_LP < 0) {
+            /* high-pass filter */
+            filt_signal[i] = _filterH[npoles-1];
+        } else {
+            for (n=0; n<npoles; n++) {
+                if (n == 0) {
+                    s0 = _filterH[npoles-1];
+                } else {
+                    s0 = _filterL[n-1];
+                }
+                _filterL[n] = _filterL[n] + C_LP * (s0 - _filterL[n]);
+            }
+            filt_signal[i] = _filterL[npoles-1];
+        }
         _prev_sample_value = signal[i];
         /* save memory values */
         if (i == memory_sample) {
-            *filterH1 = _filterH1;
-            *filterH2 = _filterH2;
-            *filterL1 = _filterL1;
-            *filterL2 = _filterL2;
+            for (n=0; n<npoles; n++) {
+                filterH[n] = _filterH[n];
+                filterL[n] = _filterL[n];
+            }
             *prev_sample_value = _prev_sample_value;
         }
     }
-}
 
-void _recursive_filter_HP(const double *signal, double *filt_signal, int npts, float C_HP,
-        double *filterH1, double *filterH2, double *prev_sample_value, int memory_sample)
-{
-    int i;
-    double filterH1_0 = 0;
-    double _filterH1 = *filterH1;
-    double _filterH2 = *filterH2;
-    double _prev_sample_value = *prev_sample_value;
-
-    if (memory_sample < 0 || memory_sample >= npts) {
-        memory_sample = npts-1;
-    }
-
-    for (i=0; i<npts; i++) {
-        filterH1_0 = _filterH1;
-        _filterH1 = C_HP * (_filterH1 + signal[i] - _prev_sample_value);
-        _filterH2 = C_HP * (_filterH2 + _filterH1 - filterH1_0);
-        filt_signal[i] = _filterH2;
-        _prev_sample_value = signal[i];
-        /* save memory values */
-        if (i == memory_sample) {
-            *filterH1 = _filterH1;
-            *filterH2 = _filterH2;
-            *prev_sample_value = _prev_sample_value;
-        }
-    }
+    free(_filterH);
+    free(_filterL);
 }

@@ -32,7 +32,7 @@ lib_rec_hos._recursive_hos.argtypes = [
 lib_rec_hos._recursive_hos.restype = c_void_p
 
 
-def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
+def recursive_hos(signal, C_WIN, order=4, sigma_min=-1., rec_memory=None):
     """
         Recursive computation of higher-horder statistics.
     """
@@ -40,7 +40,7 @@ def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
     try:
         C_WIN = float(C_WIN)
     except ValueError:
-        print 'C_rosenberger should be a double'
+        print 'C_WIN should be a double'
 
     signal = np.array(signal, dtype=np.float64)
     hos_signal = np.zeros(len(signal))
@@ -58,9 +58,10 @@ def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
         memory_sample = -1
         initialize = 1
 
-    lib_rec_hos._recursive_hos(
-            signal, hos_signal, signal.size, sigma_min, C_WIN, order,
-            byref(mean), byref(var), byref(hos), memory_sample, initialize)
+    lib_rec_hos._recursive_hos(signal, hos_signal, signal.size,
+                               sigma_min, C_WIN, order,
+                               byref(mean), byref(var), byref(hos),
+                               memory_sample, initialize)
 
     if rec_memory is not None:
         rec_memory.mean = mean
@@ -73,8 +74,8 @@ def recursive_hos(signal, C_WIN, sigma_min, order, rec_memory=None):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    signal = np.ones(60000)
-    signal[30000] += 1
-    kurt_signal = recursive_hos(signal, 0.5, 0.001, 4)
+    signal = np.ones(601)
+    signal[300] += 1
+    kurt_signal = recursive_hos(signal, 0.5, sigma_min=0.001, order=4)
     plt.plot(kurt_signal)
     plt.show()
