@@ -4,68 +4,75 @@
 # Python interface to C code for P and non-P wavefield separation
 # by Andreas Rosenberger.
 #
-# Rosenberger, A., 2010. Real-Time Ground-Motion Analysis: Distinguishing P and S Arrivals
-# in a Noisy Environment. Bull. Seismol. Soc. Am. 100, 1252–1262. doi: 10.1785/0120090265
+# Rosenberger, A., 2010. Real-Time Ground-Motion Analysis:
+# Distinguishing P and S Arrivals in a Noisy Environment.
+# Bull. Seismol. Soc. Am. 100, 1252–1262. doi: 10.1785/0120090265
 #
-# (c) 2014 - Claudio Satriano <satriano@ipgp.fr>, Pierre Romanet <romanet@ipgp.fr>
+# (c) 2014 - Claudio Satriano <satriano@ipgp.fr>,
+#            Pierre Romanet <romanet@ipgp.fr>
+# (c) 2014 - 2016 Claudio Satriano <satriano@ipgp.fr>
 import os
 import ctypes
 from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_rosenberger.so')
+libpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                       'lib', 'lib_rosenberger.so')
 lib_rosenberger = ctypes.CDLL(libpath)
 
 lib_rosenberger.rosenberger.argtypes = [
-        ndpointer(dtype=np.float64), #dataX
-        ndpointer(dtype=np.float64), #dataY
-        ndpointer(dtype=np.float64), #dataZ
-        ndpointer(dtype=np.float64), #dataX_P
-        ndpointer(dtype=np.float64), #dataY_P
-        ndpointer(dtype=np.float64), #dataZ_P
-        ndpointer(dtype=np.float64), #dataX_S
-        ndpointer(dtype=np.float64), #dataY_S
-        ndpointer(dtype=np.float64), #dataZ_S
-        ctypes.c_int, #npts
-        ctypes.c_float, #lambda
-        ctypes.c_float, #delta
-        ctypes.c_char, #proj
-        ctypes.c_char #rl_filter
+        ndpointer(dtype=np.float64),  # dataX
+        ndpointer(dtype=np.float64),  # dataY
+        ndpointer(dtype=np.float64),  # dataZ
+        ndpointer(dtype=np.float64),  # pol_filter
+        ctypes.c_int,  # npts
+        ctypes.c_float,  # lambda
+        ctypes.c_float,  # delta
+        ctypes.c_char,  # proj
+        ctypes.c_char  # rl_filter
         ]
 lib_rosenberger.rosenberger.restype = ctypes.c_void_p
 
 
 def rosenberger(dataX, dataY, dataZ,
-                lambda_, delta=1, proj=False, rl_filter=False):
+                lambda_, delta=1, proj=False, rl_filter=False,
+                pol_filter_power=1., threshold=None):
     """
-       Separates P and non-P wavefield from 3-component data
-       and returns it as two set of 3-component traces.
+    Separate P and non-P wavefield from 3-component data.
+
+    Returns two set of 3-component traces and the polarization filter.
     """
     dataX = np.array(dataX, dtype=np.float64)
     dataY = np.array(dataY, dtype=np.float64)
     dataZ = np.array(dataZ, dtype=np.float64)
 
-    dataX_P = np.zeros_like(dataX)
-    dataY_P = np.zeros_like(dataY)
-    dataZ_P = np.zeros_like(dataZ)
-    dataX_S = np.zeros_like(dataX)
-    dataY_S = np.zeros_like(dataY)
-    dataZ_S = np.zeros_like(dataZ)
+    # Normalize and multiply by a large factor to avoid small numbers in SVD
+    norm = max(np.abs(dataX).max(), np.abs(dataY).max(), np.abs(dataZ).max())
+    factor = 10000.
+    dataX /= norm / factor
+    dataY /= norm / factor
+    dataZ /= norm / factor
+
+    pol_filter = np.zeros_like(dataX)
 
     delta = ctypes.c_float(delta)
     proj = chr(int(proj))
     rl_filter = chr(int(rl_filter))
 
     lib_rosenberger.rosenberger(dataX, dataY, dataZ,
-                                dataX_P, dataY_P, dataZ_P,
-                                dataX_S, dataY_S, dataZ_S,
+                                pol_filter,
                                 len(dataX),
                                 lambda_, delta, proj, rl_filter)
 
-    data_P = np.array([dataZ_P, dataX_P, dataY_P])
-    data_S = np.array([dataZ_S, dataX_S, dataY_S])
-    return data_P, data_S, None
+    pol_filter **= pol_filter_power
+    if threshold is not None:
+        pol_filter = (pol_filter >= threshold).astype(int)
+    data_P = np.vstack((dataZ, dataX, dataY)) *\
+        pol_filter[None, :] * norm / factor
+    data_S = np.vstack((dataZ, dataX, dataY)) *\
+        (1 - pol_filter[None, :]) * norm / factor
+    return data_P, data_S, pol_filter
 
 
 def main():
@@ -76,28 +83,31 @@ def main():
     # We use the default ObsPy example
     st = read()
     st.filter(type='highpass', freq=1.0)
-    maxval = max(st.max())
+    maxval = max(np.abs(st.max()))
 
     time = np.arange(len(st[1].data)) * st[1].stats.delta
 
     # Window lenght for recursive exponential statistics
     # corresponding to 5% of the exponential maximum
-    window = 0.5 #seconds
+    window = 0.5  # seconds
     samples = window / st[0].stats.delta
     # Compute the accumulation parameter lambda_
     lambda_ = 1 - math.exp(math.log(0.05) / samples)
-    data_P, data_S, U = rosenberger(st[2].data, st[1].data, st[0].data, lambda_)
+    data_P, data_S, pol_filter =\
+        rosenberger(st[2].data, st[1].data, st[0].data, lambda_)
 
     fig = plt.figure()
-    ax1 = fig.add_subplot(311)
+    ax1 = fig.add_subplot(411)
     ax1.set_title('Rosenberger C')
-    ax2 = fig.add_subplot(312, sharex=ax1)
-    ax3 = fig.add_subplot(313, sharex=ax1)
-    ax3.set_xlabel('time (s)')
+    ax2 = fig.add_subplot(412, sharex=ax1)
+    ax3 = fig.add_subplot(413, sharex=ax1)
+    ax4 = fig.add_subplot(414, sharex=ax1)
+    ax4.set_xlabel('time (s)')
 
     ax1.set_ylim((-maxval, maxval))
     ax2.set_ylim((-maxval, maxval))
     ax3.set_ylim((-maxval, maxval))
+    ax4.set_ylim((0, 1.2))
 
     ax1.plot(time, st[2].data, color='gray')
     ax1.plot(time, data_P[1], color='blue')
@@ -113,6 +123,8 @@ def main():
     ax3.plot(time, data_P[0], color='blue')
     ax3.plot(time, data_S[0], color='red')
     ax3.legend([st[0].stats.channel, 'P', 'S'])
+
+    ax4.plot(time, pol_filter)
 
     plt.show()
 
