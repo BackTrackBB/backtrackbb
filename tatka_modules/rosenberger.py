@@ -37,7 +37,8 @@ lib_rosenberger.rosenberger.restype = ctypes.c_void_p
 
 def rosenberger(dataX, dataY, dataZ,
                 lambda_, delta=1, proj=False, rl_filter=False,
-                pol_filter_power=1., threshold=None):
+                pol_filter_power=1., threshold=None,
+                normalize_each=False):
     """
     Separate P and non-P wavefield from 3-component data.
 
@@ -48,11 +49,15 @@ def rosenberger(dataX, dataY, dataZ,
     dataZ = np.array(dataZ, dtype=np.float64)
 
     # Normalize and multiply by a large factor to avoid small numbers in SVD
-    norm = max(np.abs(dataX).max(), np.abs(dataY).max(), np.abs(dataZ).max())
+    normX = np.abs(dataX).max()
+    normY = np.abs(dataY).max()
+    normZ = np.abs(dataZ).max()
+    if not normalize_each:
+        normX = normY = normZ = max(normX, normY, normZ)
     factor = 10000.
-    dataX /= norm / factor
-    dataY /= norm / factor
-    dataZ /= norm / factor
+    dataX /= normX / factor
+    dataY /= normY / factor
+    dataZ /= normZ / factor
 
     pol_filter = np.zeros_like(dataX)
 
@@ -64,14 +69,15 @@ def rosenberger(dataX, dataY, dataZ,
                                 pol_filter,
                                 len(dataX),
                                 lambda_, delta, proj, rl_filter)
+    dataX *= normX / factor
+    dataY *= normY / factor
+    dataZ *= normZ / factor
 
     pol_filter **= pol_filter_power
     if threshold is not None:
         pol_filter = (pol_filter >= threshold).astype(int)
-    data_P = np.vstack((dataZ, dataX, dataY)) *\
-        pol_filter[None, :] * norm / factor
-    data_S = np.vstack((dataZ, dataX, dataY)) *\
-        (1 - pol_filter[None, :]) * norm / factor
+    data_P = np.vstack((dataZ, dataX, dataY)) * pol_filter[None, :]
+    data_S = np.vstack((dataZ, dataX, dataY)) * (1 - pol_filter[None, :])
     return data_P, data_S, pol_filter
 
 
@@ -93,6 +99,9 @@ def main():
     samples = window / st[0].stats.delta
     # Compute the accumulation parameter lambda_
     lambda_ = 1 - math.exp(math.log(0.05) / samples)
+    print lambda_
+    lambda_ = 1. / samples
+    print lambda_
     data_P, data_S, pol_filter =\
         rosenberger(st[2].data, st[1].data, st[0].data, lambda_)
 
