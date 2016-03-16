@@ -37,7 +37,7 @@ lib_rosenberger.rosenberger.restype = ctypes.c_void_p
 
 def rosenberger(dataX, dataY, dataZ,
                 lambda_, delta=1, proj=False, rl_filter=False,
-                pol_filter_power=1., threshold=None,
+                pol_filter_power=1., pol_filter_threshold=None,
                 normalize_each=False):
     """
     Separate P and non-P wavefield from 3-component data.
@@ -74,8 +74,8 @@ def rosenberger(dataX, dataY, dataZ,
     dataZ *= normZ / factor
 
     pol_filter **= pol_filter_power
-    if threshold is not None:
-        pol_filter = (pol_filter >= threshold).astype(int)
+    if pol_filter_threshold is not None:
+        pol_filter = (pol_filter >= pol_filter_threshold).astype(int)
     data_P = np.vstack((dataZ, dataX, dataY)) * pol_filter[None, :]
     data_S = np.vstack((dataZ, dataX, dataY)) * (1 - pol_filter[None, :])
     return data_P, data_S, pol_filter
