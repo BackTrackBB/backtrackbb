@@ -49,8 +49,8 @@ def MBfilter_CF(st, frequencies,
     delta = st[0].stats.delta
     Tn = 1. / frequencies
     Nb = len(frequencies)
-    CF_decay_nsmps = int(CF_decay_win / delta)
-    rosenberger_decay_nsmps = int(rosenberger_decay_win / delta)
+    CF_decay_nsmps = CF_decay_win / delta
+    rosenberger_decay_nsmps = rosenberger_decay_win / delta
 
     if hos_sigma is None:
         hos_sigma = -1.
@@ -78,15 +78,20 @@ def MBfilter_CF(st, frequencies,
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
+            # Define the decay constant so that the CF is at 5% of its
+            # initial value after CF_decay_win seconds
+            CF_decay_constant = 1 - np.exp(np.log(0.05) / CF_decay_nsmps_mb)
+
             if CF_type == 'envelope':
-                CF1[n] = recursive_rms(YN1[n], 1./CF_decay_nsmps_mb, rmem)
+                CF1[n] = recursive_rms(YN1[n], CF_decay_constant, rmem)
 
             if CF_type == 'hilbert':
                 # This does not support recursive memory!
-                CF1[n] = smooth(abs(sp.signal.hilbert(YN1[n])), CF_decay_nsmps_mb)
+                CF1[n] = smooth(abs(sp.signal.hilbert(YN1[n])),
+                                CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
-                CF1[n] = recursive_hos(YN1[n], 1./CF_decay_nsmps_mb,
+                CF1[n] = recursive_hos(YN1[n], CF_decay_constant,
                                        order, hos_sigma, rmem)
 
     # More than 3 components
@@ -128,11 +133,16 @@ def MBfilter_CF(st, frequencies,
             YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n], filter_npoles, rmem3)
             YN3[n] /= filter_norm[n]
 
+            # Define the decay constant so that the CF is at 5% of its
+            # initial value after CF_decay_win seconds
+            rosenberger_decay_constant =\
+                1 - np.exp(np.log(0.05) / rosenberger_decay_nsmps)
+
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
 
-            filt_dataP, filt_dataS, U =\
-                    rosenberger(YN2[n], YN3[n], YN1[n], 1./rosenberger_decay_nsmps)
+            filt_dataP, filt_dataS, _ =\
+                rosenberger(YN2[n], YN3[n], YN1[n], rosenberger_decay_constant)
 
             # Use vertical component for P data
             filteredDataP[n] = filt_dataP[0,:]
@@ -145,28 +155,40 @@ def MBfilter_CF(st, frequencies,
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
+            # Define the decay constant so that the CF is at 5% of its
+            # initial value after CF_decay_win seconds
+            CF_decay_constant = 1 - np.exp(np.log(0.05) / CF_decay_nsmps_mb)
+
             if CF_type == 'envelope':
                 if wave_type == 'P':
-                    CF1[n] = recursive_rms(filteredDataP[n], 1./CF_decay_nsmps_mb, rmem1)
+                    CF1[n] = recursive_rms(filteredDataP[n],
+                                           CF_decay_constant, rmem1)
                     if full_output:
-                        CF2[n] = recursive_rms(filteredDataS[n], 1./CF_decay_nsmps_mb, rmem2)
+                        CF2[n] = recursive_rms(filteredDataS[n],
+                                               CF_decay_constant, rmem2)
                 else:
-                    CF1[n] = recursive_rms(filteredDataS[n], 1./CF_decay_nsmps_mb, rmem1)
+                    CF1[n] = recursive_rms(filteredDataS[n],
+                                           CF_decay_constant, rmem1)
                     if full_output:
-                        CF2[n] = recursive_rms(filteredDataP[n], 1./CF_decay_nsmps_mb, rmem2)
+                        CF2[n] = recursive_rms(filteredDataP[n],
+                                               CF_decay_constant, rmem2)
 
             if CF_type == 'kurtosis':
                 if wave_type == 'P':
-                    CF1[n] = recursive_hos(filteredDataP[n], 1./CF_decay_nsmps_mb,
+                    CF1[n] = recursive_hos(filteredDataP[n],
+                                           CF_decay_constant,
                                            order, hos_sigma, rmem1)
                     if full_output:
-                        CF2[n] = recursive_hos(filteredDataS[n], 1./CF_decay_nsmps_mb,
-                                               order, hos_sigma, -1, rmem2)
+                        CF2[n] = recursive_hos(filteredDataS[n],
+                                               CF_decay_constant,
+                                               order, hos_sigma, rmem2)
                 else:
-                    CF1[n] = recursive_hos(filteredDataS[n], 1./CF_decay_nsmps_mb,
+                    CF1[n] = recursive_hos(filteredDataS[n],
+                                           CF_decay_constant,
                                            order, hos_sigma, rmem1)
                     if full_output:
-                        CF2[n] = recursive_hos(filteredDataP[n], 1./CF_decay_nsmps_mb,
+                        CF2[n] = recursive_hos(filteredDataP[n],
+                                               CF_decay_constant,
                                                order, hos_sigma, rmem2)
 
     if full_output:
