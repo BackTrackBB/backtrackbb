@@ -36,7 +36,11 @@ def MBfilter_CF(st, frequencies,
                 filter_norm, filter_npoles=2,
                 var_w=True,
                 CF_type='envelope', CF_decay_win=1.0,
-                order=4, rosenberger_decay_win=1.0,
+                hos_order=4,
+                rosenberger_decay_win=1.0,
+                rosenberger_filter_power=1.0,
+                rosenberger_filter_threshold=None,
+                rosenberger_normalize_each=False,
                 wave_type='P',
                 hos_sigma=None,
                 rec_memory=None,
@@ -92,7 +96,7 @@ def MBfilter_CF(st, frequencies,
 
             if CF_type == 'kurtosis':
                 CF1[n] = recursive_hos(YN1[n], CF_decay_constant,
-                                       order, hos_sigma, rmem)
+                                       hos_order, hos_sigma, rmem)
 
     # More than 3 components
     else:
@@ -141,8 +145,14 @@ def MBfilter_CF(st, frequencies,
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
 
+            # third value returned by rosenberger() is the polarizaion filter,
+            # which we do not use here
             filt_dataP, filt_dataS, _ =\
-                rosenberger(YN2[n], YN3[n], YN1[n], rosenberger_decay_constant)
+                rosenberger(YN2[n], YN3[n], YN1[n],
+                            rosenberger_decay_constant,
+                            pol_filter_power=rosenberger_filter_power,
+                            pol_filter_threshold=rosenberger_filter_threshold,
+                            normalize_each=rosenberger_normalize_each)
 
             # Use vertical component for P data
             filteredDataP[n] = filt_dataP[0,:]
@@ -177,19 +187,19 @@ def MBfilter_CF(st, frequencies,
                 if wave_type == 'P':
                     CF1[n] = recursive_hos(filteredDataP[n],
                                            CF_decay_constant,
-                                           order, hos_sigma, rmem1)
+                                           hos_order, hos_sigma, rmem1)
                     if full_output:
                         CF2[n] = recursive_hos(filteredDataS[n],
                                                CF_decay_constant,
-                                               order, hos_sigma, rmem2)
+                                               hos_order, hos_sigma, rmem2)
                 else:
                     CF1[n] = recursive_hos(filteredDataS[n],
                                            CF_decay_constant,
-                                           order, hos_sigma, rmem1)
+                                           hos_order, hos_sigma, rmem1)
                     if full_output:
                         CF2[n] = recursive_hos(filteredDataP[n],
                                                CF_decay_constant,
-                                               order, hos_sigma, rmem2)
+                                               hos_order, hos_sigma, rmem2)
 
     if full_output:
         return YN1, CF1, CF2, Tn, Nb, filteredDataP, filteredDataS
