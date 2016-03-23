@@ -100,11 +100,11 @@ def MBfilter_CF(st, frequencies,
 
     # More than 3 components
     else:
-        # We assume that component names are: Z, E, N
-        #TODO: generalize this
-        tr1 = st.select(component='Z')[0]
-        tr2 = st.select(component='E')[0]
-        tr3 = st.select(component='N')[0]
+        # Vertical
+        tr1 = st.select(channel='*[Z,U,D]')[0]
+        # Horizontals
+        tr2 = st.select(channel='*[E,W,1]')[0]
+        tr3 = st.select(channel='*[N,S,2]')[0]
 
         y1 = tr1.data
         y2 = tr2.data
