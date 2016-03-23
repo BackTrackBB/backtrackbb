@@ -29,12 +29,14 @@ def read_traces(config):
 
     # Get the intersection between the list of available stations
     # and the list of requested stations:
-    tmpst_stations = [tr.stats.station for tr in tmpst.select(channel=config.channel)]
+    tmpst_select = Stream()
+    for ch in config.channel:
+        tmpst_select += tmpst.select(channel=ch)
+    tmpst_stations = [tr.stats.station for tr in tmpst_select]
     stations = sorted(set(tmpst_stations) & set(config.stations))
 
     # Retain only requested channel and stations:
-    st = Stream(tr for tr in tmpst.select(channel=config.channel)
-                if tr.stats.station in stations)
+    st = Stream(tr for tr in tmpst_select if tr.stats.station in stations)
     if not st:
         print 'Could not read any trace!'
         sys.exit(1)
