@@ -104,6 +104,16 @@ def _parse_config(config_file):
         sys.stderr.write('Unable to read "%s": %s\n' % (config_file, message))
         sys.exit(1)
 
+    # transform strings to one-item lists, when necessary
+    for key, val in config_obj.configspec.iteritems():
+        if 'list' in val:
+            try:
+                option = config_obj[key]
+            except KeyError:
+                continue
+            if isinstance(option, str):
+                config_obj[key] = [option, ]
+
     val = Validator()
     test = config_obj.validate(val)
     if isinstance(test, dict):

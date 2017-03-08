@@ -2,17 +2,16 @@ import numpy as np
 from obspy import Stream
 from mod_filter_picker import MBfilter_CF, GaussConv
 
+
 def summary_cf(config, st, rec_memory=None):
 
     # Compute decay constants
-    delta = config.delta
-    decay_const = config.decay_const
     if config.rosenberger_decay_const is not None:
         rosenberger_decay_const = config.rosenberger_decay_const
     else:
         rosenberger_decay_const = config.decay_const
-    sigma_gauss = int(decay_const/delta/2) # so far fixed
-                                           # can be added to control file as a separate variable
+    # TODO: so far fixed can be added to control file as a separate variable
+    sigma_gauss = int(config.decay_const/config.delta/2)
 
     st_CF = Stream()
     for station in config.stations:
@@ -22,18 +21,28 @@ def summary_cf(config, st, rec_memory=None):
             tr_CF.stats.channel = wave_type
             st_CF.append(tr_CF)
             hos_sigma = config['hos_sigma_' + wave_type]
-            HP2, CF, Tn2, Nb2 = \
-                MBfilter_CF(st_select, config.frequencies,
-                            config.CN_HP, config.CN_LP,
-                            config.filter_norm, config.filter_npoles,
-                            var_w=config.win_type,
-                            CF_type=config.ch_function,
-                            CF_decay_win=decay_const,
-                            order=config.hos_order,
-                            rosenberger_decay_win=rosenberger_decay_const,
-                            wave_type=wave_type,
-                            hos_sigma=hos_sigma[station],
-                            rec_memory=rec_memory)
+            MBfilter_CF_kwargs = {
+                'st': st_select,
+                'frequencies': config.frequencies,
+                'CN_HP': config.CN_HP,
+                'CN_LP': config.CN_LP,
+                'filter_norm': config.filter_norm,
+                'filter_npoles': config.filter_npoles,
+                'var_w': config.win_type,
+                'CF_type': config.ch_function,
+                'CF_decay_win': config.decay_const,
+                'hos_order': config.hos_order,
+                'rosenberger_decay_win': rosenberger_decay_const,
+                'rosenberger_filter_power': config.rosenberger_filter_power,
+                'rosenberger_filter_threshold':
+                    config.rosenberger_filter_threshold,
+                'rosenberger_normalize_each':
+                    config.rosenberger_normalize_each,
+                'wave_type': wave_type,
+                'hos_sigma': hos_sigma[station],
+                'rec_memory': rec_memory
+            }
+            HP2, CF, Tn2, Nb2 = MBfilter_CF(**MBfilter_CF_kwargs)
 
             if config.ch_function == 'envelope':
                 tr_CF.data = np.sqrt(np.power(CF, 2).mean(axis=0))
@@ -58,7 +67,8 @@ def empty_cf(config, st):
     for station in config.stations:
         for wave_type in config.wave_type:
             tr_CF = st.select(station=station).copy()
-            tr_CF = tr_CF.trim(config.starttime, config.starttime + config.start_t)
+            tr_CF = tr_CF.trim(config.starttime,
+                               config.starttime + config.start_t)
             tr_CF = tr_CF[0]
             tr_CF.data = np.zeros(tr_CF.data.shape)
             tr_CF.stats.channel = wave_type

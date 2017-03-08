@@ -89,12 +89,13 @@ def main():
 
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
     fq_str = str(np.round(config.frequencies[0])) + '_' + str(np.round(config.frequencies[-1]))
+    ch_str = str(config.channel)[1:-1].replace("'", "")
     file_out_base = '_'.join((
         datestr,
         str(len(config.frequencies)) + 'fq' + fq_str + 'hz',
         str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
         config.ch_function,
-        config.channel,
+        ch_str,
         ''.join(config.wave_type),
         'trig' + str(config.trigger)
         ))

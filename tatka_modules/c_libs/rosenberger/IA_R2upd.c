@@ -1,6 +1,9 @@
 /*
  * rank 2 update SVD, see Rosenberger, BSSA, June 2010
  *
+ * Revision 1.4  2016/03/15 Claudio Satriano <satriano@ipgp.fr>
+ *               - subtrack2 now only returns the polarization filter
+ *
  * Revision 1.3  2014/05/11 Claudio Satriano <satriano@ipgp.fr>
  *               - Added rl_filter option to subtrack2
  *
@@ -43,7 +46,7 @@ void Destroy_USV32_struct(USV32_struct *P)
 }
 
 
-void subtrack2(const IA_Dvect *x, IA_Dvect *pw, IA_Dvect *sw,
+void subtrack2(const IA_Dvect *x, double *pol_out,
                const float lambda, const float delta,
                char proj, char rl_filter,
                USV32_struct *P, char r2u_init)
@@ -243,18 +246,8 @@ void subtrack2(const IA_Dvect *x, IA_Dvect *pw, IA_Dvect *sw,
     }
 
     pol = fabs(P->U[0][0]); /* acos(U[0][0]) is vertical angle of incidence */
+    *pol_out = pol;
 
-    /* Rescale, return as integer values! */
-    /* P-wave */
-    pw->z = z[0] * pol * rl;
-    pw->n = z[1] * pol * rl;
-    pw->e = z[2] * pol * rl;
-
-    /* S-wave */
-    pol = 1.0 - pol;
-    sw->z = z[0] * pol * rl;
-    sw->n = z[1] * pol * rl;
-    sw->e = z[2] * pol * rl;
 
     free2double(Ut);
     free2double(St);

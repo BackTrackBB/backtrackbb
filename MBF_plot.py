@@ -36,7 +36,7 @@ def main():
                         config.filter_norm, config.filter_npoles,
                         var_w=config.win_type,
                         CF_type=config.ch_function,
-                        order=config.hos_order,
+                        hos_order=config.hos_order,
                         CF_decay_win=config.decay_const,
                         hos_sigma=hos_sigma[config.stations[0]])
     print 'Creating characteristic function: %s' % (st[0].stats.station)
