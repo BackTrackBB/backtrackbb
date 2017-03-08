@@ -2,7 +2,9 @@
 import sys
 import os
 from glob import glob
-from obspy.core import read, Stream,UTCDateTime
+from obspy.clients.filesystem.sds import Client
+from obspy.core import read, Stream, UTCDateTime
+
 
 def read_traces(config):
     basepath = config.data_dir
@@ -16,16 +18,26 @@ def read_traces(config):
         kwargs['format'] = config.data_format
 
     tmpst = Stream()
-    for filename in glob(os.path.join(basepath, '*')):
-        try:
-            if config.start_time:
-                tmpst += read(filename,
-                              starttime = UTCDateTime(config.start_time),
-                              endtime = UTCDateTime(config.end_time),**kwargs)
-            else:
-                tmpst += read(filename, **kwargs)
-        except Exception:
-            continue
+
+    if config.dataarchive_type == 'SDS':
+        client = Client(basepath)
+        start_t = UTCDateTime(config.start_time)
+        end_t = UTCDateTime(config.end_time)
+        tmpst = client.get_waveforms(config.data_network,
+                                     "*", "*", '*',
+                                     start_t, end_t)
+    else:
+        for filename in glob(os.path.join(basepath, '*')):
+            try:
+                if config.start_time:
+                    tmpst += read(filename,
+                                  starttime=UTCDateTime(config.start_time),
+                                  endtime=UTCDateTime(config.end_time),
+                                  **kwargs)
+                else:
+                    tmpst += read(filename, **kwargs)
+            except Exception:
+                continue
 
     # Get the intersection between the list of available stations
     # and the list of requested stations:
@@ -75,7 +87,7 @@ def read_traces(config):
     else:
         st.trim(st_starttime, st_endtime)
 
-    #--- cut the data to the selected length dt------------------------------
+    # --- cut the data to the selected length dt------------------------------
     if config.cut_data:
         st.trim(st[0].stats.starttime+config.cut_start,
                 st[0].stats.starttime+config.cut_start+config.cut_delta)

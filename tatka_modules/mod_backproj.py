@@ -64,15 +64,19 @@ def _run_BackProj(config, st, st_CF, t_begin,
         st_CF.merge(method=1)
     else:
         st_CF_cut = st_CF.copy()
-        st_CF_cut = st_CF_cut.trim(config.starttime + t_begin, config.starttime + t_end)
+        st_CF_cut = st_CF_cut.trim(config.starttime + t_begin,
+                                   config.starttime + t_end)
 
     if config.ignore_noisy_CF:
-        sums = [('%s.%s' % (str(tr.stats.station), tr.stats.channel), (tr.data/tr.max()).sum())
-                for tr in st_CF_cut]
+        sums = [('%s' % str(tr.stats.station), '%s' % str(tr.stats.channel),
+                (tr.data/tr.max()).sum()) for tr in st_CF_cut]
+
         min_sum = min(s[1] for s in sums)
-        # A noisy CF has an integral at least two times larger than the smaller one
+
+        # A noisy CF has an integral at least two times larger than
+        # the smaller one
         # TODO: parametrize?
-        noisy_sta_wave = [s[0] for s in sums if s[1] >= 2*min_sum]
+        noisy_sta_wave = [(s[0], s[1]) for s in sums if s[2] >= 2*min_sum]
     else:
         noisy_sta_wave = []
 
@@ -80,12 +84,13 @@ def _run_BackProj(config, st, st_CF, t_begin,
     Mtau = []
     arrival_times = defaultdict(dict)
     arglist = []
-    sta_wave = [ (sta, wave)
+    sta_wave = [(sta, wave)
                 for wave in config.wave_type for sta in config.stations]
-    # Remove noisy CFs, if this leaves us with at least 3 CFs
+
+    # Remove noisy CFs, if this leaves us with at least 4 CFs (3 sta are few)
     # (otherwhise use all the CFs)
-    if (len(sta_wave) - len(noisy_sta_wave)) >= 3:
-        sta_wave = [s for s in sta_wave if not s in noisy_sta_wave]
+    if (len(sta_wave) - len(noisy_sta_wave)) >= 4:
+        sta_wave = [s for s in sta_wave if s not in noisy_sta_wave]
     for sta_wave1, sta_wave2 in itertools.combinations(sta_wave, 2):
         sta1 = sta_wave1[0]
         sta2 = sta_wave2[0]
@@ -104,8 +109,8 @@ def _run_BackProj(config, st, st_CF, t_begin,
             tau_max = GRD_sta[sta1][wave1].get_value(GRD_sta[sta2][wave1].sta_x,
                                                      GRD_sta[sta2][wave1].sta_y,
                                                      GRD_sta[sta2][wave1].sta_z)
-            Mtau.append(np.round(tau_max,1))
-            t_end = t_begin + np.round(tau_max,1)
+            Mtau.append(np.round(tau_max, 1))
+            t_end = t_begin + np.round(tau_max, 1)
         else:
             Mtau = None
             tau_max = None
@@ -181,7 +186,7 @@ def _run_BackProj(config, st, st_CF, t_begin,
             ell = stack_grid.get_xyz_ellipsoid()
         max_ax = config.trigger_ellipsoid_max_axis
         if (ell.len1 <= max_ax and
-            stack_grid.max() >= config.trigger_ellipsoid):
+                stack_grid.max() >= config.trigger_ellipsoid):
             do_trigger = True
             trigger_level = config.trigger_ellipsoid
     if config.trigger_probability_range is not None and not do_trigger:
@@ -212,9 +217,9 @@ def _run_BackProj(config, st, st_CF, t_begin,
     trigger = None
     if do_trigger:
         if config.max_subdivide is not None:
-            #We "zoom" the grid in a region close to the maximum
+            # We "zoom" the grid in a region close to the maximum
             zoom_factor = float(config.max_subdivide)
-            slice_factor = 4 #this is hardcoded, for now
+            slice_factor = 4  # this is hardcoded, for now
             sf = int(slice_factor)
             ni, nj, nk = stack_grid.array.shape
             idx = slice_indexes(i_max, j_max, k_max,
@@ -227,8 +232,8 @@ def _run_BackProj(config, st, st_CF, t_begin,
             # TODO: why can it be empty?
             if zoom_slice_grid.size > 0:
                 zoom_i_max, zoom_j_max, zoom_k_max =\
-                     [a[0]/zoom_factor
-                      for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
+                    [a[0]/zoom_factor
+                     for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
                 i_max = zoom_i_max + i_max - sf
                 i_max = i_max if i_max > 0 else 0
                 j_max = zoom_j_max + j_max - sf
@@ -247,7 +252,7 @@ def _run_BackProj(config, st, st_CF, t_begin,
         trigger.center_win = start_tw + config.time_lag/2.
         if stack_grid.proj_name != 'NONE':
             trigger.lat, trigger.lon =\
-                    rect2latlon(trigger.x, trigger.y)
+                rect2latlon(trigger.x, trigger.y)
 
         # Compute origin time and theoretical arrivals
         TrOrig_time(config, GRD_sta, trigger, arrival_times)
@@ -264,10 +269,9 @@ def _run_BackProj(config, st, st_CF, t_begin,
         stack_grid.write_hdr_file(basename)
         stack_grid.write_buf_file(basename)
 
-    ## Plotting------------------------------------------------------------------
+    # Plotting------------------------------------------------------------------
     if config.plot_results == 'True' or\
             (config.plot_results == 'trigger_only' and trigger is not None):
-
 
         bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end,

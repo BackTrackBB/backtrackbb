@@ -120,9 +120,9 @@ def main():
     # end ax2, ax3
 
 
-    # ax4: summary characteristic function
+    #  ax4: summary characteristic function
     label = 'MBF sum. ' + config.ch_function
-    ax4.plot(time_array, MBkurt_1max/max(MBkurt_1max),'r', label=label, lw=1.5)
+    ax4.plot(time_array, MBkurt_1max/max(MBkurt_1max), 'r', label=label, lw=1.5)
     if config.ch_function == 'kurtosis':
         label = 'MBF sum. gauss'
         ax4.plot(time_array, MBkurt_1max_gauss/max(MBkurt_1max_gauss), 'b', label=label, lw=1.5)
@@ -133,20 +133,24 @@ def main():
     if len(st) == 2:
         horiz_env = np.sqrt(np.power(st[0].data, 2) +
                             np.power(st[1].data, 2))
-        ax4.plot(time_array, horiz_env,'k',alpha = 0.6,lw=0.5)
+        ax4.plot(time_array, horiz_env, 'k', alpha=0.6, lw=0.5)
     else:
-        ax4.plot(time_array, st[0].data,'k',alpha = 0.6,lw=0.5)
+        ax4.plot(time_array, st[0].data, 'k', alpha=0.6, lw=0.5)
     ax4.legend()
     # end ax4
-    #------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-    #import os
-    #if len(st) == 2:
-    #    name_fig_out = 'MBFplot.' + config.ch_function + '.' + st[0].stats.station + '.horiz'
-    #if len(st) == 1:
-    #    name_fig_out = 'MBFplot.' + config.ch_function + '.' + st[0].id
-
-    #fig.savefig(os.path.join(config.out_dir,name_fig_out), format=config.plot_format)
+    import os
+    if len(st) == 2:
+        name_fig_out = '.'.join(('MBFplot', config.ch_function,
+                                 st[0].stats.station, 'horiz',
+                                 config.plot_format))
+    if len(st) == 1:
+        name_fig_out = '.'.join(('MBFplot', config.ch_function,
+                                 st[0].stats.station, st[0].stats.channel,
+                                 config.plot_format))
+    fig.savefig(os.path.join(config.out_dir, name_fig_out),
+                format=config.plot_format)
     plt.show()
 
 
