@@ -11,7 +11,7 @@ def summary_cf(config, st, rec_memory=None):
     else:
         rosenberger_decay_const = config.decay_const
     # TODO: so far fixed can be added to control file as a separate variable
-    sigma_gauss = int(config.decay_const/config.delta/6)
+    sigma_gauss = int(config.decay_const/config.delta/2)
 
     st_CF = Stream()
     for station in config.stations:

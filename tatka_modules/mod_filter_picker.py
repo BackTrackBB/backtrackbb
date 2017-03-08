@@ -82,9 +82,8 @@ def MBfilter_CF(st, frequencies,
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
-            # Define the decay constant so that the CF is at 5% of its
-            # initial value after CF_decay_win seconds
-            CF_decay_constant = 1 - np.exp(np.log(0.05) / CF_decay_nsmps_mb)
+            # Define the decay constant
+            CF_decay_constant = 1 / CF_decay_nsmps_mb
 
             if CF_type == 'envelope':
                 CF1[n] = recursive_rms(YN1[n], CF_decay_constant, rmem)
@@ -98,7 +97,7 @@ def MBfilter_CF(st, frequencies,
                 CF1[n] = recursive_hos(YN1[n], CF_decay_constant,
                                        hos_order, hos_sigma, rmem)
 
-    # More than 3 components
+    # 3 components
     else:
         # Vertical
         tr1 = st.select(channel='*[Z,U,D]')[0]
@@ -137,10 +136,8 @@ def MBfilter_CF(st, frequencies,
             YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n], filter_npoles, rmem3)
             YN3[n] /= filter_norm[n]
 
-            # Define the decay constant so that the CF is at 5% of its
-            # initial value after CF_decay_win seconds
-            rosenberger_decay_constant =\
-                1 - np.exp(np.log(0.05) / rosenberger_decay_nsmps)
+            # Define the decay constant
+            rosenberger_decay_constant = 1 / rosenberger_decay_nsmps
 
             print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
             sys.stdout.flush()
@@ -155,10 +152,10 @@ def MBfilter_CF(st, frequencies,
                             normalize_each=rosenberger_normalize_each)
 
             # Use vertical component for P data
-            filteredDataP[n] = filt_dataP[0,:]
+            filteredDataP[n] = filt_dataP[0, :]
             # Use vector composition of the two horizontal component for S data
-            filteredDataS[n] = np.sqrt(np.power(filt_dataS[1,:], 2) +
-                                       np.power(filt_dataS[2,:], 2))
+            filteredDataS[n] = np.sqrt(np.power(filt_dataS[1, :], 2) +
+                                       np.power(filt_dataS[2, :], 2))
 
             if var_w and CF_type == 'envelope':
                 CF_decay_nsmps_mb = (Tn[n]/delta) * CF_decay_nsmps
@@ -220,7 +217,7 @@ if __name__ == '__main__':
     from rec_filter import rec_filter_coeff, rec_filter_norm
     from obspy.core import read, Trace, Stream
 
-    #if arguments, read the file
+    # if arguments, read the file
     if len(sys.argv) == 2:
         filename = sys.argv[1]
         print filename
@@ -228,17 +225,17 @@ if __name__ == '__main__':
         signal = np.array(data[0].data, dtype='float')
         sys.exitfunc()
     elif len(sys.argv) >= 2:
-        #to be completed to account for extra arguments
+        # to be completed to account for extra arguments
         pass
     else:
         noise = generate_signal_noise2(1000, 0.05)
         signal = generate_signal_expSin(300, 0.005, 0.5, noise, 0.5, 500, 0.05, 1)
 
     # sampling interval
-    #TODO: fix code below
-    #if 'data' in locals():
+    # TODO: fix code below
+    # if 'data' in locals():
     #    delta = data[0].stats.sampling_rate
-    #else:
+    # else:
     delta = 0.01
 
     tr = Trace(signal)
@@ -250,7 +247,8 @@ if __name__ == '__main__':
     CN_HP, CN_LP = rec_filter_coeff(frequencies, delta)
     filter_norm = rec_filter_norm(frequencies, delta, CN_HP, CN_LP, 2)
     YN, CF, Tn, Nb = MBfilter_CF(st, frequencies, CN_HP, CN_LP, filter_norm,
-                                 var_w=False, CF_type='kurtosis', CF_decay_win=0.1)
+                                 var_w=False, CF_type='kurtosis',
+                                 CF_decay_win=0.1)
 
     fig1 = plt.figure()
     fig2 = plt.figure()
@@ -259,11 +257,11 @@ if __name__ == '__main__':
     for n in range(Nb):
         ax1 = fig1.add_subplot(Nb+1, 1, n+1)
         ax2 = fig2.add_subplot(Nb+1, 1, n+1)
-        #ax2.set_ylim((0, max2))
+        # ax2.set_ylim((0, max2))
         ax1.plot(YN[n])
         ax2.plot(CF[n])
 
     ax1.plot(signal, 'g')
-    ax2.plot(recursive_hos(signal, 0.1, order=4),'g')
+    ax2.plot(recursive_hos(signal, 0.1, order=4), 'g')
 
     plt.show()
