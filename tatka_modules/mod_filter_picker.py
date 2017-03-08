@@ -1,7 +1,5 @@
 import numpy as np
-import scipy as sp
 import sys
-from obspy.signal.util import smooth
 from rec_filter import recursive_filter
 from rec_rms import recursive_rms
 from rec_hos import recursive_hos
@@ -59,8 +57,8 @@ def MBfilter_CF(st, frequencies,
     if hos_sigma is None:
         hos_sigma = -1.
 
-    # Less than 3 components
-    if len(st) < 3:
+    # Single component analysis
+    if len(st) < 2:
         # Use just the first trace in stream
         tr = st[0]
         y = tr.data
@@ -74,7 +72,8 @@ def MBfilter_CF(st, frequencies,
             else:
                 rmem = None
 
-            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n], filter_npoles, rmem)
+            YN1[n] = recursive_filter(y, CN_HP[n], CN_LP[n],
+                                      filter_npoles, rmem)
             YN1[n] /= filter_norm[n]
 
             if var_w and CF_type == 'envelope':
@@ -85,19 +84,63 @@ def MBfilter_CF(st, frequencies,
             # Define the decay constant
             CF_decay_constant = 1 / CF_decay_nsmps_mb
 
+            # Calculates CF for each MBF signal
             if CF_type == 'envelope':
                 CF1[n] = recursive_rms(YN1[n], CF_decay_constant, rmem)
-
-            if CF_type == 'hilbert':
-                # This does not support recursive memory!
-                CF1[n] = smooth(abs(sp.signal.hilbert(YN1[n])),
-                                CF_decay_nsmps_mb)
 
             if CF_type == 'kurtosis':
                 CF1[n] = recursive_hos(YN1[n], CF_decay_constant,
                                        hos_order, hos_sigma, rmem)
 
-    # 3 components
+    # 2 (horizontal) components analysis
+    elif len(st) == 2:
+        # Assumes that 2 horizontal components are used
+        tr1 = st.select(channel='*[E,W,1]')[0]
+        tr2 = st.select(channel='*[N,S,2]')[0]
+
+        y1 = tr1.data
+        y2 = tr2.data
+
+        # Initializing arrays
+        YN_E = np.zeros((Nb, len(y1)), float)
+        YN_N = np.zeros((Nb, len(y1)), float)
+        YN1 = np.zeros((Nb, len(y1)), float)
+        CF1 = np.zeros((Nb, len(y1)), float)
+
+        for n in xrange(Nb):
+            if rec_memory is not None:
+                rmem1 = rec_memory[(tr1.id, wave_type)][n]
+                rmem2 = rec_memory[(tr2.id, wave_type)][n]
+            else:
+                rmem1 = None
+                rmem2 = None
+
+            YN_E[n] = recursive_filter(y1, CN_HP[n], CN_LP[n],
+                                       filter_npoles, rmem1)
+            YN_E[n] /= filter_norm[n]
+            YN_N[n] = recursive_filter(y2, CN_HP[n], CN_LP[n],
+                                       filter_npoles, rmem2)
+            YN_N[n] /= filter_norm[n]
+            # Combining horizontal components
+            YN1[n] = np.sqrt(np.power(YN_E[n], 2) + np.power(YN_N[n], 2))
+
+            if var_w and CF_type == 'envelope':
+                CF_decay_nsmps_mb = (Tn[n] / delta) * CF_decay_nsmps
+            else:
+                CF_decay_nsmps_mb = CF_decay_nsmps
+
+            # Define the decay constant
+            CF_decay_constant = 1 / CF_decay_nsmps_mb
+
+            # Calculates CF for each MBF signal
+            if CF_type == 'envelope':
+                CF1[n] = recursive_rms(YN1[n], CF_decay_constant, rmem1)
+
+            if CF_type == 'kurtosis':
+                CF1[n] = recursive_hos(YN1[n], CF_decay_constant,
+                                       hos_order, hos_sigma, rmem1)
+
+    # 3 components analysis, includes polarization P and S decomposition
     else:
         # Vertical
         tr1 = st.select(channel='*[Z,U,D]')[0]
@@ -129,11 +172,14 @@ def MBfilter_CF(st, frequencies,
                 rmem2 = None
                 rmem3 = None
 
-            YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n], filter_npoles, rmem1)
+            YN1[n] = recursive_filter(y1, CN_HP[n], CN_LP[n],
+                                      filter_npoles, rmem1)
             YN1[n] /= filter_norm[n]
-            YN2[n] = recursive_filter(y2, CN_HP[n], CN_LP[n], filter_npoles, rmem2)
+            YN2[n] = recursive_filter(y2, CN_HP[n], CN_LP[n],
+                                      filter_npoles, rmem2)
             YN2[n] /= filter_norm[n]
-            YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n], filter_npoles, rmem3)
+            YN3[n] = recursive_filter(y3, CN_HP[n], CN_LP[n],
+                                      filter_npoles, rmem3)
             YN3[n] /= filter_norm[n]
 
             # Define the decay constant
@@ -162,9 +208,8 @@ def MBfilter_CF(st, frequencies,
             else:
                 CF_decay_nsmps_mb = CF_decay_nsmps
 
-            # Define the decay constant so that the CF is at 5% of its
-            # initial value after CF_decay_win seconds
-            CF_decay_constant = 1 - np.exp(np.log(0.05) / CF_decay_nsmps_mb)
+            # Define the decay constant
+            CF_decay_constant = 1 / CF_decay_nsmps_mb
 
             if CF_type == 'envelope':
                 if wave_type == 'P':
@@ -229,7 +274,8 @@ if __name__ == '__main__':
         pass
     else:
         noise = generate_signal_noise2(1000, 0.05)
-        signal = generate_signal_expSin(300, 0.005, 0.5, noise, 0.5, 500, 0.05, 1)
+        signal = generate_signal_expSin(300, 0.005, 0.5, noise,
+                                        0.5, 500, 0.05, 1)
 
     # sampling interval
     # TODO: fix code below
