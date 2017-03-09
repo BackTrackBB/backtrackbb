@@ -4,7 +4,7 @@ import sys
 import os
 from argparse import ArgumentParser
 from configobj import ConfigObj
-from validate import Validator
+from configobj.validate import Validator
 from Config import Config
 
 

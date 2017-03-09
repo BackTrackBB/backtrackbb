@@ -41,7 +41,7 @@ ext_modules.append(Extension(
 
 setup(
     name='backtrackbb',
-    packages=['backtrackbb', 'backtrackbb.scripts'],
+    packages=['backtrackbb', 'backtrackbb.scripts', 'backtrackbb.configobj'],
     include_package_data=True,
     entry_points={
         'console_scripts': [
