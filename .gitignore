@@ -3,6 +3,7 @@ backtrackbb.egg-info/
 dist/
 build/
 RELEASE-VERSION
+*.so
 
 # python bytecode
 *.pyc
