@@ -11,7 +11,7 @@ from backtrackbb.map_project import get_transform
 from backtrackbb.mod_utils import read_locationTremor, read_locationEQ
 from backtrackbb.plot import plt_SummaryOut
 from backtrackbb.rec_memory import init_recursive_memory
-from backtrackbb.mod_backproj import run_BackProj
+from backtrackbb.mod_btbb import run_btbb
 from backtrackbb.AsyncPlotter import AsyncPlotter
 from multiprocessing import Pool
 
@@ -136,14 +136,14 @@ def main():
         # due to a python bug
         # (http://stackoverflow.com/questions/1408356/
         #  keyboard-interrupts-with-pythons-multiprocessing-pool)
-        p_outputs = pool.map_async(run_BackProj, arglist).get(9999999)
+        p_outputs = pool.map_async(run_btbb, arglist).get(9999999)
         pool.close()
         pool.join()
     else:
         # serial execution
         # (but there might be a parallelization step
-        # inside run_BackProj, if we're using recursive_memory)
-        p_outputs = map(run_BackProj, arglist)
+        # inside run_btbb, if we're using recursive_memory)
+        p_outputs = map(run_btbb, arglist)
     triggers = filter(None, p_outputs)
 
     if async_plotter is not None:

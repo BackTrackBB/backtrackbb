@@ -1,5 +1,5 @@
 # bp_types.py
-# Data types for BackProj
+# Data types for BackTrackBB
 from obspy import UTCDateTime
 from ctypes import c_double
 import numpy as np

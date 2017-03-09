@@ -15,13 +15,12 @@ First, download the file [examples.zip]( https://www.dropbox.com/s/emlz4lbd6dpu9
 
 ### Run the main detection and location code on an example dataset:
 
-    ./BackProj.py  BT_ChileExample.conf
+    ./btbb.py  BT_ChileExample.conf
 
-### Run an example illustrating the procedure of Multi-Band Filter Characteristic Function calculation: 
+### Run an example illustrating the procedure of Multi-Band Filter Characteristic Function calculation:
 
     ./MBF_plot.py  MBF_ChileExample.conf
 
 
 
-### A detailed documentation is available here: [link_to_doc_repository] 
-
+### A detailed documentation is available here: [link_to_doc_repository]

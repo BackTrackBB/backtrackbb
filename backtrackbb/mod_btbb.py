@@ -30,13 +30,13 @@ def slice_indexes(i, j, k, si, sj, sk, ni, nj, nk):
     return i1, i2, j1, j2, k1, k2
 
 
-def run_BackProj(args):
-    return _run_BackProj(*args)
+def run_btbb(args):
+    return _run_btbb(*args)
 
 
-def _run_BackProj(config, st, st_CF, t_begin,
-                  coord_sta, GRD_sta, coord_eq,
-                  rec_memory=None, async_plotter=None):
+def _run_btbb(config, st, st_CF, t_begin,
+              coord_sta, GRD_sta, coord_eq,
+              rec_memory=None, async_plotter=None):
 
     t_end = t_begin + config.time_lag
 

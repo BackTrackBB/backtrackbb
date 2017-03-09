@@ -47,7 +47,7 @@ def _parse_args(progname):
     if (progname == 'backtrack2eventdata' or
             progname == 'group_triggers'):
         parser.add_argument('trigger_file', metavar='trigger_file', type=str,
-                            help='trigger file (output from BackProj.py)')
+                            help='trigger file (output from btbb)')
     if progname == 'backtrack2eventdata':
         parser.add_argument('station_file', metavar='station_file', type=str,
                             help='file with station coordinates (optional)',

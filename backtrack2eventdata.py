@@ -7,7 +7,7 @@ from backtrackbb.read_traces import read_traces
 from obspy.core import AttribDict
 
 """
-using output file xxx_OUT2_grouped.dat of BackProj.py
+using output file xxx_OUT2_grouped.dat of btbb.py
 to create events data
 to run: ./backtrack2eventdata.py config_file xxx_OUT2_grouped.dat
         (station.dat --> optional)
