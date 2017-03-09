@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 import os
-from tatka_modules.mod_setup import configure
-from tatka_modules.bp_types import Trigger, Pick
-from tatka_modules.read_traces import read_traces
+from backtrackbb.mod_setup import configure
+from backtrackbb.bp_types import Trigger, Pick
+from backtrackbb.read_traces import read_traces
 from obspy.core import AttribDict
 
 """

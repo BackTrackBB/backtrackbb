@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 import os
-from tatka_modules.mod_setup import configure
-from tatka_modules.bp_types import Trigger, Pick
-from tatka_modules.mod_group_trigs import group_triggers
+from backtrackbb.mod_setup import configure
+from backtrackbb.bp_types import Trigger, Pick
+from backtrackbb.mod_group_trigs import group_triggers
 
 
 def main():

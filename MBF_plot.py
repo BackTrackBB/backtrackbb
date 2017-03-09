@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import numpy as np
-from tatka_modules.mod_setup import configure
-from tatka_modules.read_traces import read_traces
-from tatka_modules.init_filter import init_filter
-from tatka_modules.mod_filter_picker import MBfilter_CF, GaussConv
+from backtrackbb.mod_setup import configure
+from backtrackbb.read_traces import read_traces
+from backtrackbb.init_filter import init_filter
+from backtrackbb.mod_filter_picker import MBfilter_CF, GaussConv
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams['pdf.fonttype'] = 42

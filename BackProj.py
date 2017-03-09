@@ -2,17 +2,17 @@
 # -*- coding: utf8 -*-
 import os
 import numpy as np
-from tatka_modules.mod_setup import configure
-from tatka_modules.read_traces import read_traces
-from tatka_modules.init_filter import init_filter
-from tatka_modules.read_grids import read_grids
-from tatka_modules.summary_cf import summary_cf, empty_cf
-from tatka_modules.map_project import get_transform
-from tatka_modules.mod_utils import read_locationTremor, read_locationEQ
-from tatka_modules.plot import plt_SummaryOut
-from tatka_modules.rec_memory import init_recursive_memory
-from tatka_modules.mod_backproj import run_BackProj
-from tatka_modules.AsyncPlotter import AsyncPlotter
+from backtrackbb.mod_setup import configure
+from backtrackbb.read_traces import read_traces
+from backtrackbb.init_filter import init_filter
+from backtrackbb.read_grids import read_grids
+from backtrackbb.summary_cf import summary_cf, empty_cf
+from backtrackbb.map_project import get_transform
+from backtrackbb.mod_utils import read_locationTremor, read_locationEQ
+from backtrackbb.plot import plt_SummaryOut
+from backtrackbb.rec_memory import init_recursive_memory
+from backtrackbb.mod_backproj import run_BackProj
+from backtrackbb.AsyncPlotter import AsyncPlotter
 from multiprocessing import Pool
 
 DEBUG = False
