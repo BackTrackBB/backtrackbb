@@ -10,31 +10,34 @@ from Config import Config
 
 # Setup ipython shell
 if sys.stdout.isatty():
-    import IPython
-    ip_version = map(int, IPython.__version__.split('.'))
-    if ip_version[0] == 0:
-        if ip_version[1] >= 11:
-            # ipython >= 0.11
+    try:
+        import IPython
+        ip_version = map(int, IPython.__version__.split('.'))
+        if ip_version[0] == 0:
+            if ip_version[1] >= 11:
+                # ipython >= 0.11
+                try:
+                    from IPython.frontend.terminal.embed \
+                        import InteractiveShellEmbed
+                    ipshell = InteractiveShellEmbed()
+                except ImportError:
+                    ipshell = None
+            else:
+                # ipython < 0.11
+                try:
+                    from IPython.Shell import IPShellEmbed
+                    ipshell = IPShellEmbed()
+                except ImportError:
+                    ipshell = None
+        elif ip_version[0] > 0:
+            # ipython >= 1.0.0
             try:
-                from IPython.frontend.terminal.embed \
-                    import InteractiveShellEmbed
+                from IPython.terminal.embed import InteractiveShellEmbed
                 ipshell = InteractiveShellEmbed()
             except ImportError:
                 ipshell = None
-        else:
-            # ipython < 0.11
-            try:
-                from IPython.Shell import IPShellEmbed
-                ipshell = IPShellEmbed()
-            except ImportError:
-                ipshell = None
-    elif ip_version[0] > 0:
-        # ipython >= 1.0.0
-        try:
-            from IPython.terminal.embed import InteractiveShellEmbed
-            ipshell = InteractiveShellEmbed()
-        except ImportError:
-            ipshell = None
+    except ImportError:
+        ipshell = None
 else:
     ipshell = None
 
