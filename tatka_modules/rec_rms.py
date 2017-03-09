@@ -1,20 +1,22 @@
+# -*- coding: utf8 -*-
 import os
 from ctypes import CDLL, c_int, c_float, c_double, c_void_p, POINTER, byref
 from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_rec_rms.so')
+libpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                       'lib', 'lib_rec_rms.so')
 lib_rec_rms = CDLL(libpath)
 
 lib_rec_rms._recursive_rms.argtypes = [
-        ndpointer(dtype=np.float64), #signal
-        ndpointer(dtype=np.float64), #rms_signal
-        c_int, #npts
-        c_float, #C_WIN
-        POINTER(c_double), #mean_sq
-        c_int, #memory_sample
-        c_int #initialize
+        ndpointer(dtype=np.float64),  # signal
+        ndpointer(dtype=np.float64),  # rms_signal
+        c_int,  # npts
+        c_float,  # C_WIN
+        POINTER(c_double),  # mean_sq
+        c_int,  # memory_sample
+        c_int  # initialize
         ]
 lib_rec_rms._recursive_rms.restype = c_void_p
 

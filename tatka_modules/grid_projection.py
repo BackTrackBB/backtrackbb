@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import numpy as np
 import scipy as sp
 from LocalCC import LocalCC
@@ -28,12 +29,11 @@ def _sta_GRD_Proj(config, sta_wave1, sta_wave2, sig1, sig2, t_b, tau_max=None):
     t_lag, local_cc, arrival1, arrival2 =\
         LocalCC(sig1, sig2, samp_rate, max_lag, start_time+t_b, sigma)
 
-    ## Max value of local_cc in given window
+    # Max value of local_cc in given window
     local_cc_1d = np.amax(local_cc, axis=1)
 
-    ## Projecting LCC for the station pair on the grid of theoretical t_times
-    ## Check which of the functions for the interpolations is faster?
-    ##function = sp.interpolate.interp1d(t_lag, local_cc_1d)
+    # Projecting LCC for the station pair on the grid of theoretical t_times
+    # Check which of the functions for the interpolations is faster?
     function = sp.interpolate.UnivariateSpline(t_lag, local_cc_1d, k=1, s=0)
 
     return function, arrival1, arrival2, sta_wave1, sta_wave2

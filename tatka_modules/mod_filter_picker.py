@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import numpy as np
 import sys
 from rec_filter import recursive_filter
@@ -8,9 +9,7 @@ from rosenberger import rosenberger
 
 
 def make_LinFq(f_min, f_max, delta, nfreq):
-    """
-    Calculates linearly spaced frequency array for MB filtering
-    """
+    """Calculate linearly spaced frequency array for MB filtering."""
     f_ny = float(1./(2*delta))
     if f_max > f_ny:
         f_max = f_ny
@@ -19,9 +18,7 @@ def make_LinFq(f_min, f_max, delta, nfreq):
 
 
 def make_LogFq(f_min, f_max, delta, nfreq):
-    """
-    Calculates log spaced frequency array for MB filtering
-    """
+    """Calculate log spaced frequency array for MB filtering."""
     f_ny = float(1./(2*delta))
     if f_max > f_ny:
         f_max = f_ny
@@ -44,6 +41,8 @@ def MBfilter_CF(st, frequencies,
                 rec_memory=None,
                 full_output=False):
     """
+    Multiband filtering.
+
     Performs MBfiltering using 2HP+2LP recursive filter
     and calculates the characteristic function (CF)
     for each band.

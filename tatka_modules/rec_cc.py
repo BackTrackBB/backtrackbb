@@ -1,19 +1,21 @@
+# -*- coding: utf8 -*-
 import os
 import ctypes
 from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_rec_cc.so')
+libpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                       'lib', 'lib_rec_cc.so')
 lib_rec_cc = ctypes.CDLL(libpath)
 
 lib_rec_cc._local_CCr.argtypes = [
-        ndpointer(dtype=np.float64), #signal1
-        ndpointer(dtype=np.float64), #signal2
-        ctypes.c_int,                #npts
-        ndpointer(dtype=np.float64), #cc
-        ctypes.c_int,                #lmax
-        ctypes.c_double              #sigma
+        ndpointer(dtype=np.float64),  # signal1
+        ndpointer(dtype=np.float64),  # signal2
+        ctypes.c_int,                 # npts
+        ndpointer(dtype=np.float64),  # cc
+        ctypes.c_int,                 # lmax
+        ctypes.c_double               # sigma
         ]
 lib_rec_cc._local_CCr.restype = ctypes.c_void_p
 
@@ -24,13 +26,14 @@ def local_CCr(signal1, signal2, t_lag, fs, sigma=None):
     if not isinstance(signal2, np.ndarray):
         signal2 = np.array(signal2, dtype=np.float64)
     if signal1.size != signal2.size:
-        raise RuntimeError, 'Signals must have the same size.'
+        raise RuntimeError('Signals must have the same size.')
 
     if sigma is not None:
         # Compute sigma in samples
         sigma *= fs
         if sigma < 0.5:
-            raise RuntimeError, 'Sigma for Gaussian filter must be >= 0.5 samples.'
+            raise RuntimeError(
+                'Sigma for Gaussian filter must be >= 0.5 samples.')
     else:
         # Do not smooth
         sigma = -999.

@@ -1,7 +1,5 @@
 # -*- coding: utf8 -*-
-'''
-Setup functions
-'''
+"""Setup functions."""
 import sys
 import os
 from argparse import ArgumentParser
@@ -16,21 +14,22 @@ if sys.stdout.isatty():
     ip_version = map(int, IPython.__version__.split('.'))
     if ip_version[0] == 0:
         if ip_version[1] >= 11:
-        # ipython >= 0.11
+            # ipython >= 0.11
             try:
-                from IPython.frontend.terminal.embed import InteractiveShellEmbed
+                from IPython.frontend.terminal.embed \
+                    import InteractiveShellEmbed
                 ipshell = InteractiveShellEmbed()
             except ImportError:
                 ipshell = None
         else:
-        # ipython < 0.11
+            # ipython < 0.11
             try:
                 from IPython.Shell import IPShellEmbed
                 ipshell = IPShellEmbed()
             except ImportError:
                 ipshell = None
     elif ip_version[0] > 0:
-    # ipython >= 1.0.0
+        # ipython >= 1.0.0
         try:
             from IPython.terminal.embed import InteractiveShellEmbed
             ipshell = InteractiveShellEmbed()
@@ -40,26 +39,23 @@ else:
     ipshell = None
 
 
-
 def _parse_args(progname):
-    '''
-    Parse command line arguments
-    '''
+    """Parse command line arguments."""
     parser = ArgumentParser()
     parser.add_argument('config_file', metavar='config_file', type=str,
                         help='configuration file')
     if (progname == 'backtrack2eventdata' or
-        progname == 'group_triggers'):
+            progname == 'group_triggers'):
         parser.add_argument('trigger_file', metavar='trigger_file', type=str,
                             help='trigger file (output from BackProj.py)')
     if progname == 'backtrack2eventdata':
         parser.add_argument('station_file', metavar='station_file', type=str,
-                            help='file with station coordinates (optional)', nargs='?')
+                            help='file with station coordinates (optional)',
+                            nargs='?')
 
     options = parser.parse_known_args()
 
     return options
-
 
 
 def _str2bool(arg):
@@ -69,14 +65,17 @@ def _str2bool(arg):
 
 def _parse_configspec():
     try:
-        configspec_file = os.path.join(os.path.dirname(__file__), 'configspec.conf')
+        configspec_file = os.path.join(
+            os.path.dirname(__file__), 'configspec.conf')
         configspec = ConfigObj(configspec_file, interpolation=False,
-                        list_values=False, _inspec=True, file_error=True)
+                               list_values=False, _inspec=True,
+                               file_error=True)
     except IOError, message:
         sys.stderr.write('%s\n' % message)
         sys.exit(1)
     except Exception, message:
-        sys.stderr.write('Unable to read "%s": %s\n' % (configspec_file, message))
+        sys.stderr.write('Unable to read "%s": %s\n' %
+                         (configspec_file, message))
         sys.exit(1)
     return configspec
 
@@ -96,7 +95,8 @@ def _write_sample_config(configspec, progname):
 def _parse_config(config_file):
     configspec = _parse_configspec()
     try:
-        config_obj = ConfigObj(config_file, configspec=configspec, file_error=True)
+        config_obj = ConfigObj(config_file, configspec=configspec,
+                               file_error=True)
     except IOError, message:
         sys.stderr.write('%s\n' % message)
         sys.exit(1)
@@ -119,8 +119,8 @@ def _parse_config(config_file):
     if isinstance(test, dict):
         for entry in test:
             if not test[entry]:
-                sys.stderr.write('Invalid value for "%s": "%s"\n'
-                        % (entry, config_obj[entry]))
+                sys.stderr.write('Invalid value for "%s": "%s"\n' %
+                                 (entry, config_obj[entry]))
         sys.exit(1)
     if not test:
         sys.stderr.write('No configuration value present!\n')
@@ -145,7 +145,7 @@ def _parse_config(config_file):
             # just create a list of Nones
             hos_sigma = [None, ] * len(stations)
         hos_sigma_dict = {key: value for (key, value) in
-            zip(stations, hos_sigma)}
+                          zip(stations, hos_sigma)}
         config_obj[hos_sigma_field] = hos_sigma_dict
     # if there is no value for S, we just make a copy of the dictionary for P
     if all(v is None for v in config_obj['hos_sigma_S'].values()):
@@ -168,7 +168,7 @@ def _parse_config(config_file):
         config_obj['grid_power'] = eval(config_obj['grid_power'],
                                         {'__builtins__': None},
                                         {'nsta': len(config_obj['stations'])})
-    except:
+    except Exception:
         sys.stderr.write('Unable to parse "grid_power". Using 1.\n')
         config_obj['grid_power'] = 1
     if config_obj['grid_power_ellipsoid'] is None:
@@ -179,8 +179,9 @@ def _parse_config(config_file):
                     eval(config_obj['grid_power_ellipsoid'],
                          {'__builtins__': None},
                          {'nsta': len(config_obj['stations'])})
-        except:
-            sys.stderr.write('Unable to parse "grid_power_ellipsoid". Using "grid_power".\n')
+        except Exception:
+            sys.stderr.write('Unable to parse "grid_power_ellipsoid". '
+                             'Using "grid_power".\n')
             config_obj['grid_power_ellipsoid'] = config_obj['grid_power']
     if config_obj['trigger'] is not None:
         config_obj['trigger'] **= config_obj['grid_power']

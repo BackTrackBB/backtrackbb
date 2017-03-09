@@ -13,11 +13,11 @@ from copy import deepcopy
 
 
 class NLLGrid():
-    '''
+    """
     Class for manipulating NLL grid files.
     It has methods to read and write grid files,
     compute statistics and plot.
-    '''
+    """
 
     def __init__(self,
                  basename=None,
@@ -58,12 +58,10 @@ class NLLGrid():
 
     def __str__(self):
         s = 'basename: %s\n' % self.basename
-        s += 'nx: %d ny: %d nz: %d\n'\
-                % (self.nx, self.ny, self.nz)
+        s += 'nx: %d ny: %d nz: %d\n' % (self.nx, self.ny, self.nz)
         s += 'x_orig: %f y_orig: %f z_orig: %f\n'\
-                % (self.x_orig, self.y_orig, self.z_orig)
-        s += 'dx: %f dy: %f dz: %f\n'\
-                % (self.dx, self.dy, self.dz)
+             % (self.x_orig, self.y_orig, self.z_orig)
+        s += 'dx: %f dy: %f dz: %f\n' % (self.dx, self.dy, self.dz)
         s += 'grid_type: %s\n' % self.type
         if self.station is not None:
             s += 'station: %s sta_x: %f sta_y: %f sta_z: %f\n'\
@@ -76,7 +74,7 @@ class NLLGrid():
             return self.array[key]
 
     def remove_extension(self, basename):
-        '''remove '.hdr' or '.buf' suffixes, if there.'''
+        """Remove '.hdr' or '.buf' suffixes, if there."""
         bntmp = basename.rsplit('.hdr', 1)[0]
         return bntmp.rsplit('.buf', 1)[0]
 
@@ -84,9 +82,7 @@ class NLLGrid():
         self.array = np.zeros((self.nx, self.ny, self.nz), float)
 
     def read_hdr_file(self, basename=None):
-        '''
-        Reads header file of NLL grid format
-        '''
+        """Read header file of NLL grid format."""
         if basename is not None:
             self.basename = self.remove_extension(basename)
         filename = self.basename + '.hdr'
@@ -135,9 +131,7 @@ class NLLGrid():
                 self.sta_z = float(vals[3])
 
     def read_buf_file(self, basename=None):
-        '''
-        Reads buf file as a 3d array
-        '''
+        """Read buf file as a 3d array."""
         if basename is not None:
             self.basename = self.remove_extension(basename)
         filename = self.basename + '.buf'
@@ -148,22 +142,20 @@ class NLLGrid():
         self.array = np.array(buf).reshape(self.nx, self.ny, self.nz)
 
     def write_hdr_file(self, basename=None):
-        '''
-        Writes header file of NLL grid format
-        '''
+        """Write header file of NLL grid format."""
         if basename is not None:
             self.basename = basename
         filename = self.basename + '.hdr'
 
         lines = []
         lines.append('%d %d %d  %.6f %.6f %.6f  %.6f %.6f %.6f %s\n' %
-                (self.nx, self.ny, self.nz,
-                 self.x_orig, self.y_orig, self.z_orig,
-                 self.dx, self.dy, self.dz,
-                 self.type))
+                     (self.nx, self.ny, self.nz,
+                      self.x_orig, self.y_orig, self.z_orig,
+                      self.dx, self.dy, self.dz,
+                      self.type))
         if self.station is not None:
             lines.append('%s %.6f %.6f %.6f\n' %
-                    (self.station, self.sta_x, self.sta_y, self.sta_z))
+                         (self.station, self.sta_x, self.sta_y, self.sta_z))
         line = self.get_transform_line()
         if line is not None:
             lines.append('%s\n' % line)
@@ -173,9 +165,7 @@ class NLLGrid():
                 fp.write(line)
 
     def write_buf_file(self, basename=None):
-        '''
-        Writes buf file as a 3d array
-        '''
+        """Write buf file as a 3d array."""
         if self.array is None:
             return
 
@@ -190,11 +180,14 @@ class NLLGrid():
         if self.proj_name == 'NONE':
             return 'TRANSFORM  NONE'
         if self.proj_name == 'SIMPLE':
-            return 'TRANSFORM  SIMPLE  LatOrig %.6f  LongOrig %.6f  RotCW %.6f' %\
+            line = 'TRANSFORM  SIMPLE  '
+            line += 'LatOrig %.6f  LongOrig %.6f  RotCW %.6f' %\
                     (self.orig_lat, self.orig_lon, self.map_rot)
+            return line
         if self.proj_name == 'LAMBERT':
             line = 'TRANSFORM  LAMBERT RefEllipsoid %s  ' % self.proj_ellipsoid
-            line += 'LatOrig %.6f  LongOrig %.6f  ' % (self.orig_lat, self.orig_lon)
+            line += 'LatOrig %.6f  LongOrig %.6f  ' \
+                    % (self.orig_lat, self.orig_lon)
             line += 'FirstStdParal %.6f  SecondStdParal %.6f  RotCW %.6f' %\
                     (self.first_std_paral, self.second_std_paral, self.map_rot)
             return line
@@ -212,52 +205,40 @@ class NLLGrid():
         return i, j, k
 
     def get_ijk_max(self):
-        '''
-        Returns the indexes (i,j,k) of the grid max point
-        '''
+        """Return the indexes (i,j,k) of the grid max point."""
         if self.array is None:
             return None
         return np.unravel_index(self.array.argmax(), self.array.shape)
 
     def get_ijk_min(self):
-        '''
-        Returns the indexes (i,j,k) of the grid min point
-        '''
+        """Return the indexes (i,j,k) of the grid min point."""
         if self.array is None:
             return None
         return np.unravel_index(self.array.argmin(), self.array.shape)
 
     def get_xyz_max(self):
-        '''
-        Returns the coordinates (x,y,z) of the grid max point
-        '''
+        """Return the coordinates (x,y,z) of the grid max point."""
         ijk_max = self.get_ijk_max()
         if ijk_max is None:
             return None
         return self.get_xyz(*ijk_max)
 
     def get_xyz_min(self):
-        '''
-        Returns the coordinates (x,y,z) of the grid min point
-        '''
+        """Return the coordinates (x,y,z) of the grid min point."""
         ijk_min = self.get_ijk_min()
         if ijk_min is None:
             return None
         return self.get_xyz(*ijk_min)
 
     def get_ijk_mean(self):
-        '''
-        Returns the indexes (i,j,k) of the grid mean point
-        '''
+        """Return the indexes (i,j,k) of the grid mean point."""
         xyz_mean = self.get_xyz_mean()
         if xyz_mean is None:
             return None
         return self.get_ijk(*xyz_mean)
 
     def get_xyz_mean(self):
-        '''
-        Returns the coordinates (x,y,z) of the grid mean point
-        '''
+        """Return the coordinates (x,y,z) of the grid mean point."""
         if self.array is None:
             return None
         xx = np.arange(0, self.nx) * self.dx + self.x_orig
@@ -272,9 +253,7 @@ class NLLGrid():
         return (xmean, ymean, zmean)
 
     def get_xyz_cov(self):
-        '''
-        Returns the grid covariance with respect to the (x,y,z) mean point
-        '''
+        """Return the grid covariance with respect to the mean point."""
         if self.array is None:
             return None
         xyz_mean = self.get_xyz_mean()
@@ -283,42 +262,53 @@ class NLLGrid():
         zz = np.arange(0, self.nz) * self.dz + self.z_orig
         yarray, xarray, zarray = np.meshgrid(yy, xx, zz)
         array_sum = self.array.sum()
-        cov = np.zeros((3,3))
-        cov[0,0] = (np.power(xarray, 2) * self.array).sum()/array_sum - (xyz_mean[0] * xyz_mean[0])
-        cov[0,1] = cov[1,0] = (xarray * yarray * self.array).sum()/array_sum - (xyz_mean[0] * xyz_mean[1])
-        cov[0,2] = cov[2,0] = (xarray * zarray * self.array).sum()/array_sum - (xyz_mean[0] * xyz_mean[2])
-        cov[1,1] = (np.power(yarray, 2) * self.array).sum()/array_sum - (xyz_mean[1] * xyz_mean[1])
-        cov[1,2] = cov[2,1] = (yarray * zarray * self.array).sum()/array_sum - (xyz_mean[1] * xyz_mean[2])
-        cov[2,2] = (np.power(zarray, 2) * self.array).sum()/array_sum - (xyz_mean[2] * xyz_mean[2])
+        cov = np.zeros((3, 3))
+        cov[0, 0] =\
+            (np.power(xarray, 2) * self.array).sum()/array_sum -\
+            (xyz_mean[0] * xyz_mean[0])
+        cov[0, 1] = cov[1, 0] =\
+            (xarray * yarray * self.array).sum()/array_sum -\
+            (xyz_mean[0] * xyz_mean[1])
+        cov[0, 2] = cov[2, 0] =\
+            (xarray * zarray * self.array).sum()/array_sum -\
+            (xyz_mean[0] * xyz_mean[2])
+        cov[1, 1] =\
+            (np.power(yarray, 2) * self.array).sum()/array_sum -\
+            (xyz_mean[1] * xyz_mean[1])
+        cov[1, 2] = cov[2, 1] =\
+            (yarray * zarray * self.array).sum()/array_sum -\
+            (xyz_mean[1] * xyz_mean[2])
+        cov[2, 2] =\
+            (np.power(zarray, 2) * self.array).sum()/array_sum -\
+            (xyz_mean[2] * xyz_mean[2])
         self.xyz_cov = cov
         return cov
 
     def get_xyz_ellipsoid(self):
-        '''
-        Returns the 68% confidence ellipsoid with respect to the (x,y,z) mean point
-        '''
+        """Return the 68% confidence ellipsoid respect to the mean point."""
         from ellipsoid import Ellipsoid3D
-        # The following code is a python translation of the CalcErrorEllipsoid()
-        # c-function from the NonLinLoc package, written by Anthony Lomax
+        # The following code is a python translation of the
+        # CalcErrorEllipsoid() c-function from the NonLinLoc package,
+        # written by Anthony Lomax
         cov = self.get_xyz_cov()
         if cov is None:
             return None
 
         u, s, v = np.linalg.svd(cov)
 
-        del_chi_2 = 3.53 #3.53: value for 68% conf
+        del_chi_2 = 3.53  # 3.53: value for 68% conf
         ell = Ellipsoid3D()
-        ell.az1 = math.degrees(math.atan2(u[0,0], u[1,0]))
+        ell.az1 = math.degrees(math.atan2(u[0, 0], u[1, 0]))
         if ell.az1 < 0.0:
             ell.az1 += 360.0
-        ell.dip1 = math.degrees(math.asin(u[2,0]))
+        ell.dip1 = math.degrees(math.asin(u[2, 0]))
         ell.len1 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[0])
-        ell.az2 = math.degrees(math.atan2(u[0,1], u[1,1]))
+        ell.az2 = math.degrees(math.atan2(u[0, 1], u[1, 1]))
         if ell.az2 < 0.0:
             ell.az2 += 360.0
-        ell.dip2 = math.degrees(math.asin(u[2,1]))
-        ell.len2 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[1]);
-        ell.len3 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[2]);
+        ell.dip2 = math.degrees(math.asin(u[2, 1]))
+        ell.len2 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[1])
+        ell.len3 = math.sqrt(del_chi_2) / math.sqrt(1.0 / s[2])
 
         self.ellipsoid = ell
         return ell
@@ -385,7 +375,7 @@ class NLLGrid():
         ratio = float(xmax - xmin) / (ymax - ymin)
         plot_xz_size = ((zmax - zmin)/(xmax - xmin))*100
         plot_yz_size = plot_xz_size / ratio
-        plot_cbar_size = 5 #percent
+        plot_cbar_size = 5  # percent
         xz_size = '%f %%' % plot_xz_size
         yz_size = '%f %%' % plot_yz_size
         cb_size = '%f %%' % plot_cbar_size
@@ -399,7 +389,8 @@ class NLLGrid():
         plt.setp(ax_xy.get_yticklabels(), rotation=90, fontsize=12)
 
         # ax_yz
-        ax_yz = divider.append_axes('right', size=yz_size, pad=0.05, sharey=ax_xy)
+        ax_yz = divider.append_axes('right', size=yz_size, pad=0.05,
+                                    sharey=ax_xy)
         plt.setp(ax_yz.get_yticklabels(), visible=False)
         ax_yz.set_xlim(zmin, zmax)
         ax_yz.set_ylim(ymin, ymax)
@@ -407,7 +398,8 @@ class NLLGrid():
         plt.setp(ax_yz.get_yticklabels(), rotation=90, fontsize=12)
 
         # ax_xz
-        ax_xz = divider.append_axes('bottom', size=xz_size, pad=0.05, sharex=ax_xy)
+        ax_xz = divider.append_axes('bottom', size=xz_size, pad=0.05,
+                                    sharex=ax_xy)
         ax_xz.set_xlim(xmin, xmax)
         ax_xz.set_ylim(zmax, zmin)
 
@@ -439,13 +431,13 @@ class NLLGrid():
         ax_xy.set_adjustable('box-forced')
         ax_xz.imshow(np.transpose(self.array[:, slice_index[1], :]),
                      vmin=vmin, vmax=vmax, cmap=cmap,
-                     origin='lower', extent=self.get_xz_extent(), aspect='auto',
-                     zorder=-10)
+                     origin='lower', extent=self.get_xz_extent(),
+                     aspect='auto', zorder=-10)
         ax_xz.set_adjustable('box-forced')
         ax_yz.imshow(self.array[slice_index[0], :, :],
                      vmin=vmin, vmax=vmax, cmap=cmap,
-                     origin='lower', extent=self.get_zy_extent(), aspect='auto',
-                     zorder=-10)
+                     origin='lower', extent=self.get_zy_extent(),
+                     aspect='auto', zorder=-10)
         ax_yz.set_adjustable('box-forced')
 
         x_slice, y_slice, z_slice = self.get_xyz(*slice_index)
@@ -455,7 +447,8 @@ class NLLGrid():
         ax_yz.axvline(z_slice, color='w', linestyle='dashed', zorder=-1)
 
         fmt = '%.1e' if self.max() <= 0.01 else '%.2f'
-        cb = figure.colorbar(hnd, cax=ax_cb, orientation='horizontal', format=fmt)
+        cb = figure.colorbar(hnd, cax=ax_cb, orientation='horizontal',
+                             format=fmt)
         cb.locator = ticker.LinearLocator(numticks=3)
         cb.update_ticks()
 
@@ -497,29 +490,31 @@ class NLLGrid():
         ell12 = np.array([(vect.x, vect.z) for vect in ellArray12])
         ell13 = np.array([(vect.x, vect.z) for vect in ellArray13])
         ell23 = np.array([(vect.x, vect.z) for vect in ellArray23])
-        ax_xz.plot(ell12[:,0], ell12[:,1])
-        ax_xz.plot(ell13[:,0], ell13[:,1])
-        ax_xz.plot(ell23[:,0], ell23[:,1])
+        ax_xz.plot(ell12[:, 0], ell12[:, 1])
+        ax_xz.plot(ell13[:, 0], ell13[:, 1])
+        ax_xz.plot(ell23[:, 0], ell23[:, 1])
 
         ell12 = np.array([(vect.y, vect.z) for vect in ellArray12])
         ell13 = np.array([(vect.y, vect.z) for vect in ellArray13])
         ell23 = np.array([(vect.y, vect.z) for vect in ellArray23])
-        ax_yz.plot(ell12[:,1], ell12[:,0])
-        ax_yz.plot(ell13[:,1], ell13[:,0])
-        ax_yz.plot(ell23[:,1], ell23[:,0])
+        ax_yz.plot(ell12[:, 1], ell12[:, 0])
+        ax_yz.plot(ell13[:, 1], ell13[:, 0])
+        ax_yz.plot(ell23[:, 1], ell23[:, 0])
 
     def copy(self):
         return deepcopy(self)
 
 
 def main():
-    '''
-    Test code generating a gaussian grid and computing
+    """
+    Test code.
+
+    Generates a gaussian grid and computes
     the 3D ellipsoid around the grid mean
-    '''
+    """
     import matplotlib.pyplot as plt
 
-    #http://stackoverflow.com/questions/17190649/how-to-obtain-a-gaussian-filter-in-python
+    #http://stackoverflow.com/q/17190649
     def gauss3D(shape=(3, 3, 3), sigmax=0.5, sigmay=0.5, sigmaz=0.5, theta=0):
         m, n, k = [(ss-1.)/2. for ss in shape]
         y, x, z = np.ogrid[-m:m+1, -n:n+1, -k:k+1]

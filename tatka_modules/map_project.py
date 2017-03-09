@@ -1,7 +1,9 @@
+# -*- coding: utf8 -*-
 import os
 import ctypes
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_map_project.so')
+libpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                       'lib', 'lib_map_project.so')
 lib_map_project = ctypes.CDLL(libpath)
 
 lib_map_project.get_transform.argtypes = [
@@ -63,15 +65,12 @@ if __name__ == '__main__':
     std_par1 = 50.
     std_par2 = 52.
     rot = 0.
-    get_transform('LAMBERT', lat0, lon0,
-                   std_par1, std_par2,
-                   rot, 'Clarke-1880')
+    get_transform('LAMBERT', lat0, lon0, std_par1, std_par2,
+                  rot, 'Clarke-1880')
     print latlon2rect(lat0, lon0)
     x, y = latlon2rect(50.1, 7.2)
     print rect2latlon(x, y)
-    get_transform('SIMPLE', lat0, lon0,
-                   None, None,
-                   rot, None)
+    get_transform('SIMPLE', lat0, lon0, None, None, rot, None)
     print latlon2rect(lat0, lon0)
     x, y = latlon2rect(50.1, 7.2)
     print rect2latlon(x, y)

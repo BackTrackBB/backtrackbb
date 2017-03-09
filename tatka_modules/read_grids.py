@@ -4,6 +4,7 @@ from glob import glob
 from collections import defaultdict
 from NLLGrid import NLLGrid
 
+
 def read_grids(config):
     GRD_sta = defaultdict(dict)
     coord_sta = {}

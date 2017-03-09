@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import os
 import numpy as np
 import pylab
@@ -58,7 +59,8 @@ def bp_plot(config, proj_grid,
 
 #--ax1: stacked grid
     ax1_xy = fig.add_subplot(221)
-    axes, cb1 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax1_xy, vmin=0, cmap=scmap)
+    axes, cb1 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax1_xy, vmin=0,
+                               cmap=scmap)
     cb1.set_label('Stacked Local-CC Amplitude')
 
     ax1_xy, ax1_xz, ax1_yz = axes
@@ -79,15 +81,18 @@ def bp_plot(config, proj_grid,
                       t_begin + config.cut_start,
                       t_end + config.cut_start))
     if coord_eq:
-        ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1,c='w')
+        ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size,
+                       linewidths=1, c='w')
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
-        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1, c='w', alpha=0.79)
+        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size,
+                       linewidths=1, c='w', alpha=0.79)
         trans = ax1_xy.transData + ax1_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
         ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='w',
                     transform=ax1_xy.transAxes,
-                    path_effects=[path_effects.withStroke(linewidth=2, foreground='k')])
+                    path_effects=[
+                        path_effects.withStroke(linewidth=2, foreground='k')])
 
     if trigger is not None:
         ax1_xy.scatter(xx_max, yy_max,
@@ -113,7 +118,8 @@ def bp_plot(config, proj_grid,
 #--ax2: trigger grid
     if trigger is not None:
         ax2_xy = fig.add_subplot(223)
-        axes, cb11 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax2_xy, vmin=lcc_min, vmax=lcc_max, cmap=scmap2)
+        axes, cb11 = proj_grid.plot(max_ijk, handle=True, ax_xy=ax2_xy,
+                                    vmin=lcc_min, vmax=lcc_max, cmap=scmap2)
         cb11.set_label('Stacked Local-CC Amplitude')
         cb11.set_ticks([LTrig, LTrig+(lcc_max-LTrig)/2, lcc_max])
 
@@ -125,13 +131,16 @@ def bp_plot(config, proj_grid,
         ax2_xz.set_ylabel('Z[km]')
 
         if coord_eq:
-            ax2_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='w')
+            ax2_xy.scatter(coord_eq[0], coord_eq[1], marker='*',
+                           s=eq_smbl_size, linewidths=1, c='w')
         for sta in coord_sta:
             x_sta, y_sta = coord_sta[sta]
-            ax2_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1, c='k', alpha=0.79)
+            ax2_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size,
+                           linewidths=1, c='k', alpha=0.79)
             trans = ax2_xy.transData + ax2_xy.transAxes.inverted()
             x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
-            ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax2_xy.transAxes)
+            ax2_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12,
+                        color='k', transform=ax2_xy.transAxes)
 
         t = trigger.origin_time
         if t is not None:
@@ -194,7 +203,7 @@ def bp_plot(config, proj_grid,
             # Project signal to Axes coordinates:
             signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
-            ydata = invtrans.transform(xydata)[:,1]
+            ydata = invtrans.transform(xydata)[:, 1]
             time = np.arange(tr.stats.npts) / tr.stats.sampling_rate
             if config.plot_time_win_size is not None:
                 time += config.cut_start + t_begin - t_extra
@@ -209,7 +218,7 @@ def bp_plot(config, proj_grid,
             tr_CF = st_CF_plt.select(station=sta, channel=wave)[0]
             signal = tr_CF.data/abs(tr_CF.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
-            ydata = invtrans.transform(xydata)[:,1]
+            ydata = invtrans.transform(xydata)[:, 1]
             if wave == 'P':
                 color = 'blue'
             if wave == 'S':
@@ -232,7 +241,7 @@ def bp_plot(config, proj_grid,
         ax3.set_xlim(min(time), max(time))
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
-        ## plotting vertical bars corresponding to LCCmax in given time window
+        # plotting vertical bars corresponding to LCCmax in given time window
         if trigger is not None:
             y_max = max(ydata)
             y_min = 2 * min(ydata) - y_max
@@ -242,11 +251,15 @@ def bp_plot(config, proj_grid,
                     color = 'blue'
                 if wave == 'S':
                     color = 'red'
-                theor_time = trigger.origin_time + pick.theor_time - st[0].stats.starttime + config.cut_start
+                theor_time = (trigger.origin_time + pick.theor_time -
+                              st[0].stats.starttime + config.cut_start)
                 if pick.pick_time != -10.:
-                    pick_time = trigger.origin_time + pick.pick_time - st[0].stats.starttime + config.cut_start
-                    ax3.plot((pick_time, pick_time), (y_min, y_max), linewidth=2.0, color=color)
-                ax3.plot((theor_time, theor_time), (y_min, y_max), linewidth=2.0, color=color, linestyle='--')
+                    pick_time = trigger.origin_time + pick.pick_time -\
+                                st[0].stats.starttime + config.cut_start
+                    ax3.plot((pick_time, pick_time), (y_min, y_max),
+                             linewidth=2.0, color=color)
+                ax3.plot((theor_time, theor_time), (y_min, y_max),
+                         linewidth=2.0, color=color, linestyle='--')
 
     if Mtau is not None:
         for tt in Mtau:
@@ -261,16 +274,18 @@ def bp_plot(config, proj_grid,
     ax3.set_title(note_t, fontsize=15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
-
-    fq_str = str(np.round(config.frequencies[0])) + '_' + str(np.round(config.frequencies[-1]))
+    fq_str = '%s_%s' % (str(np.round(config.frequencies[0])),
+                        str(np.round(config.frequencies[-1])))
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
 
-    file_out_fig = datestr + '_t' +\
-                   str('%06.1f' % (config.cut_start+t_begin)) + 's_' + fq_str + '_fig.' + config.plot_format
+    file_out_fig =\
+        datestr + '_t' + '%06.1f' % (config.cut_start+t_begin) +\
+        's_' + fq_str + '_fig.' + config.plot_format
     file_out_fig = os.path.join(out_dir, file_out_fig)
     if config.plot_format == 'pdf':
         fig.patch.set_alpha(0.0)
-    # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
+    # Source: http://www.dalkescientific.com/writings/diary/archive/
+    #                 2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     if async_plotter is not None:
         async_plotter.save(canvas, file_out_fig)
@@ -293,9 +308,9 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
     eq_smbl_size = 200 / ratio
     trig_smbl_size = 200 / ratio
 
-    x_trig = [ t.x for t in triggers ]
-    y_trig = [ t.y for t in triggers ]
-    z_trig = [ t.z for t in triggers ]
+    x_trig = [t.x for t in triggers]
+    y_trig = [t.y for t in triggers]
+    z_trig = [t.z for t in triggers]
 
 #-- figure
     fig = figure.Figure(figsize=(20, 20))
@@ -313,23 +328,34 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
 
     note = 'Day: ' + datestr[0:6] + ',  Hour: ' + datestr[6:8]
     ax1_xy.set_title(note, fontsize=15)
-    ax1_xy.scatter(x_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
-    ax1_yz.scatter(z_trig, y_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
-    ax1_xz.scatter(x_trig, z_trig, marker='*', s=trig_smbl_size, linewidths=0.5, c='g', alpha=0.7)
+    ax1_xy.scatter(x_trig, y_trig, marker='*', s=trig_smbl_size,
+                   linewidths=0.5, c='g', alpha=0.7)
+    ax1_yz.scatter(z_trig, y_trig, marker='*', s=trig_smbl_size,
+                   linewidths=0.5, c='g', alpha=0.7)
+    ax1_xz.scatter(x_trig, z_trig, marker='*', s=trig_smbl_size,
+                   linewidths=0.5, c='g', alpha=0.7)
     for sta in coord_sta:
         x_sta, y_sta = coord_sta[sta]
-        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size, linewidths=1,c='k',alpha=0.79)
+        ax1_xy.scatter(x_sta, y_sta, marker='^', s=sta_smbl_size,
+                       linewidths=1, c='k', alpha=0.79)
         trans = ax1_xy.transData + ax1_xy.transAxes.inverted()
         x_sta_ax, y_sta_ax = trans.transform((x_sta, y_sta))
-        ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k', transform=ax1_xy.transAxes)
+        ax1_xy.text(x_sta_ax+0.02, y_sta_ax+0.02, sta, fontsize=12, color='k',
+                    transform=ax1_xy.transAxes)
     if coord_eq:
-        ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='r')
-        ax1_yz.scatter(coord_eq[2], coord_eq[1], marker='*', s=eq_smbl_size, linewidths=1, c='r')
-        ax1_xz.scatter(coord_eq[0], coord_eq[2], marker='*', s=eq_smbl_size, linewidths=1, c='r')
+        ax1_xy.scatter(coord_eq[0], coord_eq[1], marker='*', s=eq_smbl_size,
+                       linewidths=1, c='r')
+        ax1_yz.scatter(coord_eq[2], coord_eq[1], marker='*', s=eq_smbl_size,
+                       linewidths=1, c='r')
+        ax1_xz.scatter(coord_eq[0], coord_eq[2], marker='*', s=eq_smbl_size,
+                       linewidths=1, c='r')
     if coord_jma:
-        ax1_xy.scatter(coord_jma[0], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
-        ax1_yz.scatter(coord_jma[2], coord_jma[1], marker='o', s=eq_smbl_size, linewidths=1, c='m')
-        ax1_xz.scatter(coord_jma[0], coord_jma[2], marker='o', s=eq_smbl_size, linewidths=1, c='m')
+        ax1_xy.scatter(coord_jma[0], coord_jma[1], marker='o', s=eq_smbl_size,
+                       linewidths=1, c='m')
+        ax1_yz.scatter(coord_jma[2], coord_jma[1], marker='o', s=eq_smbl_size,
+                       linewidths=1, c='m')
+        ax1_xz.scatter(coord_jma[0], coord_jma[2], marker='o', s=eq_smbl_size,
+                       linewidths=1, c='m')
 
 #--ax3: traces
     st_plt = st.copy()
@@ -367,14 +393,14 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
             # Project signal to Axes coordinates:
             signal = tr.data/abs(tr.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
-            ydata = invtrans.transform(xydata)[:,1]
+            ydata = invtrans.transform(xydata)[:, 1]
             ax3.plot(time, ydata, 'k', alpha=0.4, rasterized=True)
         # Project signal to Axes coordinates:
         for wave in config.wave_type:
             tr_CF = st_CF.select(station=sta, channel=wave)[0]
             signal = tr_CF.data/abs(tr_CF.max())*0.05 + y_sta_ax
             xydata = np.dstack((np.zeros_like(signal), signal))[0]
-            ydata = invtrans.transform(xydata)[:,1]
+            ydata = invtrans.transform(xydata)[:, 1]
             if wave == 'P':
                 color = 'blue'
             if wave == 'S':
@@ -382,9 +408,10 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
             ax3.plot(time_env, ydata, color, rasterized=True)
         ax3.text(max(time), y_sta, tr.id, fontsize=10)
 
-    note = ch_function + ' of MBFilter; Fq. range: ' +\
-           str(np.round(config.frequencies[0])) +\
-           '-' + str(np.round(config.frequencies[-1])) + ' Hz'
+    note =\
+        ch_function + ' of MBFilter; Fq. range: ' +\
+        str(np.round(config.frequencies[0])) +\
+        '-' + str(np.round(config.frequencies[-1])) + ' Hz'
     ax3.set_title(note, fontsize=15)
 
     for t in triggers:
@@ -392,12 +419,14 @@ def plt_SummaryOut(config, grid1, st_CF, st, coord_sta,
                     facecolor='r', alpha=0.1)
 
     ax3.axvline(t_bb[0]+config.cut_start, linewidth=1, color='b', alpha=0.9)
-    ax3.axvline(t_bb[-1]+time_lag+config.cut_start, linewidth=1, color='b', alpha=0.9)
+    ax3.axvline(t_bb[-1]+time_lag+config.cut_start, linewidth=1, color='b',
+                alpha=0.9)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
     if config.plot_format == 'pdf':
         fig.patch.set_alpha(0.0)
-    # Source: http://www.dalkescientific.com/writings/diary/archive/2005/04/23/matplotlib_without_gui.html
+    # Source: http://www.dalkescientific.com/writings/diary/archive/
+    #                 2005/04/23/matplotlib_without_gui.html
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(file_out_fig)
     fig.clf()

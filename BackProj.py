@@ -17,6 +17,7 @@ from multiprocessing import Pool
 
 DEBUG = False
 
+
 def main():
     config = configure()
 
@@ -25,18 +26,20 @@ def main():
     #---Reading data---------------------------------------------------------
     st = read_traces(config)
     #------------------------------------------------------------------------
-    t_bb = np.arange(config.start_t, config.end_t, config.time_lag - config.t_overlap)
+    t_bb = np.arange(config.start_t, config.end_t,
+                     config.time_lag - config.t_overlap)
     # selecting the time windows that do not exceed the length of the data---
     t_ee = t_bb + config.time_lag
     data_length = st[0].stats.endtime - st[0].stats.starttime
-    t_bb = t_ee[t_ee<=data_length] - config.time_lag
+    t_bb = t_ee[t_ee <= data_length] - config.time_lag
     print 'Number of time windows = ', len(t_bb)
 
     loc_infile = None
     location_jma = None
     if config.catalog_dir:
         if config.data_day:
-            loc_infile = os.path.join(config.catalog_dir, config.data_day+config.tremor_file)
+            loc_infile = os.path.join(config.catalog_dir,
+                                      config.data_day+config.tremor_file)
         location_jma = os.path.join(config.catalog_dir, config.eq_file)
     #------------------------------------------------------------------------
 
@@ -78,7 +81,8 @@ def main():
                                        config.lat_orig, config.lon_orig)
     coord_jma = None
     if location_jma:
-        coord_jma = read_locationEQ(location_jma, config.data_day, config.data_hours,
+        coord_jma = read_locationEQ(location_jma,
+                                    config.data_day, config.data_hours,
                                     config.lat_orig, config.lon_orig)
     #------------------------------------------------------------------------
     print 'starting BPmodule'
@@ -88,12 +92,14 @@ def main():
         os.mkdir(config.out_dir)
 
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
-    fq_str = str(np.round(config.frequencies[0])) + '_' + str(np.round(config.frequencies[-1]))
+    fq_str = '%s_%s' % (np.round(config.frequencies[0]),
+                        np.round(config.frequencies[-1]))
     ch_str = str(config.channel)[1:-1].replace("'", "")
     file_out_base = '_'.join((
         datestr,
         str(len(config.frequencies)) + 'fq' + fq_str + 'hz',
-        str(config.decay_const) + str(config.sampl_rate_cf) + str(config.smooth_lcc) + str(config.t_overlap),
+        str(config.decay_const) + str(config.sampl_rate_cf) +
+        str(config.smooth_lcc) + str(config.t_overlap),
         config.ch_function,
         ch_str,
         ''.join(config.wave_type),
@@ -107,7 +113,8 @@ def main():
     file_out_fig = os.path.join(config.out_dir, file_out_fig)
 
     #---running program------------------------------------------------------
-    if config.ncpu > 1 and config.recursive_memory and config.plot_results != 'False':
+    if config.ncpu > 1 and config.recursive_memory \
+            and config.plot_results != 'False':
         global async_plotter
         async_plotter = AsyncPlotter()
     else:

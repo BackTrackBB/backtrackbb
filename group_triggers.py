@@ -5,6 +5,7 @@ from tatka_modules.mod_setup import configure
 from tatka_modules.bp_types import Trigger, Pick
 from tatka_modules.mod_group_trigs import group_triggers
 
+
 def main():
     config = configure('group_triggers')
 

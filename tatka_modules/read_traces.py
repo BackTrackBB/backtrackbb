@@ -66,13 +66,17 @@ def read_traces(config):
                 dec_ct = int(sampling_rate/config.sampl_rate_data)
                 tr.decimate(dec_ct, strict_length=False, no_filter=True)
             else:
-                raise ValueError, 'Sampling frequency for trace %s is lower than %s' % (tr.id, config.sampl_rate_data)
+                raise ValueError(
+                    'Sampling frequency for trace %s is lower than %s' %
+                    (tr.id, config.sampl_rate_data))
         delta = tr.stats.delta
         if config.delta is None:
             config.delta = delta
         else:
             if delta != config.delta:
-                raise ValueError, 'Trace %s has different delta: %s (expected: %s)' % (tr.id, delta, config.delta)
+                raise ValueError(
+                    'Trace %s has different delta: %s (expected: %s)' %
+                    (tr.id, delta, config.delta))
     # Recompute sampling rate after resampling
     config.sampl_rate_data = st[0].stats.sampling_rate
 

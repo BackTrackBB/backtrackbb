@@ -1,23 +1,25 @@
+# -*- coding: utf8 -*-
 import os
 from ctypes import CDLL, c_int, c_float, c_double, c_void_p, POINTER, byref
 from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_rec_filter.so')
+libpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                       'lib', 'lib_rec_filter.so')
 lib_rec_filter = CDLL(libpath)
 
 lib_rec_filter._recursive_filter.argtypes = [
-        ndpointer(dtype=np.float64), #signal
-        ndpointer(dtype=np.float64), #filt_signal
-        c_int, #npts
-        c_float, #C_HP
-        c_float, #C_LP
-        c_int, #npoles
-        ndpointer(dtype=np.float64), #filterH
-        ndpointer(dtype=np.float64), #filterL
-        POINTER(c_double), #prev_sample_value
-        c_int #memory_sample
+        ndpointer(dtype=np.float64),  # signal
+        ndpointer(dtype=np.float64),  # filt_signal
+        c_int,  # npts
+        c_float,  # C_HP
+        c_float,  # C_LP
+        c_int,  # npoles
+        ndpointer(dtype=np.float64),  # filterH
+        ndpointer(dtype=np.float64),  # filterL
+        POINTER(c_double),  # prev_sample_value
+        c_int  # memory_sample
         ]
 lib_rec_filter._recursive_filter.restype = c_void_p
 
@@ -67,10 +69,7 @@ def rec_filter_coeff(freqs, delta):
 
 
 def rec_filter_norm(freqs, delta, C_HP, C_LP, npoles):
-    '''
-        Empirical approach for computing
-        filter normalization coefficients
-    '''
+    """Empirical approach for computing filter normalization coefficients."""
     freqs = np.array(freqs, ndmin=1)
     norm = np.zeros(len(freqs))
     for n, freq in enumerate(freqs):
@@ -84,6 +83,7 @@ def rec_filter_norm(freqs, delta, C_HP, C_LP, npoles):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+
     def do_fft(signal):
         npts = len(signal)
         if not npts % 2:
@@ -122,8 +122,8 @@ if __name__ == '__main__':
         fftfreq, fft = do_fft(signal_filt_BP_2)
         h1, = ax.loglog(fftfreq, np.abs(fft), color='red', lw=2)
         fftfreq, fft = do_fft(signal_filt_BP_4)
-        h2, = ax.loglog(fftfreq, np.abs(fft), color= 'blue', lw=2)
+        h2, = ax.loglog(fftfreq, np.abs(fft), color='blue', lw=2)
         fftfreq, fft = do_fft(signal_filt_BP_6)
-        h3, = ax.loglog(fftfreq, np.abs(fft), color= 'green', lw=2)
+        h3, = ax.loglog(fftfreq, np.abs(fft), color='green', lw=2)
     ax.legend([h1, h2, h3], ['2-poles', '4-poles', '6-poles'])
     plt.show()

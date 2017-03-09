@@ -1,7 +1,5 @@
 #!/usr/bin/python
 import numpy as np
-from obspy.core import utcdatetime
-from matplotlib import mlab
 import matplotlib.pyplot as plt
 #
 from NLLGrid import NLLGrid
@@ -20,52 +18,55 @@ grid2.init_xyz_arrays()
 dif_grid1_grid2 = grid1.array-grid2.array
 
 ##
-fig = plt.figure(figsize=(15,10))
+fig = plt.figure(figsize=(15, 10))
 
-cmap='Spectral'
+cmap = 'Spectral'
 
 nz_grid = 10
 
 
 ax1 = fig.add_subplot(131)
 
-hnd=ax1.imshow(np.flipud(np.transpose(grid1.array[:,:,nz_grid])),extent=extent,
-               vmin=0., vmax=100.,cmap=cmap)
-cb1=plt.colorbar(hnd, orientation='horizontal')
+hnd = ax1.imshow(np.flipud(np.transpose(grid1.array[:, :, nz_grid])),
+                 extent=extent, vmin=0., vmax=100., cmap=cmap)
+cb1 = plt.colorbar(hnd, orientation='horizontal')
 
-hnd = plt.contour(grid1.x_array, grid1.y_array, np.transpose(grid1.array[:,:,nz_grid]),colors='k')
-ax1.scatter(grid1.sta_x,grid1.sta_y,marker='v', s = 100, linewidths=1,c='r')
+hnd = plt.contour(grid1.x_array, grid1.y_array,
+                  np.transpose(grid1.array[:, :, nz_grid]), colors='k')
+ax1.scatter(grid1.sta_x, grid1.sta_y, marker='v', s=100, linewidths=1, c='r')
 
-ax1.set_xlim(min(grid1.x_array),max(grid1.x_array))
-ax1.set_ylim(min(grid1.y_array),max(grid1.y_array))
+ax1.set_xlim(min(grid1.x_array), max(grid1.x_array))
+ax1.set_ylim(min(grid1.y_array), max(grid1.y_array))
 cb1.set_label('Time[sec]')
 ##
 
 ax2 = fig.add_subplot(132)
-hnd=ax2.imshow(np.flipud(np.transpose(grid2.array[:,:,nz_grid])),extent=extent,
-               vmin=0., vmax=100.,cmap=cmap)
-cb2=plt.colorbar(hnd, orientation='horizontal')
+hnd = ax2.imshow(np.flipud(np.transpose(grid2.array[:, :, nz_grid])),
+                 extent=extent, vmin=0., vmax=100., cmap=cmap)
+cb2 = plt.colorbar(hnd, orientation='horizontal')
 ##
-hnd = plt.contour(grid2.x_array, grid2.y_array, np.transpose(grid2.array[:,:,nz_grid]),colors='k')
-ax2.scatter(grid2.sta_x,grid2.sta_y,marker='v', s = 100, linewidths=1,c='r')
+hnd = plt.contour(grid2.x_array, grid2.y_array,
+                  np.transpose(grid2.array[:, :, nz_grid]), colors='k')
+ax2.scatter(grid2.sta_x, grid2.sta_y, marker='v', s=100, linewidths=1, c='r')
 
-ax2.set_xlim(min(grid2.x_array),max(grid2.x_array))
-ax2.set_ylim(min(grid2.y_array),max(grid2.y_array))
+ax2.set_xlim(min(grid2.x_array), max(grid2.x_array))
+ax2.set_ylim(min(grid2.y_array), max(grid2.y_array))
 cb2.set_label('Time[sec]')
 
 ##
 
 ax3 = fig.add_subplot(133)
-hnd=ax3.imshow(np.flipud(np.transpose(dif_grid1_grid2[:,:,nz_grid])),
-               extent=extent,cmap=cmap)
-cb3=plt.colorbar(hnd, orientation='horizontal')
-hnd = plt.contour(grid2.x_array, grid2.y_array, np.transpose(dif_grid1_grid2[:,:,nz_grid]),colors='k')
+hnd = ax3.imshow(np.flipud(np.transpose(dif_grid1_grid2[:, :, nz_grid])),
+                 extent=extent, cmap=cmap)
+cb3 = plt.colorbar(hnd, orientation='horizontal')
+hnd = plt.contour(grid2.x_array, grid2.y_array,
+                  np.transpose(dif_grid1_grid2[:, :, nz_grid]), colors='k')
 cb3.set_label('Time_difference[sec]')
 ##
-ax3.scatter(grid2.sta_x,grid2.sta_y,marker='v', s = 100, linewidths=1,c='r')
-ax3.scatter(grid1.sta_x,grid1.sta_y,marker='v', s = 100, linewidths=1,c='r')
-ax3.set_xlim(min(grid2.x_array),max(grid2.x_array))
-ax3.set_ylim(min(grid2.y_array),max(grid2.y_array))
+ax3.scatter(grid2.sta_x, grid2.sta_y, marker='v', s=100, linewidths=1, c='r')
+ax3.scatter(grid1.sta_x, grid1.sta_y, marker='v', s=100, linewidths=1, c='r')
+ax3.set_xlim(min(grid2.x_array), max(grid2.x_array))
+ax3.set_ylim(min(grid2.y_array), max(grid2.y_array))
 ##
 ##
 

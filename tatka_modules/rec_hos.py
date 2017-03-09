@@ -13,30 +13,28 @@ from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir, 'lib', 'lib_rec_hos.so')
+libpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                       'lib', 'lib_rec_hos.so')
 lib_rec_hos = CDLL(libpath)
 
 lib_rec_hos._recursive_hos.argtypes = [
-        ndpointer(dtype=np.float64), #signal
-        ndpointer(dtype=np.float64), #hos_signal
-        c_int, #npts
-        c_float, #sigma_min
-        c_float, #C_WIN
-        c_int, #order
-        POINTER(c_double), #mean
-        POINTER(c_double), #var
-        POINTER(c_double), #hos
-        c_int, #memory_sample
-        c_int #initialize
+        ndpointer(dtype=np.float64),  # signal
+        ndpointer(dtype=np.float64),  # hos_signal
+        c_int,  # npts
+        c_float,  # sigma_min
+        c_float,  # C_WIN
+        c_int,  # order
+        POINTER(c_double),  # mean
+        POINTER(c_double),  # var
+        POINTER(c_double),  # hos
+        c_int,  # memory_sample
+        c_int  # initialize
         ]
 lib_rec_hos._recursive_hos.restype = c_void_p
 
 
 def recursive_hos(signal, C_WIN, order=4, sigma_min=-1., rec_memory=None):
-    """
-        Recursive computation of higher-horder statistics.
-    """
-
+    """Recursive computation of higher-horder statistics."""
     try:
         C_WIN = float(C_WIN)
     except ValueError:

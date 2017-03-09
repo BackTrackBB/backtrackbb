@@ -32,4 +32,3 @@ class AsyncPlotter():
     def join(self):
         for p in self.pids:
             p.join()
-

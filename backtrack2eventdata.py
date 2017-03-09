@@ -9,8 +9,10 @@ from obspy.core import AttribDict
 """
 using output file xxx_OUT2_grouped.dat of BackProj.py
 to create events data
-to run: ./backtrack2eventdata.py config_file xxx_OUT2_grouped.dat (station.dat --> optional)
+to run: ./backtrack2eventdata.py config_file xxx_OUT2_grouped.dat
+        (station.dat --> optional)
 """
+
 
 def main():
     config = configure('backtrack2eventdata')
@@ -22,7 +24,7 @@ def main():
             data = line.split()
             coord_sta[data[0]] = map(float, data[2:5])
 
-    ## -----reading output file saving parameters as trigger type--------------------------------------
+    # -----reading output file saving parameters as trigger type-----
     triggers = []
     for line in open(config.options.trigger_file, 'r'):
         try:
@@ -37,11 +39,11 @@ def main():
             except ValueError:
                 continue
 
-    ##---creating output directories if they do not exist----------------------------------------------
+    # -----creating output directories if they do not exist-----
     if not os.path.exists(config.event_dir):
         os.mkdir(config.event_dir)
 
-    #---Reading data-----------------------------------------------------------------------------------
+    # -----Reading data-----
     st = read_traces(config)
 
     for trigger in triggers:
@@ -54,7 +56,7 @@ def main():
         if not os.path.exists(out_event_dir):
             os.mkdir(out_event_dir)
 
-        ##-------writing eventid.dat file -------------------------------------------------------------
+        # -----writing eventid.dat file-----
         event_dat_base = '.'.join((trigger.eventid, 'dat'))
         event_dat = os.path.join(out_event_dir, event_dat_base)
         with open(event_dat, 'w') as f:
@@ -62,14 +64,14 @@ def main():
             for pick in trigger.picks:
                 f.write(str(pick) + '\n')
 
-        ##-------writing eventid_nll.obs file ---------------------------------------------------------
-        event_dat_base = '.'.join((trigger.eventid , 'pick'))
+        # -----writing eventid_nll.obs file-----
+        event_dat_base = '.'.join((trigger.eventid, 'pick'))
         event_dat = os.path.join(out_event_dir, event_dat_base)
 
         with open(event_dat, 'w') as f:
-            #f.write('#%s %f %f %f %s\n' % (trigger.eventid, trigger.lon, trigger.lat, trigger.z, trigger.origin_time))
             for pick in trigger.picks:
-                f.write('%-6s ?    ?    ? %-6s ? ' % (pick.station, pick.arrival_type))
+                f.write('%-6s ?    ?    ? %-6s ? ' %
+                        (pick.station, pick.arrival_type))
                 if pick.arrival_type is 'P':
                     time = trigger.origin_time + pick.pick_time
                 else:
@@ -82,16 +84,19 @@ def main():
                 # We approximate the error with decay_const/10
                 # TODO: improve this?
                 decay_const = float(config.decay_const)
-                f.write('GAU  %.2e  0.00e+00  0.00e+00  0.00e+00' % (decay_const/10.))
+                f.write('GAU  %.2e  0.00e+00  0.00e+00  0.00e+00' %
+                        (decay_const/10.))
                 f.write('\n')
 
-        ## cutting events and saving data in specified format------------------------------------------
+        # -----cutting events and saving data in specified format-----
         for pick in trigger.picks:
             if pick.arrival_type is not 'P':
                 continue
 
-            trim_starttime = trigger.origin_time + pick.theor_time - config.pre_P
-            trim_endtime = trigger.origin_time + pick.theor_time + config.post_P
+            trim_starttime = (trigger.origin_time + pick.theor_time
+                              - config.pre_P)
+            trim_endtime = (trigger.origin_time + pick.theor_time
+                            + config.post_P)
 
             st_select = st.copy().select(station=pick.station)
             st_select.trim(trim_starttime, trim_endtime)

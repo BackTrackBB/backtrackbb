@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import numpy as np
 from obspy import Stream
 from mod_filter_picker import MBfilter_CF, GaussConv

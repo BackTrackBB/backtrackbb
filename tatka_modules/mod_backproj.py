@@ -58,7 +58,8 @@ def _run_BackProj(config, st, st_CF, t_begin,
 
     if rec_memory is not None:
         st_cut = st.copy()
-        st_cut = st_cut.trim(config.starttime + t_begin, config.starttime + t_end)
+        st_cut = st_cut.trim(config.starttime + t_begin,
+                             config.starttime + t_end)
         st_CF_cut = summary_cf(config, st_cut, rec_memory=rec_memory)
         st_CF += st_CF_cut
         st_CF.merge(method=1)
@@ -106,9 +107,10 @@ def _run_BackProj(config, st, st_CF, t_begin,
             continue
 
         if config.varWin_stationPair:
-            tau_max = GRD_sta[sta1][wave1].get_value(GRD_sta[sta2][wave1].sta_x,
-                                                     GRD_sta[sta2][wave1].sta_y,
-                                                     GRD_sta[sta2][wave1].sta_z)
+            tau_max = GRD_sta[sta1][wave1].get_value(
+                GRD_sta[sta2][wave1].sta_x,
+                GRD_sta[sta2][wave1].sta_y,
+                GRD_sta[sta2][wave1].sta_z)
             Mtau.append(np.round(tau_max, 1))
             t_end = t_begin + np.round(tau_max, 1)
         else:
@@ -160,8 +162,10 @@ def _run_BackProj(config, st, st_CF, t_begin,
         wave2 = sta_wave2[1]
         arrival_times[sta1][wave1].append(arrival1)
         arrival_times[sta2][wave2].append(arrival2)
-        delta_tt_array = GRD_sta[sta2][wave2].array - GRD_sta[sta1][wave1].array
-        stack_grid.array += proj_function(delta_tt_array.flatten()).reshape(delta_tt_array.shape)
+        delta_tt_array =\
+            GRD_sta[sta2][wave2].array - GRD_sta[sta1][wave1].array
+        stack_grid.array += proj_function(
+            delta_tt_array.flatten()).reshape(delta_tt_array.shape)
     stack_grid.array /= len(outputs)
     stack_grid.array **= config.grid_power
 
@@ -206,7 +210,8 @@ def _run_BackProj(config, st, st_CF, t_begin,
         prob = mask_array.sum() / stack_grid.array.sum()
         if prob >= config.trigger_probability:
             do_trigger = True
-            trigger_level = 0.5 * (stack_grid.array.max() - stack_grid.array.min())
+            trigger_level =\
+                0.5 * (stack_grid.array.max() - stack_grid.array.min())
 
     if config.cut_data:
         start_tw = config.cut_start + t_begin
@@ -233,7 +238,8 @@ def _run_BackProj(config, st, st_CF, t_begin,
             if zoom_slice_grid.size > 0:
                 zoom_i_max, zoom_j_max, zoom_k_max =\
                     [a[0]/zoom_factor
-                     for a in np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
+                     for a in
+                     np.where(zoom_slice_grid == np.max(zoom_slice_grid))]
                 i_max = zoom_i_max + i_max - sf
                 i_max = i_max if i_max > 0 else 0
                 j_max = zoom_j_max + j_max - sf
@@ -243,7 +249,8 @@ def _run_BackProj(config, st, st_CF, t_begin,
 
         trigger = Trigger()
         trigger.trigger_level = trigger_level
-        trigger.x, trigger.y, trigger.z = stack_grid.get_xyz(i_max, j_max, k_max)
+        trigger.x, trigger.y, trigger.z =\
+            stack_grid.get_xyz(i_max, j_max, k_max)
         trigger.i, trigger.j, trigger.k = i_max, j_max, k_max
         trigger.max_grid = np.round(stack_grid.max(), 4)
         trigger.ntraces = len(sta_wave)
@@ -262,7 +269,7 @@ def _run_BackProj(config, st, st_CF, t_begin,
     if trigger is not None:
         print trigger
 
-    if config.save_projGRID == True or\
+    if config.save_projGRID is True or\
             (config.save_projGRID == 'trigger_only' and trigger is not None):
         print 'Saving projection grid to file.'
         basename = os.path.join(config.out_dir, 'out_t%05.1f' % t_begin)

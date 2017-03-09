@@ -4,9 +4,10 @@ from obspy import UTCDateTime
 from ctypes import c_double
 import numpy as np
 
+
 class Trigger():
     def __init__(self,
-                 eventid=None,list_picks=None,
+                 eventid=None, list_picks=None,
                  x=None, y=None, z=None,
                  i=None, j=None, k=None,
                  max_grid=None,
@@ -43,7 +44,7 @@ class Trigger():
         s += 'BEG %s ' % self.beg_win
         s += 'END %s ' % self.end_win
         if (self.lat is not None and
-            self.lon is not None):
+                self.lon is not None):
             s += ' LAT %.5f LON %.5f' % (self.lat, self.lon)
         if (self.origin_time is not None):
             s += ' T_ORIG %s' % (self.origin_time)
@@ -54,9 +55,9 @@ class Trigger():
         # sanity check
         try:
             if word[1] != 'X' or word[19] != 'T_ORIG':
-                raise ValueError, 'Not a valid trigger string'
+                raise ValueError('Not a valid trigger string')
         except IndexError:
-            raise ValueError, 'Not a valid trigger string'
+            raise ValueError('Not a valid trigger string')
         self.eventid = word[0]
         self.x = float(word[2])
         self.y = float(word[4])
@@ -75,7 +76,8 @@ class Trigger():
     def get_picks(self, station=None, arrival_type=None):
         return [pick for pick in self.picks
                 if (station is not None and pick.station == station)
-                or (arrival_type is not None and pick.arrival_type == arrival_type)]
+                or (arrival_type is not None
+                    and pick.arrival_type == arrival_type)]
 
 
 class Pick():
@@ -102,9 +104,9 @@ class Pick():
         # sanity check
         try:
             if word[0] != 'sta' or word[6] != 'PT':
-                raise ValueError, 'Not a valid pick string'
+                raise ValueError('Not a valid pick string')
         except IndexError:
-            raise ValueError, 'Not a valid pick string'
+            raise ValueError('Not a valid pick string')
         self.station = word[1]
         self.arrival_type = word[3]
         self.theor_time = float(word[5])
