@@ -13,8 +13,7 @@ from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir,
-                       'lib', 'lib_rec_hos.so')
+libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rec_hos.so')
 lib_rec_hos = CDLL(libpath)
 
 lib_rec_hos._recursive_hos.argtypes = [

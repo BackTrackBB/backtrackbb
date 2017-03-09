@@ -1,0 +1,6 @@
+include ChangeLog.txt
+include README.md
+include LICENSE.txt
+include CONTRIBUTORS.txt
+include backtrackbb/configspec.conf
+include backtrackbb/RELEASE-VERSION

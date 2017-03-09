@@ -5,8 +5,7 @@ from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir,
-                       'lib', 'lib_rec_filter.so')
+libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rec_filter.so')
 lib_rec_filter = CDLL(libpath)
 
 lib_rec_filter._recursive_filter.argtypes = [

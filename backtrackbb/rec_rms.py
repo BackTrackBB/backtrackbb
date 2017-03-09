@@ -5,8 +5,7 @@ from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir,
-                       'lib', 'lib_rec_rms.so')
+libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rec_rms.so')
 lib_rec_rms = CDLL(libpath)
 
 lib_rec_rms._recursive_rms.argtypes = [

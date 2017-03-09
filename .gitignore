@@ -1,6 +1,8 @@
-# directories created by setup.py
+#Build products
+backtrackbb.egg-info/
+dist/
 build/
-lib/
+RELEASE-VERSION
 
 # python bytecode
 *.pyc

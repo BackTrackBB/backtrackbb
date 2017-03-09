@@ -17,8 +17,7 @@ from numpy.ctypeslib import ndpointer
 import numpy as np
 
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir,
-                       'lib', 'lib_rosenberger.so')
+libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rosenberger.so')
 lib_rosenberger = ctypes.CDLL(libpath)
 
 lib_rosenberger.rosenberger.argtypes = [

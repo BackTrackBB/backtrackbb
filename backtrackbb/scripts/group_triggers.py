@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf8 -*-
 import os
 from backtrackbb.mod_setup import configure

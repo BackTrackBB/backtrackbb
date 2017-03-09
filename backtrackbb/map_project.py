@@ -2,8 +2,7 @@
 import os
 import ctypes
 
-libpath = os.path.join(os.path.dirname(__file__), os.pardir,
-                       'lib', 'lib_map_project.so')
+libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_map_project.so')
 lib_map_project = ctypes.CDLL(libpath)
 
 lib_map_project.get_transform.argtypes = [

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf8 -*-
 import numpy as np
 from backtrackbb.mod_setup import configure
 from backtrackbb.read_traces import read_traces

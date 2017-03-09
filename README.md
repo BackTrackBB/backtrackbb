@@ -1,6 +1,8 @@
 ## This is repository for BackTrackBB detection and locaton code
 
-(c) 2015-2016  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>; (c) 2013-2014  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>, Pierre Romanet <romanet@ipgp.fr>  
+(c) 2015-2017  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>;
+
+(c) 2013-2014  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>, Pierre Romanet <romanet@ipgp.fr>  
 
 
 
@@ -15,11 +17,11 @@ First, download the file [examples.zip]( https://www.dropbox.com/s/emlz4lbd6dpu9
 
 ### Run the main detection and location code on an example dataset:
 
-    ./btbb.py  BT_ChileExample.conf
+    btbb  BT_ChileExample.conf
 
 ### Run an example illustrating the procedure of Multi-Band Filter Characteristic Function calculation:
 
-    ./MBF_plot.py  MBF_ChileExample.conf
+    mbf_plot  MBF_ChileExample.conf
 
 
 
