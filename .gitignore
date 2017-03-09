@@ -10,3 +10,4 @@ lib/
 
 # other unnecessary files
 .directory
+.DS_Store
