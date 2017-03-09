@@ -1,9 +1,12 @@
 # -*- coding: utf8 -*-
-import os
-import ctypes
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_map_project.so')
-lib_map_project = ctypes.CDLL(libpath)
+import ctypes
+from backtrackbb.lib_names import get_lib_path
+
+
+lib_map_project = ctypes.CDLL(get_lib_path('lib_map_project'))
 
 lib_map_project.get_transform.argtypes = [
         ctypes.c_int,
@@ -40,8 +43,7 @@ def get_transform(trans_type, orig_lat, orig_lon,
     if trans_type == 'SIMPLE':
         s = 'SIMPLE %s %s %s' %\
                 (orig_lat, orig_lon, map_rot)
-
-    lib_map_project.get_transform(0, s)
+    lib_map_project.get_transform(0, s.encode('utf-8'))
 
 
 def latlon2rect(lat, lon):
@@ -66,10 +68,10 @@ if __name__ == '__main__':
     rot = 0.
     get_transform('LAMBERT', lat0, lon0, std_par1, std_par2,
                   rot, 'Clarke-1880')
-    print latlon2rect(lat0, lon0)
+    print(latlon2rect(lat0, lon0))
     x, y = latlon2rect(50.1, 7.2)
-    print rect2latlon(x, y)
+    print(rect2latlon(x, y))
     get_transform('SIMPLE', lat0, lon0, None, None, rot, None)
-    print latlon2rect(lat0, lon0)
+    print(latlon2rect(lat0, lon0))
     x, y = latlon2rect(50.1, 7.2)
-    print rect2latlon(x, y)
+    print(rect2latlon(x, y))

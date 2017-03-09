@@ -1,4 +1,7 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 from backtrackbb.mod_setup import configure
 from backtrackbb.read_traces import read_traces
@@ -20,7 +23,7 @@ def main():
     st = st_n.select(station=config.stations[0])
     st.detrend(type='constant')
     st.detrend(type='linear')
-    print st
+    print(st)
     hos_sigma = config['hos_sigma_' + 'S']
     if config.cut_data:
         st.trim(st[0].stats.starttime + config.cut_start,
@@ -40,7 +43,7 @@ def main():
                     hos_order=config.hos_order,
                     CF_decay_win=config.decay_const,
                     hos_sigma=hos_sigma[config.stations[0]])
-    print 'Creating characteristic function: %s' % (st[0].stats.station)
+    print('Creating characteristic function: %s' % (st[0].stats.station))
     if config.ch_function == 'kurtosis':
         MBkurt_1max_gauss = GaussConv(np.amax(MBkurt_1, axis=0),
                                       int(config.decay_const/dt1/2))

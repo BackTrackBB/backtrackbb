@@ -1,13 +1,14 @@
 # -*- coding: utf8 -*-
-import os
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import numpy as np
 from ctypes import CDLL, c_int, c_float, c_double, c_void_p, POINTER, byref
 from numpy.ctypeslib import ndpointer
-import numpy as np
+from backtrackbb.lib_names import get_lib_path
 
 
-libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rec_rms.so')
-lib_rec_rms = CDLL(libpath)
-
+lib_rec_rms = CDLL(get_lib_path('lib_rec_rms'))
 lib_rec_rms._recursive_rms.argtypes = [
         ndpointer(dtype=np.float64),  # signal
         ndpointer(dtype=np.float64),  # rms_signal
@@ -47,4 +48,4 @@ def recursive_rms(signal, C_WIN, rec_memory=None):
 if __name__ == '__main__':
     signal = np.ones(60000)
     rms_signal = recursive_rms(signal, 1)
-    print rms_signal
+    print(rms_signal)

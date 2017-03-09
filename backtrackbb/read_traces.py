@@ -1,4 +1,7 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import os
 from glob import glob
@@ -50,7 +53,7 @@ def read_traces(config):
     # Retain only requested channel and stations:
     st = Stream(tr for tr in tmpst_select if tr.stats.station in stations)
     if not st:
-        print 'Could not read any trace!'
+        print('Could not read any trace!')
         sys.exit(1)
     st.sort()
 
@@ -80,7 +83,7 @@ def read_traces(config):
     # Recompute sampling rate after resampling
     config.sampl_rate_data = st[0].stats.sampling_rate
 
-    print 'Number of traces in stream = ', len(st)
+    print('Number of traces in stream = ', len(st))
 
     # Check for common starttime and endtime of the traces
     st_starttime = max([tr.stats.starttime for tr in st])

@@ -1,4 +1,7 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import numpy as np
 import pylab
@@ -40,7 +43,7 @@ def bp_plot(config, proj_grid,
     scmap2.set_under('w', LTrig)
 
     if trigger is not None:
-        max_ijk = map(int, (trigger.i, trigger.j, trigger.k))
+        max_ijk = tuple(int(v) for v in (trigger.i, trigger.j, trigger.k))
         xx_max, yy_max, zz_max = trigger.x, trigger.y, trigger.z
     elif coord_eq:
         x_eq, y_eq, z_eq = coord_eq

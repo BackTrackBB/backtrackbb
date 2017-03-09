@@ -5,6 +5,9 @@
 #
 # (c) 2013-2015 - Natalia Poiata <poiata@ipgp.fr>,
 #                 Claudio Satriano <satriano@ipgp.fr>
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import math
 import numpy as np
 from scipy.ndimage import zoom
@@ -418,7 +421,8 @@ class NLLGrid():
             figure = ax_xy.get_figure()
 
         if slice_index is None:
-            slice_index = map(int, (self.nx/2, self.ny/2, self.nz/2))
+            slice_index = tuple(int(v) for v in
+                                (self.nx/2, self.ny/2, self.nz/2))
         if slice_index == 'max':
             slice_index = self.get_ijk_max()
         if slice_index == 'min':
@@ -540,7 +544,7 @@ def main():
     grd = NLLGrid(nx=nx, ny=ny, nz=nz,
                   dx=1, dy=1, dz=1,
                   x_orig=x_orig, y_orig=y_orig)
-    print grd
+    print(grd)
     grd.init_array()
     grd.array = gauss3D((nx, ny, nz), 20, 10, 2, 30)
 

@@ -1,11 +1,15 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from past.builtins import xrange
+
 import numpy as np
 import sys
-from rec_filter import recursive_filter
-from rec_rms import recursive_rms
-from rec_hos import recursive_hos
-from rec_gauss_filter import recursive_gauss_filter
-from rosenberger import rosenberger
+from backtrackbb.rec_filter import recursive_filter
+from backtrackbb.rec_rms import recursive_rms
+from backtrackbb.rec_hos import recursive_hos
+from backtrackbb.rec_gauss_filter import recursive_gauss_filter
+from backtrackbb.rosenberger import rosenberger
 
 
 def make_LinFq(f_min, f_max, delta, nfreq):
@@ -184,8 +188,8 @@ def MBfilter_CF(st, frequencies,
             # Define the decay constant
             rosenberger_decay_constant = 1 / rosenberger_decay_nsmps
 
-            print 'Rosenberger in process {}/{}\r'.format(n+1, Nb),
-            sys.stdout.flush()
+            print('Rosenberger in process {}/{}\r'.format(n+1, Nb),
+                  sys.stdout.flush())
 
             # third value returned by rosenberger() is the polarizaion filter,
             # which we do not use here
@@ -264,7 +268,7 @@ if __name__ == '__main__':
     # if arguments, read the file
     if len(sys.argv) == 2:
         filename = sys.argv[1]
-        print filename
+        print(filename)
         data = read(filename)
         signal = np.array(data[0].data, dtype='float')
         sys.exitfunc()

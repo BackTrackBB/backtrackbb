@@ -1,5 +1,8 @@
 # -*- coding: utf8 -*-
-from obspy.signal.util import utlGeoKm
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from obspy.signal.util import util_geo_km
 
 
 def read_locationTremor(infile, hour, lat_or, lon_or, depth=35.):
@@ -23,8 +26,8 @@ def read_locationTremor(infile, hour, lat_or, lon_or, depth=35.):
     hours_dic = epicenter.get('hh')
     for i, hh in enumerate(hours_dic):
         if hh == float(hour):
-            xeq, yeq = utlGeoKm(lon_or, lat_or, epicenter['lon_e'][i],
-                                epicenter['lat_e'][i])
+            xeq, yeq = util_geo_km(lon_or, lat_or, epicenter['lon_e'][i],
+                                   epicenter['lat_e'][i])
             XX.append(xeq)
             YY.append(yeq)
             ZZ.append(depth)
@@ -55,8 +58,8 @@ def read_locationEQ(infile, day, hours, lat_zero, lon_zero, depth=35.):
         year = str(epicenter['yyyy'][i])[2:4] + '0' + \
                str(int(epicenter['mm'][i])) + str(int(epicenter['dd'][i]))
         if year == day and str(int(hh)) == hours:
-            xeq, yeq = utlGeoKm(lon_zero, lat_zero, epicenter['lon_e'][i],
-                                epicenter['lat_e'][i])
+            xeq, yeq = util_geo_km(lon_zero, lat_zero, epicenter['lon_e'][i],
+                                   epicenter['lat_e'][i])
             xx.append(xeq)
             yy.append(yeq)
             zz.append(epicenter['depth_e'][i])

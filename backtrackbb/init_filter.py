@@ -1,6 +1,9 @@
 # -*- coding: utf8 -*-
-from rec_filter import rec_filter_coeff, rec_filter_norm
-from mod_filter_picker import make_LinFq, make_LogFq
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from backtrackbb.rec_filter import rec_filter_coeff, rec_filter_norm
+from backtrackbb.mod_filter_picker import make_LinFq, make_LogFq
 
 
 def init_filter(config):
@@ -10,7 +13,7 @@ def init_filter(config):
     elif config.band_spacing == 'log':
         config.frequencies = make_LogFq(config.f_min, config.f_max,
                                         config.delta, config.n_freq_bands)
-    print 'frequencies for filtering in (Hz):', config.frequencies
+    print('frequencies for filtering in (Hz):', config.frequencies)
 
     config.CN_HP, config.CN_LP = rec_filter_coeff(config.frequencies,
                                                   config.delta)

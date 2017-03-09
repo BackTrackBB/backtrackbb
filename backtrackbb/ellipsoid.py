@@ -1,6 +1,8 @@
 # Python porting of c-code from matrix_statistics.c,
 # part of the NonLinLoc package, written by Anthony Lomax
-from __future__ import division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from math import pi, cos, sin
 
 

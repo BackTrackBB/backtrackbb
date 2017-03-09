@@ -1,4 +1,7 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 from backtrackbb.mod_setup import configure
 from backtrackbb.bp_types import Trigger, Pick
@@ -50,7 +53,7 @@ def main():
             continue
         if trigger.max_grid < config.min_trigger:
             continue
-        print trigger.eventid
+        print(trigger.eventid)
         out_event_dir = os.path.join(config.event_dir, trigger.eventid)
         if not os.path.exists(out_event_dir):
             os.mkdir(out_event_dir)

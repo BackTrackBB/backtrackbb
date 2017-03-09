@@ -1,19 +1,20 @@
 # -*- coding: utf8 -*-
-import os
-import ctypes
-from numpy.ctypeslib import ndpointer
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
+from ctypes import CDLL, c_int, c_double, c_void_p
+from numpy.ctypeslib import ndpointer
+from backtrackbb.lib_names import get_lib_path
 
 
-libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rec_cc.so')
-lib_rec_cc = ctypes.CDLL(libpath)
-
+lib_rec_cc = CDLL(get_lib_path('lib_rec_cc'))
 lib_rec_cc._Gaussian1D.argtypes = [
         ndpointer(dtype=np.float64),  # signal
-        ctypes.c_int,                 # npts
-        ctypes.c_double               # sigma
+        c_int,                        # npts
+        c_double                      # sigma
         ]
-lib_rec_cc._Gaussian1D.restype = ctypes.c_void_p
+lib_rec_cc._Gaussian1D.restype = c_void_p
 
 
 def recursive_gauss_filter(signal, sigma):

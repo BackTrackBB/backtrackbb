@@ -1,4 +1,6 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 
 class Config(dict):
@@ -10,6 +12,6 @@ class Config(dict):
     def __getattr__(self, key):
         try:
             return self.__getitem__(key)
-        except KeyError, message:
+        except KeyError as message:
             raise AttributeError(message)
     __setattr__ = __setitem__

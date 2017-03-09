@@ -1,18 +1,21 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import os
 import numpy as np
 import itertools
 from collections import defaultdict
-from scipy.ndimage.interpolation import zoom
-from bp_types import Trigger
-from map_project import rect2latlon
-from grid_projection import sta_GRD_Proj
-from plot import bp_plot
-from mod_bp_TrigOrig_time import TrOrig_time
-from NLLGrid import NLLGrid
-from summary_cf import summary_cf
 from multiprocessing import Pool
+from scipy.ndimage.interpolation import zoom
+from backtrackbb.bp_types import Trigger
+from backtrackbb.map_project import rect2latlon
+from backtrackbb.grid_projection import sta_GRD_Proj
+from backtrackbb.plot import bp_plot
+from backtrackbb.mod_bp_TrigOrig_time import TrOrig_time
+from backtrackbb.NLLGrid import NLLGrid
+from backtrackbb.summary_cf import summary_cf
 
 
 def init_worker():
@@ -41,7 +44,7 @@ def _run_btbb(config, st, st_CF, t_begin,
     t_end = t_begin + config.time_lag
 
     # Create stack_grid using a time grid as model
-    gr = GRD_sta.values()[0].values()[0]
+    gr = list(list(GRD_sta.values())[0].values())[0]
     stack_grid = NLLGrid(nx=gr.nx, ny=gr.ny, nz=gr.nz,
                          x_orig=gr.x_orig, y_orig=gr.y_orig, z_orig=gr.z_orig,
                          dx=gr.dx, dy=gr.dy, dz=gr.dz)
@@ -145,13 +148,13 @@ def _run_btbb(config, st, st_CF, t_begin,
         except KeyboardInterrupt:
             rm_pool.terminate()
             rm_pool.join()
-            print ''
-            print 'Aborting.'
+            print('')
+            print('Aborting.')
             sys.exit()
         rm_pool.close()
         rm_pool.join()
     else:
-        outputs = map(sta_GRD_Proj, arglist)
+        outputs = list(map(sta_GRD_Proj, arglist))
 
     # Parse outputs and update stack_grid
     for out in outputs:
@@ -267,11 +270,11 @@ def _run_btbb(config, st, st_CF, t_begin,
             trigger = None
 
     if trigger is not None:
-        print trigger
+        print(trigger)
 
     if config.save_projGRID is True or\
             (config.save_projGRID == 'trigger_only' and trigger is not None):
-        print 'Saving projection grid to file.'
+        print('Saving projection grid to file.')
         basename = os.path.join(config.out_dir, 'out_t%05.1f' % t_begin)
         stack_grid.write_hdr_file(basename)
         stack_grid.write_buf_file(basename)

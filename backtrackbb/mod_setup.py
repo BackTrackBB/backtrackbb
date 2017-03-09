@@ -1,18 +1,21 @@
 # -*- coding: utf8 -*-
 """Setup functions."""
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import os
 from argparse import ArgumentParser
-from configobj import ConfigObj
-from configobj.validate import Validator
-from Config import Config
+from backtrackbb.configobj import ConfigObj
+from backtrackbb.configobj.validate import Validator
+from backtrackbb.Config import Config
 
 
 # Setup ipython shell
 if sys.stdout.isatty():
     try:
         import IPython
-        ip_version = map(int, IPython.__version__.split('.'))
+        ip_version = list(map(int, IPython.__version__.split('.')))
         if ip_version[0] == 0:
             if ip_version[1] >= 11:
                 # ipython >= 0.11
@@ -73,10 +76,10 @@ def _parse_configspec():
         configspec = ConfigObj(configspec_file, interpolation=False,
                                list_values=False, _inspec=True,
                                file_error=True)
-    except IOError, message:
+    except IOError as message:
         sys.stderr.write('%s\n' % message)
         sys.exit(1)
-    except Exception, message:
+    except Exception as message:
         sys.stderr.write('Unable to read "%s": %s\n' %
                          (configspec_file, message))
         sys.exit(1)
@@ -92,7 +95,7 @@ def _write_sample_config(configspec, progname):
     c.comments = configspec.comments
     configfile = progname + '.conf'
     c.write(open(configfile, 'w'))
-    print 'Sample config file written to: ' + configfile
+    print('Sample config file written to: ' + configfile)
 
 
 def _parse_config(config_file):
@@ -100,10 +103,10 @@ def _parse_config(config_file):
     try:
         config_obj = ConfigObj(config_file, configspec=configspec,
                                file_error=True)
-    except IOError, message:
+    except IOError as message:
         sys.stderr.write('%s\n' % message)
         sys.exit(1)
-    except Exception, message:
+    except Exception as message:
         sys.stderr.write('Unable to read "%s": %s\n' % (config_file, message))
         sys.exit(1)
 

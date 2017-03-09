@@ -7,15 +7,16 @@
 # (c) 2013-2014 - Natalia Poiata <poiata@ipgp.fr>,
 #                 Claudio Satriano <satriano@ipgp.fr>,
 #                 Pierre Romanet <romanet@ipgp.fr>
-import os
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import numpy as np
 from ctypes import CDLL, c_int, c_float, c_double, c_void_p, POINTER, byref
 from numpy.ctypeslib import ndpointer
-import numpy as np
+from backtrackbb.lib_names import get_lib_path
 
 
-libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rec_hos.so')
-lib_rec_hos = CDLL(libpath)
-
+lib_rec_hos = CDLL(get_lib_path('lib_rec_hos'))
 lib_rec_hos._recursive_hos.argtypes = [
         ndpointer(dtype=np.float64),  # signal
         ndpointer(dtype=np.float64),  # hos_signal
@@ -37,7 +38,7 @@ def recursive_hos(signal, C_WIN, order=4, sigma_min=-1., rec_memory=None):
     try:
         C_WIN = float(C_WIN)
     except ValueError:
-        print 'C_WIN should be a double'
+        print('C_WIN should be a double')
 
     signal = np.array(signal, dtype=np.float64)
     hos_signal = np.zeros(len(signal))

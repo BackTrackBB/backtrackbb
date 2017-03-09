@@ -11,27 +11,28 @@
 # (c) 2014 - Claudio Satriano <satriano@ipgp.fr>,
 #            Pierre Romanet <romanet@ipgp.fr>
 # (c) 2014 - 2016 Claudio Satriano <satriano@ipgp.fr>
-import os
-import ctypes
-from numpy.ctypeslib import ndpointer
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
+from ctypes import CDLL, c_int, c_float, c_char, c_void_p
+from numpy.ctypeslib import ndpointer
+from backtrackbb.lib_names import get_lib_path
 
 
-libpath = os.path.join(os.path.dirname(__file__), 'lib', 'lib_rosenberger.so')
-lib_rosenberger = ctypes.CDLL(libpath)
-
+lib_rosenberger = CDLL(get_lib_path('lib_rosenberger'))
 lib_rosenberger.rosenberger.argtypes = [
         ndpointer(dtype=np.float64),  # dataX
         ndpointer(dtype=np.float64),  # dataY
         ndpointer(dtype=np.float64),  # dataZ
         ndpointer(dtype=np.float64),  # pol_filter
-        ctypes.c_int,  # npts
-        ctypes.c_float,  # lambda
-        ctypes.c_float,  # delta
-        ctypes.c_char,  # proj
-        ctypes.c_char  # rl_filter
+        c_int,  # npts
+        c_float,  # lambda
+        c_float,  # delta
+        c_char,  # proj
+        c_char  # rl_filter
         ]
-lib_rosenberger.rosenberger.restype = ctypes.c_void_p
+lib_rosenberger.rosenberger.restype = c_void_p
 
 
 def rosenberger(dataX, dataY, dataZ,
@@ -60,7 +61,7 @@ def rosenberger(dataX, dataY, dataZ,
 
     pol_filter = np.zeros_like(dataX)
 
-    delta = ctypes.c_float(delta)
+    delta = c_float(delta)
     proj = chr(int(proj))
     rl_filter = chr(int(rl_filter))
 
@@ -98,9 +99,9 @@ def main():
     samples = window / st[0].stats.delta
     # Compute the accumulation parameter lambda_
     lambda_ = 1 - math.exp(math.log(0.05) / samples)
-    print lambda_
+    print(lambda_)
     lambda_ = 1. / samples
-    print lambda_
+    print(lambda_)
     data_P, data_S, pol_filter =\
         rosenberger(st[2].data, st[1].data, st[0].data, lambda_)
 

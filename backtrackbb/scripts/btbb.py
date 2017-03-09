@@ -1,4 +1,7 @@
 # -*- coding: utf8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import numpy as np
 from backtrackbb.mod_setup import configure
@@ -21,7 +24,7 @@ def main():
     config = configure()
 
     var_twin = config.varWin_stationPair
-    print 'use of var time window for location:', var_twin
+    print('use of var time window for location:', var_twin)
     #---Reading data---------------------------------------------------------
     st = read_traces(config)
     #------------------------------------------------------------------------
@@ -31,7 +34,7 @@ def main():
     t_ee = t_bb + config.time_lag
     data_length = st[0].stats.endtime - st[0].stats.starttime
     t_bb = t_ee[t_ee <= data_length] - config.time_lag
-    print 'Number of time windows = ', len(t_bb)
+    print('Number of time windows = ', len(t_bb))
 
     loc_infile = None
     location_jma = None
@@ -62,7 +65,7 @@ def main():
         st_CF = summary_cf(config, st)
 
     #---Take the first grid as reference ------------------------------------
-    grid1 = GRD_sta.values()[0].values()[0]
+    grid1 = list(list(GRD_sta.values())[0].values())[0]
 
     #---init map projection--------------------------------------------------
     if grid1.proj_name:
@@ -84,7 +87,7 @@ def main():
                                     config.data_day, config.data_hours,
                                     config.lat_orig, config.lon_orig)
     #------------------------------------------------------------------------
-    print 'starting BPmodule'
+    print('starting BPmodule')
 
     # Create out_dir, if it doesn't exist
     if not os.path.exists(config.out_dir):
@@ -126,7 +129,7 @@ def main():
                 rec_memory, async_plotter)
                for t_begin in t_bb
               ]
-    print 'Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1))
+    print('Running on %d thread%s' % (config.ncpu, 's' * (config.ncpu > 1)))
     if config.ncpu > 1 and not config.recursive_memory:
         # parallel execution
         global pool
@@ -200,5 +203,5 @@ if __name__ == '__main__':
             pool.join()
         if async_plotter is not None:
             async_plotter.terminate()
-        print ''
-        print 'Aborting.'
+        print('')
+        print('Aborting.')
