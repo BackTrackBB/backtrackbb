@@ -146,7 +146,7 @@ def main():
         # (but there might be a parallelization step
         # inside run_btbb, if we're using recursive_memory)
         p_outputs = map(run_btbb, arglist)
-    triggers = filter(None, p_outputs)
+    triggers = list(filter(None, p_outputs))
 
     if async_plotter is not None:
         async_plotter.join()
