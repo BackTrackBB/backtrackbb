@@ -4,3 +4,5 @@ include LICENSE.txt
 include CONTRIBUTORS.txt
 include backtrackbb/configspec.conf
 include backtrackbb/RELEASE-VERSION
+include backtrackbb/c_libs/map_project/*.h
+include backtrackbb/c_libs/rosenberger/*.h
