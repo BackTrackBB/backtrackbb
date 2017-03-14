@@ -140,7 +140,7 @@ class NLLGrid():
         filename = self.basename + '.buf'
 
         with open(filename, 'rb') as fp:
-            buf = array('f')
+            buf = array(str('f'))
             buf.fromfile(fp, self.nx * self.ny * self.nz)
         self.array = np.array(buf).reshape(self.nx, self.ny, self.nz)
 
