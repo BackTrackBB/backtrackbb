@@ -1,6 +1,9 @@
-# directories created by setup.py
+#Build products
+backtrackbb.egg-info/
+dist/
 build/
-lib/
+RELEASE-VERSION
+*.so
 
 # python bytecode
 *.pyc
@@ -10,3 +13,4 @@ lib/
 
 # other unnecessary files
 .directory
+.DS_Store
