@@ -25,4 +25,4 @@ First, download the file [examples.zip]( https://www.dropbox.com/s/emlz4lbd6dpu9
 
 
 
-### A detailed documentation is available here: [link_to_doc_repository]
+### A detailed documentation is available here: [backtrackbb.readthedocs.io](http://backtrackbb.readthedocs.io/en/latest/)
