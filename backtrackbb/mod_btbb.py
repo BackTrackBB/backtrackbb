@@ -274,10 +274,8 @@ def _run_btbb(config, st, st_CF, t_begin,
         trigger.compute_origin_time(config.dt_min)
         trigger.set_eventid()
         trigger.check_validity()
-        if not trigger.valid:
-            trigger = None
 
-    if trigger is not None:
+    if trigger is not None and trigger.valid:
         print(trigger)
 
     if config.save_projGRID is True or\
@@ -297,5 +295,9 @@ def _run_btbb(config, st, st_CF, t_begin,
                 arrival_times,
                 noisy_sta_wave,
                 Mtau, async_plotter)
+
+    # now that it is plotted, we can discard an invalid trigger
+    if trigger is not None and not trigger.valid:
+        trigger = None
 
     return trigger
