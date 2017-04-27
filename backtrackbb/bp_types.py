@@ -7,15 +7,20 @@ import numpy as np
 from obspy import UTCDateTime
 from ctypes import c_double
 from itertools import product
+from scipy.stats import trim_mean
 
 
-def _time_average(times):
+def _time_average(times, trimfraction=None):
     times = np.array(list(times))
     if not len(times):
         raise ValueError('times array is empty')
     ref_time = times[0]
     times -= ref_time
-    return ref_time + times.mean()
+    if trimfraction is not None:
+        mean = trim_mean(times, trimfraction)
+    else:
+        mean = np.mean(times)
+    return ref_time + mean
 
 
 class Trigger():
@@ -110,8 +115,10 @@ class Trigger():
 
     def compute_origin_time(self, dt_min, update_evid=False):
         # initial estimation of origin time
-        otime = _time_average(_pick.pick_time_absolute - _pick.theor_time
-                              for _pick in self.picks if _pick.valid)
+        # avoid utliers by using a 20% trimmed mean
+        otime = _time_average((_pick.pick_time_absolute - _pick.theor_time
+                              for _pick in self.picks if _pick.valid),
+                              trimfraction=0.2)
         # invalidate picks too distant from theoretical time
         for pick in self.picks:
             pick.theor_time_absolute = otime + pick.theor_time
