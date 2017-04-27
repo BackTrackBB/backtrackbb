@@ -3,9 +3,19 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numpy as np
 from obspy import UTCDateTime
 from ctypes import c_double
-import numpy as np
+from itertools import product
+
+
+def _time_average(times):
+    times = np.array(list(times))
+    if not len(times):
+        raise ValueError('times array is empty')
+    ref_time = times[0]
+    times -= ref_time
+    return ref_time + times.mean()
 
 
 class Trigger():
@@ -34,6 +44,7 @@ class Trigger():
         self.lat = None
         self.lon = None
         self.origin_time = None
+        self.valid = True
 
     def __str__(self):
         s = '%s ' % self.eventid
@@ -76,24 +87,90 @@ class Trigger():
     def add_pick(self, pick):
         self.picks.append(pick)
 
+    def make_picks(self, stations, arrival_types,
+                   arrival_times=None, grids=None):
+        for sta, arr in product(stations, arrival_types):
+            pick = Pick()
+            pick.station = sta
+            pick.arrival_type = arr
+            # pick is validated by Pick.from_arrival_times()
+            pick.valid = False
+            if arrival_times is not None:
+                pick.from_arrival_times(arrival_times)
+            if grids is not None:
+                pick.theor_time =\
+                    grids[sta][arr].get_value(self.x, self.y, self.z)
+            self.add_pick(pick)
+
     def get_picks(self, station=None, arrival_type=None):
         return [pick for pick in self.picks
                 if (station is not None and pick.station == station)
                 or (arrival_type is not None
                     and pick.arrival_type == arrival_type)]
 
+    def compute_origin_time(self, dt_min, update_evid=False):
+        # initial estimation of origin time
+        otime = _time_average(_pick.pick_time_absolute - _pick.theor_time
+                              for _pick in self.picks if _pick.valid)
+        # invalidate picks too distant from theoretical time
+        for pick in self.picks:
+            pick.theor_time_absolute = otime + pick.theor_time
+            if pick.pick_time_absolute is not None:
+                pick.time_dev =\
+                    abs(pick.pick_time_absolute - pick.theor_time_absolute)
+                if pick.time_dev >= dt_min:
+                    pick.valid = False
+        # recalculate origin time by disregarding new invalid picks
+        try:
+            otime = _time_average(_pick.pick_time_absolute - _pick.theor_time
+                                  for _pick in self.picks if _pick.valid)
+            # recompute theoretical time with updated origin_time
+            for pick in self.picks:
+                pick.theor_time_absolute = otime + pick.theor_time
+        except ValueError:
+            pass
+        # compute pick_time and theor_time respect to origin_time
+        for pick in self.picks:
+            if pick.pick_time_absolute is not None:
+                pick.pick_time = pick.pick_time_absolute - otime
+            else:
+                pick.pick_time = -10.0
+            pick.theor_time = pick.theor_time_absolute - otime
+        self.origin_time = otime
+
+    def set_eventid(self, eventid=None):
+        if eventid is None:
+            try:
+                eventid = self.origin_time.strftime('%Y%m%d_%H%M') + 'A'
+            except Exception:
+                raise ValueError('unable to set eventid form origin time')
+        self.eventid = eventid
+        for pick in self.picks:
+            pick.eventid = self.eventid
+
+    def check_validity(self):
+        if self.origin_time is None:
+            self.valid = False
+            return
+        # check if there is at least a valid pick
+        for pick in self.picks:
+            if pick.valid:
+                self.valid = True
+                return
+        self.valid = False
+
 
 class Pick():
-    def __init__(self,
-                 eventid=None, station=None,
-                 arrival_type=None):
+    def __init__(self, eventid=None, station=None, arrival_type=None):
         self.eventid = eventid
         self.station = station
         self.arrival_type = arrival_type
         self.theor_time = None
+        self.theor_time_absolute = None
         self.pick_time = None
-        self.travel_time = None
+        self.pick_time_absolute = None
         self.time_dev = None
+        self.valid = True
 
     def __str__(self):
         s = ' sta %s ' % self.station
@@ -117,6 +194,20 @@ class Pick():
         #TODO: read and write these fields?
         #self.travel_time = None
         #self.time_dev = None
+
+    def from_arrival_times(self, arrival_times):
+        station = self.station
+        arrival_type = self.arrival_type
+        try:
+            _arrival_times = arrival_times[station][arrival_type]
+        except KeyError:
+            self.valid = False
+            return
+        try:
+            self.pick_time_absolute = _time_average(_arrival_times)
+            self.valid = True
+        except ValueError:
+            self.valid = False
 
 
 class RecursiveMemory():
