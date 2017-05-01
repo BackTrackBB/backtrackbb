@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
 import numpy as np
 from backtrackbb.mod_setup import configure
 from backtrackbb.read_traces import read_traces
@@ -146,7 +147,9 @@ def main():
     # end ax4
     # -------------------------------------------------------------------------
 
-    import os
+    # Create out_dir, if it doesn't exist
+    if not os.path.exists(config.out_dir):
+        os.mkdir(config.out_dir)
     if len(st) == 2:
         name_fig_out = '.'.join(('MBFplot', config.ch_function,
                                  st[0].stats.station, 'horiz',
