@@ -5,11 +5,11 @@ from past.builtins import xrange
 
 import numpy as np
 import sys
-from backtrackbb.rec_filter import recursive_filter
-from backtrackbb.rec_rms import recursive_rms
-from backtrackbb.rec_hos import recursive_hos
-from backtrackbb.rec_gauss_filter import recursive_gauss_filter
-from backtrackbb.rosenberger import rosenberger
+from .rec_filter import recursive_filter
+from .rec_rms import recursive_rms
+from .rec_hos import recursive_hos
+from .rec_gauss_filter import recursive_gauss_filter
+from .rosenberger import rosenberger
 
 
 def make_LinFq(f_min, f_max, delta, nfreq):

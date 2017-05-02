@@ -3,9 +3,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
-from backtrackbb.mod_setup import configure
-from backtrackbb.bp_types import Trigger, Pick
-from backtrackbb.mod_group_trigs import group_triggers
+from ..mod_setup import configure
+from ..bp_types import Trigger, Pick
+from ..mod_group_trigs import group_triggers
 
 
 def main():

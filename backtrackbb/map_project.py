@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import ctypes
-from backtrackbb.lib_names import get_lib_path
+from .lib_names import get_lib_path
 
 
 lib_map_project = ctypes.CDLL(get_lib_path('lib_map_project'))

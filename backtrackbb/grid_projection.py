@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 import scipy as sp
-from backtrackbb.LocalCC import LocalCC
+from .LocalCC import LocalCC
 
 
 def sta_GRD_Proj(args):

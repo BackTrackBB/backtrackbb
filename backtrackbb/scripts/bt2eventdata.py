@@ -3,15 +3,15 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
-from backtrackbb.mod_setup import configure
-from backtrackbb.bp_types import Trigger, Pick
-from backtrackbb.read_traces import read_traces
 from obspy.core import AttribDict
+from ..mod_setup import configure
+from ..bp_types import Trigger, Pick
+from ..read_traces import read_traces
 
 """
 using output file xxx_OUT2_grouped.dat of btbb.py
 to create events data
-to run: ./backtrack2eventdata.py config_file xxx_OUT2_grouped.dat
+to run: ./bt2eventdata.py config_file xxx_OUT2_grouped.dat
         (station.dat --> optional)
 """
 

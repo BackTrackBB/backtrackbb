@@ -17,7 +17,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from ctypes import CDLL, c_int, c_float, c_char, c_void_p
 from numpy.ctypeslib import ndpointer
-from backtrackbb.lib_names import get_lib_path
+from .lib_names import get_lib_path
 
 
 lib_rosenberger = CDLL(get_lib_path('lib_rosenberger'))

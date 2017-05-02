@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from obspy import Stream
-from backtrackbb.mod_filter_picker import MBfilter_CF, GaussConv
+from .mod_filter_picker import MBfilter_CF, GaussConv
 
 
 def summary_cf(config, st, rec_memory=None):

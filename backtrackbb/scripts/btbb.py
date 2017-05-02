@@ -4,18 +4,18 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import numpy as np
-from backtrackbb.mod_setup import configure
-from backtrackbb.read_traces import read_traces
-from backtrackbb.init_filter import init_filter
-from backtrackbb.read_grids import read_grids
-from backtrackbb.summary_cf import summary_cf, empty_cf
-from backtrackbb.map_project import get_transform
-from backtrackbb.mod_utils import read_locationTremor, read_locationEQ
-from backtrackbb.plot import plt_SummaryOut
-from backtrackbb.rec_memory import init_recursive_memory
-from backtrackbb.mod_btbb import run_btbb
-from backtrackbb.AsyncPlotter import AsyncPlotter
 from multiprocessing import Pool
+from ..mod_setup import configure
+from ..read_traces import read_traces
+from ..init_filter import init_filter
+from ..read_grids import read_grids
+from ..summary_cf import summary_cf, empty_cf
+from ..map_project import get_transform
+from ..mod_utils import read_locationTremor, read_locationEQ
+from ..plot import plt_SummaryOut
+from ..rec_memory import init_recursive_memory
+from ..mod_btbb import run_btbb
+from ..AsyncPlotter import AsyncPlotter
 
 DEBUG = False
 

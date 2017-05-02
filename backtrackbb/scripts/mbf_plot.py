@@ -4,10 +4,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import numpy as np
-from backtrackbb.mod_setup import configure
-from backtrackbb.read_traces import read_traces
-from backtrackbb.init_filter import init_filter
-from backtrackbb.mod_filter_picker import MBfilter_CF, GaussConv
+from ..mod_setup import configure
+from ..read_traces import read_traces
+from ..init_filter import init_filter
+from ..mod_filter_picker import MBfilter_CF, GaussConv
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams['pdf.fonttype'] = 42

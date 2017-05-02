@@ -6,9 +6,9 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 import os
 from argparse import ArgumentParser
-from backtrackbb.configobj import ConfigObj
-from backtrackbb.configobj.validate import Validator
-from backtrackbb.Config import Config
+from .configobj import ConfigObj
+from .configobj.validate import Validator
+from .Config import Config
 
 
 # Setup ipython shell

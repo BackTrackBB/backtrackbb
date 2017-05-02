@@ -2,8 +2,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from backtrackbb.rec_filter import rec_filter_coeff, rec_filter_norm
-from backtrackbb.mod_filter_picker import make_LinFq, make_LogFq
+from .rec_filter import rec_filter_coeff, rec_filter_norm
+from .mod_filter_picker import make_LinFq, make_LogFq
 
 
 def init_filter(config):

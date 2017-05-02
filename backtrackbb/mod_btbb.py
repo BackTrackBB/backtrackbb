@@ -9,13 +9,13 @@ import itertools
 from collections import defaultdict
 from multiprocessing import Pool
 from scipy.ndimage.interpolation import zoom
-from backtrackbb.bp_types import Trigger
-from backtrackbb.map_project import rect2latlon
-from backtrackbb.grid_projection import sta_GRD_Proj
-from backtrackbb.plot import bp_plot
-from backtrackbb.mod_bp_TrigOrig_time import TrOrig_time
-from backtrackbb.NLLGrid import NLLGrid
-from backtrackbb.summary_cf import summary_cf
+from .bp_types import Trigger
+from .map_project import rect2latlon
+from .grid_projection import sta_GRD_Proj
+from .plot import bp_plot
+from .mod_bp_TrigOrig_time import TrOrig_time
+from .NLLGrid import NLLGrid
+from .summary_cf import summary_cf
 
 
 def init_worker():

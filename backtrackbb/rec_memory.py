@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 from past.builtins import xrange
 
 import itertools
-from backtrackbb.bp_types import RecursiveMemory
+from .bp_types import RecursiveMemory
 
 
 def init_recursive_memory(config):

@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 import scipy as sp
-from backtrackbb.rec_cc import local_CCr
+from .rec_cc import local_CCr
 
 
 def LocalCC(in_signal1, in_signal2, samp_rate, max_time_lag, zero_time,
