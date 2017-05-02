@@ -289,7 +289,7 @@ class NLLGrid():
 
     def get_xyz_ellipsoid(self):
         """Return the 68% confidence ellipsoid respect to the mean point."""
-        from ellipsoid import Ellipsoid3D
+        from .ellipsoid import Ellipsoid3D
         # The following code is a python translation of the
         # CalcErrorEllipsoid() c-function from the NonLinLoc package,
         # written by Anthony Lomax
@@ -468,7 +468,7 @@ class NLLGrid():
         ax_yz.scatter(point[2], point[1], color=color)
 
     def plot_ellipsoid(self, axes, ellipsoid=None, mean_xyz=None):
-        from ellipsoid import Vect3D, ellipsiod2Axes, toEllipsoid3D
+        from .ellipsoid import Vect3D, ellipsiod2Axes, toEllipsoid3D
         ax_xy, ax_xz, ax_yz = axes
 
         if ellipsoid is None:
