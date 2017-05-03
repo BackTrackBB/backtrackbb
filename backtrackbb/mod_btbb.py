@@ -13,7 +13,6 @@ from .bp_types import Trigger
 from .map_project import rect2latlon
 from .grid_projection import sta_GRD_Proj
 from .plot import bp_plot
-from .mod_bp_TrigOrig_time import TrOrig_time
 from .NLLGrid import NLLGrid
 from .summary_cf import summary_cf
 
@@ -263,13 +262,20 @@ def _run_btbb(config, st, st_CF, t_begin,
         if stack_grid.proj_name != 'NONE':
             trigger.lat, trigger.lon =\
                 rect2latlon(trigger.x, trigger.y)
+        # compute picks from arrivals and theoretical arrivals from grids
+        trigger.make_picks(
+            config.stations, config.wave_type, arrival_times, GRD_sta)
+        if config.grid_type != config.wave_type:
+            # additional theoretical travel time estimation for second phase
+            # only done if config.grid_type and config.wave_type have different
+            # number of phases
+            phase2 = list(set(config.grid_type) - set(config.wave_type))
+            trigger.make_picks(config.stations, phase2, grids=GRD_sta)
+        trigger.compute_origin_time(config.dt_min)
+        trigger.set_eventid()
+        trigger.check_validity()
 
-        # Compute origin time and theoretical arrivals
-        TrOrig_time(config, GRD_sta, trigger, arrival_times)
-        if trigger.origin_time is None:
-            trigger = None
-
-    if trigger is not None:
+    if trigger is not None and trigger.valid:
         print(trigger)
 
     if config.save_projGRID is True or\
@@ -282,7 +288,6 @@ def _run_btbb(config, st, st_CF, t_begin,
     # Plotting------------------------------------------------------------------
     if config.plot_results == 'True' or\
             (config.plot_results == 'trigger_only' and trigger is not None):
-
         bp_plot(config, stack_grid,
                 coord_eq, t_begin, t_end,
                 coord_sta, st, st_CF,
@@ -290,5 +295,9 @@ def _run_btbb(config, st, st_CF, t_begin,
                 arrival_times,
                 noisy_sta_wave,
                 Mtau, async_plotter)
+
+    # now that it is plotted, we can discard an invalid trigger
+    if trigger is not None and not trigger.valid:
+        trigger = None
 
     return trigger

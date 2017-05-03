@@ -277,6 +277,10 @@ def bp_plot(config, proj_grid,
     ax3.set_title(note_t, fontsize=15)
     ax3.autoscale(enable=True, axis='y', tight=False)
 
+    if trigger is not None and not trigger.valid:
+        fig.suptitle('INVALID TRIGGER: arrival time difference larger than '
+                     '{} s (dt_min)'.format(config.dt_min), fontsize=24)
+
     fq_str = '%s_%s' % (str(np.round(config.frequencies[0])),
                         str(np.round(config.frequencies[-1])))
     datestr = st[0].stats.starttime.strftime('%y%m%d%H')
