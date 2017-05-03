@@ -192,7 +192,7 @@ def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
-if __name__ == '__main__':
+def run():
     try:
         pool = None
         async_plotter = None
@@ -205,3 +205,7 @@ if __name__ == '__main__':
             async_plotter.terminate()
         print('')
         print('Aborting.')
+
+
+if __name__ == '__main__':
+    run()

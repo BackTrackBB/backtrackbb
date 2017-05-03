@@ -45,7 +45,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'btbb = backtrackbb.scripts.btbb:main',
+            'btbb = backtrackbb.scripts.btbb:run',
             'mbf_plot = backtrackbb.scripts.mbf_plot:main',
             'bt2eventdata = backtrackbb.scripts.bt2eventdata:main',
             'group_triggers = backtrackbb.scripts.group_triggers:main',
