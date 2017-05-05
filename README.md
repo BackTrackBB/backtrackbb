@@ -17,11 +17,11 @@ First, download the file [examples.zip]( https://www.dropbox.com/s/emlz4lbd6dpu9
 
 ### Run the main detection and location code on an example dataset:
 
-    btbb  BT_ChileExample.conf
+    btbb  examples/BT_ChileExample.conf
 
 ### Run an example illustrating the procedure of Multi-Band Filter Characteristic Function calculation:
 
-    mbf_plot  MBF_ChileExample.conf
+    mbf_plot  examples/MBF_ChileExample.conf
 
 
 
