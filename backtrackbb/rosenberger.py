@@ -17,6 +17,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from ctypes import CDLL, c_int, c_float, c_char, c_void_p
 from numpy.ctypeslib import ndpointer
+from future.utils import PY2
 from .lib_names import get_lib_path
 
 
@@ -62,8 +63,12 @@ def rosenberger(dataX, dataY, dataZ,
     pol_filter = np.zeros_like(dataX)
 
     delta = c_float(delta)
-    proj = chr(int(proj))
-    rl_filter = chr(int(rl_filter))
+    if PY2:
+        proj = chr(proj)
+        rl_filter = chr(rl_filter)
+    else:
+        proj = c_char(proj)
+        rl_filter = c_char(rl_filter)
 
     lib_rosenberger.rosenberger(dataX, dataY, dataZ,
                                 pol_filter,
