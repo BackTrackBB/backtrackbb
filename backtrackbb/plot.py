@@ -234,7 +234,7 @@ def bp_plot(config, proj_grid,
                     time_CF -= time_CF.min()
             else:
                 time_CF += config.cut_start
-            if '%s.%s' % (sta, wave) in unused_CF:
+            if ('%s' % sta, '%s' % wave) in unused_CF:
                 linestyle = '--'
             else:
                 linestyle = '-'

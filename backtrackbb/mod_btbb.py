@@ -74,7 +74,7 @@ def _run_btbb(config, st, st_CF, t_begin,
         sums = [('%s' % str(tr.stats.station), '%s' % str(tr.stats.channel),
                 (tr.data/tr.max()).sum()) for tr in st_CF_cut]
 
-        min_sum = min(s[1] for s in sums)
+        min_sum = min(s[2] for s in sums)
 
         # A noisy CF has an integral at least two times larger than
         # the smaller one
