@@ -272,6 +272,7 @@ def _run_btbb(config, st, st_CF, t_begin,
             phase2 = list(set(config.grid_type) - set(config.wave_type))
             trigger.make_picks(config.stations, phase2, grids=GRD_sta)
         trigger.compute_origin_time(config.dt_min)
+        trigger.compute_rms(config.wave_type)
         trigger.set_eventid()
         trigger.check_validity()
 
