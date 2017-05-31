@@ -76,10 +76,10 @@ def _run_btbb(config, st, st_CF, t_begin,
 
         min_sum = min(s[2] for s in sums)
 
-        # A noisy CF has an integral at least two times larger than
-        # the smaller one
-        # TODO: parametrize?
-        noisy_sta_wave = [(s[0], s[1]) for s in sums if s[2] >= 2*min_sum]
+        # A noisy CF has an integral at least N (=config.n_ignore_noisy_CF)
+        # times larger than the smaller one
+        noisy_sta_wave = [(s[0], s[1]) for s in sums if s[2] >=
+                          config.n_ignore_noisy_CF*min_sum]
     else:
         noisy_sta_wave = []
 
@@ -272,6 +272,7 @@ def _run_btbb(config, st, st_CF, t_begin,
             phase2 = list(set(config.grid_type) - set(config.wave_type))
             trigger.make_picks(config.stations, phase2, grids=GRD_sta)
         trigger.compute_origin_time(config.dt_min)
+        trigger.compute_rms(config.wave_type)
         trigger.set_eventid()
         trigger.check_validity()
 

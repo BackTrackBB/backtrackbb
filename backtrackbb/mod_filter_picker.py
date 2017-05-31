@@ -188,8 +188,8 @@ def MBfilter_CF(st, frequencies,
             # Define the decay constant
             rosenberger_decay_constant = 1 / rosenberger_decay_nsmps
 
-            print('Rosenberger in process {}/{}\r'.format(n+1, Nb),
-                  sys.stdout.flush())
+            # print('Rosenberger in process {}/{}\r'.format(n+1, Nb),
+            #       sys.stdout.flush())
 
             # third value returned by rosenberger() is the polarizaion filter,
             # which we do not use here

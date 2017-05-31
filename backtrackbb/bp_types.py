@@ -31,7 +31,8 @@ class Trigger():
                  max_grid=None,
                  ntraces=None,
                  beg_win=None, end_win=None,
-                 center_win=None):
+                 center_win=None,
+                 RMS_P=None, RMS_S=None):
         self.eventid = None
         self.picks = []
         self.x = x
@@ -50,6 +51,8 @@ class Trigger():
         self.lon = None
         self.origin_time = None
         self.valid = True
+        self.rms_p = RMS_P
+        self.rms_s = RMS_S
 
     def __str__(self):
         s = '%s ' % self.eventid
@@ -67,6 +70,10 @@ class Trigger():
             s += ' LAT %.5f LON %.5f' % (self.lat, self.lon)
         if (self.origin_time is not None):
             s += ' T_ORIG %s' % (self.origin_time)
+        if (self.rms_p is not None):
+            s += ' RMS-P %.2f' % self.rms_p
+        if (self.rms_s is not None):
+            s += ' RMS-S %.2f' % self.rms_s
         return s
 
     def from_str(self, string):
@@ -88,6 +95,14 @@ class Trigger():
         self.lat = float(word[16])
         self.lon = float(word[18])
         self.origin_time = UTCDateTime(word[20])
+        try:
+            self.rms_p = float(word[22])
+        except IndexError:
+            self.rms_p = None
+        try:
+            self.rms_s = float(word[24])
+        except IndexError:
+            self.rms_s = None
 
     def add_pick(self, pick):
         self.picks.append(pick)
@@ -144,6 +159,18 @@ class Trigger():
                 pick.pick_time = -10.0
             pick.theor_time = pick.theor_time_absolute - otime
         self.origin_time = otime
+
+    def compute_rms(self, wave_type):
+        for wave in wave_type:
+            sq_mean = []
+            for pick in self.picks:
+                if pick.arrival_type == wave and pick.pick_time != -10.0:
+                    sq_mean.append((pick.pick_time - pick.theor_time)**2)
+            rms = np.sqrt(np.mean(sq_mean))
+            if wave == 'P':
+                self.rms_p = rms
+            elif wave == 'S':
+                self.rms_s = rms
 
     def set_eventid(self, eventid=None):
         if eventid is None:
