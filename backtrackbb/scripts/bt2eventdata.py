@@ -74,7 +74,7 @@ def main():
             for pick in trigger.picks:
                 f.write('%-6s ?    ?    ? %-6s ? ' %
                         (pick.station, pick.arrival_type))
-                if pick.arrival_type is 'P':
+                if pick.arrival_type == 'P':
                     time = trigger.origin_time + pick.pick_time
                 else:
                     time = trigger.origin_time + pick.theor_time
@@ -92,7 +92,7 @@ def main():
 
         # -----cutting events and saving data in specified format-----
         for pick in trigger.picks:
-            if pick.arrival_type is not 'P':
+            if pick.arrival_type != 'P':
                 continue
 
             trim_starttime = (trigger.origin_time + pick.theor_time
