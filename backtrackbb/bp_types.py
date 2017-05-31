@@ -95,8 +95,14 @@ class Trigger():
         self.lat = float(word[16])
         self.lon = float(word[18])
         self.origin_time = UTCDateTime(word[20])
-        self.rms_p = float(word[22])
-        self.rms_s = float(word[24])
+        try:
+            self.rms_p = float(word[22])
+        except IndexError:
+            self.rms_p = None
+        try:
+            self.rms_s = float(word[24])
+        except IndexError:
+            self.rms_s = None
 
     def add_pick(self, pick):
         self.picks.append(pick)
