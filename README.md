@@ -21,12 +21,14 @@ BackTrackBB code is available from this repository.
 
 
 
-### To install run:
+## Getting Started
+
+### Installation:
 
     python setup.py install
 
 
-### Sample runs:
+### Running examples:
 First, download the file [examples.zip]( https://www.dropbox.com/s/emlz4lbd6dpu9a9/examples.zip?dl=0) containing additional data (seismograms and theoretical travel-time grids).
 
 
@@ -39,10 +41,12 @@ Run an example illustrating the procedure of Multi-Band Filter Characteristic Fu
     mbf_plot  examples/MBF_ChileExample.conf
 
 
+## Documentation
+
 A detailed documentation is available here: [backtrackbb.readthedocs.io](http://backtrackbb.readthedocs.io/en/latest/)
 
 
-### For further information, contact the authors:
+### Contact Information:
   * [Natalia Poiata](mailto:poiata@ipgp.fr)
   * [Claudio Satriano](mailto:satriano@ipgp.fr)
 
