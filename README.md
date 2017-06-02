@@ -52,4 +52,4 @@ A detailed documentation is available here: [backtrackbb.readthedocs.io](http://
 
 
 ### References
-Poiata, N., C. Satriano, J.-P.Vilotte, P.Bernard, and K.Obara (2016). Multi-band array detection and location of seismic sources recorded by dense seismic networks, Geophys. J. Int., 205(3), 1548-1573, doi:10.1093/gji/ggw071.
+Poiata, N., C. Satriano, J.-P. Vilotte, P. Bernard, and K. Obara (2016). Multi-band array detection and location of seismic sources recorded by dense seismic networks, Geophys. J. Int., 205(3), 1548-1573, doi:[10.1093/gji/ggw071](https://doi.org/10.1093/gji/ggw071).
