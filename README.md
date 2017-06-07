@@ -16,16 +16,19 @@ across the array of sensors and consists of three steps:
 
 
 
-### Code availability
-BackTrackBB code is available from this repository. 
-
-
-
 ## Getting Started
+
+Clone or download the project from GitHub, if needed uncompress the archive.
 
 ### Installation:
 
-    python setup.py install
+Run following command from within the main directory:
+
+    pip install .
+    
+or to install developer mode use:
+
+    pip install -e .
 
 
 ### Running examples:
