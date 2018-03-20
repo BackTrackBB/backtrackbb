@@ -13,7 +13,7 @@ from .bp_types import Trigger
 from .map_project import rect2latlon
 from .grid_projection import sta_GRD_Proj
 from .plot import bp_plot
-from .NLLGrid import NLLGrid
+from .nllgrid import NLLGrid
 from .summary_cf import summary_cf
 
 

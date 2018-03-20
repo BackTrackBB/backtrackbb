@@ -41,7 +41,12 @@ ext_modules.append(Extension(
 
 setup(
     name='backtrackbb',
-    packages=['backtrackbb', 'backtrackbb.scripts', 'backtrackbb.configobj'],
+    packages=[
+        'backtrackbb',
+        'backtrackbb.scripts',
+        'backtrackbb.configobj',
+        'backtrackbb.nllgrid'
+        ],
     include_package_data=True,
     entry_points={
         'console_scripts': [
@@ -75,5 +80,5 @@ setup(
             'Programming Language :: Python :: 3.5',
             'Topic :: Scientific/Engineering',
             'Topic :: Scientific/Engineering :: Physics'],
-    install_requires=['obspy>=1.0.0', 'scipy>=0.17']
+    install_requires=['obspy>=1.0.0', 'scipy>=0.17', 'pyproj']
     )
