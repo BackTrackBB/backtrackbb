@@ -19,7 +19,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-#include "IA_Err.h"
 
 #define KOG_EPS 1.0e-10  /* Termination-cond ist KOG_EPS*KOG_EPS */
 #define KOG_MAXIT 10
