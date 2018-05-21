@@ -36,7 +36,7 @@ typedef struct {
     double **S;
 } USV32_struct;
 
-USV32_struct *New_USV32_struct();
+USV32_struct *New_USV32_struct(void);
 
 void Init_USV32_struct(double **X, USV32_struct *P);
 
