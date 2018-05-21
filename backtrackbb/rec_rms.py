@@ -5,7 +5,10 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from ctypes import CDLL, c_int, c_float, c_double, c_void_p, POINTER, byref
 from numpy.ctypeslib import ndpointer
-from .lib_names import get_lib_path
+try:
+    from .lib_names import get_lib_path
+except ImportError:
+    from lib_names import get_lib_path
 
 
 lib_rec_rms = CDLL(get_lib_path('lib_rec_rms'))

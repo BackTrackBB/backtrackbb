@@ -18,7 +18,10 @@ import numpy as np
 from ctypes import CDLL, c_int, c_float, c_char, c_void_p
 from numpy.ctypeslib import ndpointer
 from future.utils import PY2
-from .lib_names import get_lib_path
+try:
+    from .lib_names import get_lib_path
+except ImportError:
+    from lib_names import get_lib_path
 
 
 lib_rosenberger = CDLL(get_lib_path('lib_rosenberger'))
