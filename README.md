@@ -3,7 +3,7 @@ Multi-band array detection and location of seismic sources
 
 (c) 2015-2018  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>;
 
-(c) 2013-2014  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>, Pierre Romanet <romanet@ipgp.fr>  
+(c) 2013-2014  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>, Pierre Romanet <romanet@ipgp.fr>
 
 BackTrackBB is a program for detection and space-time location of seismic sources
 based on multi-scale, frequency-selective statistical coherence of the wave field
@@ -32,7 +32,7 @@ or to install developer mode use:
 
 
 ### Running examples:
-First, download the file [examples.zip]( https://www.dropbox.com/s/emlz4lbd6dpu9a9/examples.zip?dl=0) containing additional data (seismograms and theoretical travel-time grids).
+First, download the file [examples.zip](https://www.dropbox.com/s/emlz4lbd6dpu9a9/examples.zip?dl=1) containing additional data (seismograms and theoretical travel-time grids).
 
 
 Run the main detection and location code on an example dataset:
