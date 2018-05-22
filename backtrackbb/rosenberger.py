@@ -10,7 +10,7 @@
 #
 # (c) 2014 - Claudio Satriano <satriano@ipgp.fr>,
 #            Pierre Romanet <romanet@ipgp.fr>
-# (c) 2014 - 2016 Claudio Satriano <satriano@ipgp.fr>
+# (c) 2014 - 2018 Claudio Satriano <satriano@ipgp.fr>
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 

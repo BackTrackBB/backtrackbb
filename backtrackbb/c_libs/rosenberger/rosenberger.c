@@ -2,7 +2,7 @@
  *
  * Glue code to call subtrack2() on a three-component time series
  *
- * (c) 2014 - 2016 Claudio Satriano <satriano@ipgp.fr>
+ * (c) 2014 - 2018 Claudio Satriano <satriano@ipgp.fr>
  *
  */
 #include "IA_Kdiag.h"

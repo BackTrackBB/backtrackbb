@@ -2,6 +2,8 @@
  * Kdiag.h
  * Routines to diagonalize a 3x3 upper triangular matrix
  *
+ * Revision 1.4  2018/05/22 Claudio Satriano <satriano@ipgp.fr>
+ *               - compiling under Win10
  * Revision 1.3  2016/03/15 Claudio Satriano <satriano@ipgp.fr>
  *               - subtrack2 now only returns the polarization filter
  * Revision 1.2  2014/05/11 Claudio Satriano <satriano@ipgp.fr>

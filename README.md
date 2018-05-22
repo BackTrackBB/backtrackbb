@@ -1,7 +1,7 @@
 ## BackTrackBB
 Multi-band array detection and location of seismic sources
 
-(c) 2015-2017  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>;
+(c) 2015-2018  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>;
 
 (c) 2013-2014  Natalia Poiata <poiata@ipgp.fr>, Claudio Satriano <satriano@ipgp.fr>, Pierre Romanet <romanet@ipgp.fr>  
 
@@ -25,7 +25,7 @@ Clone or download the project from GitHub, if needed uncompress the archive.
 Run following command from within the main directory:
 
     pip install .
-    
+
 or to install developer mode use:
 
     pip install -e .

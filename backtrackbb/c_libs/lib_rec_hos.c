@@ -3,7 +3,7 @@
  *
  * Recursive higher-order statistics.
  *
- * (c) 2015      - Natalia Poiata <poiata@ipgp.fr>,
+ * (c) 2015-2018 - Natalia Poiata <poiata@ipgp.fr>,
  *                 Claudio Satriano <satriano@ipgp.fr>
  * (c) 2013-2014 - Natalia Poiata <poiata@ipgp.fr>,
  *                 Claudio Satriano <satriano@ipgp.fr>,
