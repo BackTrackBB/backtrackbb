@@ -8,6 +8,9 @@
  */
 #include <stdlib.h>
 
+void initlib_rec_filter() {}
+void PyInit_lib_rec_filter() {}
+
 /*
  * Bandpass (or highpass) filtering by cascade of simple, first-order
  * recursive highpass and lowpass filters. The number of poles gives the

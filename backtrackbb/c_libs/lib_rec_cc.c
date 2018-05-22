@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 
+void initlib_rec_cc() {}
+void PyInit_lib_rec_cc() {}
+
 /* C implementation of the algorithm by Young&Vliet, 1995 */
 void _gausscoeff(double sigma, double *A, int *nA, double *B, int *nB)
 {

@@ -44,7 +44,11 @@ inline double **mat_transp(double **A,  int n_rows, int n_columns)
 
 
 /* compute norm squared */
+#ifdef _MSC_VER
+double norm2(double *a, int n_rows)
+#else
 inline double norm2(double *a, int n_rows)
+#endif
 {
     int i;
     double sum=0.0;

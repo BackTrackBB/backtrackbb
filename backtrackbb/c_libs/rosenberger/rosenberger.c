@@ -7,6 +7,9 @@
  */
 #include "IA_Kdiag.h"
 
+void initlib_rosenberger() {}
+void PyInit_lib_rosenberger() {}
+
 void rosenberger(double *dataX, double *dataY, double *dataZ,
                  double *polarization, int npts,
                  float lambda, float delta, char proj, char rl_filter)
