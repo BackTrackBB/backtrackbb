@@ -43,10 +43,19 @@ double cRPD;
 double c111;
 
 /** function to read map transformation parameters from input line ***/
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 int get_transform(int n_proj, char* in_line);
 /** function to convert lat/long to rectangular km coord */
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 int latlon2rect(int n_proj, double dlat, double dlong, double* pxrect, double* pyrect);
 /** function to convert rectangular km coord to lat/long */
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 int rect2latlon(int n_proj, double xrect, double yrect, double* pdlat, double* pdlong);
 /** function to convert rectangular km angle to lat/long angle */
 double rect2latlonAngle(int n_proj, double rectAngle);

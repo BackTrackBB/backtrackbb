@@ -10,6 +10,9 @@
 void initlib_rosenberger() {}
 void PyInit_lib_rosenberger() {}
 
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void rosenberger(double *dataX, double *dataY, double *dataZ,
                  double *polarization, int npts,
                  float lambda, float delta, char proj, char rl_filter)

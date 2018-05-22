@@ -16,6 +16,9 @@ void PyInit_lib_rec_filter() {}
  * recursive highpass and lowpass filters. The number of poles gives the
  * number of filter stages.
  */
+#ifdef _MSC_VER
+__declspec(dllexport) 
+#endif
 void _recursive_filter(const double *signal, double *filt_signal, int npts,
                        float C_HP, float C_LP, int npoles,
                        double *filterH, double *filterL,

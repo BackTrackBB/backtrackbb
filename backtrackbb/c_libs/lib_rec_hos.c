@@ -15,6 +15,9 @@
 void initlib_rec_hos() {}
 void PyInit_lib_rec_hos() {}
 
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void _recursive_hos(const double *signal, double *hos_signal, int npts,
         float sigma_min, float C_WIN, int order,
         double *mean, double *var, double *hos, int memory_sample, int initialize)

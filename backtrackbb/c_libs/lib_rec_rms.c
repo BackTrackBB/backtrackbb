@@ -4,6 +4,9 @@
 void initlib_rec_rms() {}
 void PyInit_lib_rec_rms() {}
 
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void _recursive_rms(const double *signal, double *rms_signal, int npts, float C_WIN,
         double *mean_sq, int memory_sample, int initialize)
 {
