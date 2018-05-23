@@ -22,7 +22,10 @@ Clone or download the project from GitHub, if needed uncompress the archive.
 
 ### Installation:
 
-Run following command from within the main directory:
+#### Linux and macOS:
+Note: You will need a C compiler (ex., `gcc` or `clang`).
+
+Run the following command from within the main directory:
 
     pip install .
 
@@ -30,6 +33,16 @@ or to install developer mode use:
 
     pip install -e .
 
+#### Windows
+You can use the above instructions for Linux and macOS, if you have a recent version of Visual Studio.
+
+Alternatively, download the most recent Windows build of backtrackbb from
+[this link](https://www.dropbox.com/s/borfq99yajyi1ii/backtrackbb-0.0.0_gea9d-cp36-cp36m-win_amd64.whl?dl=1)
+(python wheel file) and install it with:
+
+    pip install backtrackbb-VERSION.whl
+    
+where `VERSION` is the current backtrackbb version string (part of the file name).
 
 ### Running examples:
 First, download the file [examples.zip](https://www.dropbox.com/s/emlz4lbd6dpu9a9/examples.zip?dl=1) containing additional data (seismograms and theoretical travel-time grids).
