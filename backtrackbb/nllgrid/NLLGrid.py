@@ -74,7 +74,7 @@ class TakeOffAngles(Union):
                 ('ival', c_ushort*2)]
 
 
-class NLLGrid():
+class NLLGrid(object):
     """Class for manipulating NLL grid files.
 
     It has methods to read and write grid files,
