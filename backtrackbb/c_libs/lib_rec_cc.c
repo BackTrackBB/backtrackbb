@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 
+void initlib_rec_cc() {}
+void PyInit_lib_rec_cc() {}
+
 /* C implementation of the algorithm by Young&Vliet, 1995 */
 void _gausscoeff(double sigma, double *A, int *nA, double *B, int *nB)
 {
@@ -76,7 +79,9 @@ void _reverse(const double *signal, double *rev_signal, int npts)
     }
 }
 
-
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void _Gaussian1D(double *signal, int npts, double sigma)
 {
     // signal is overwritten
@@ -110,6 +115,9 @@ void _Gaussian1D(double *signal, int npts, double sigma)
 }
 
 
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void _local_CCr(const double *signal1, const double *signal2, int npts,
                 double *cc, int lmax, double sigma)
 {

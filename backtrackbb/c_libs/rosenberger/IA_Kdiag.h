@@ -2,6 +2,8 @@
  * Kdiag.h
  * Routines to diagonalize a 3x3 upper triangular matrix
  *
+ * Revision 1.4  2018/05/22 Claudio Satriano <satriano@ipgp.fr>
+ *               - compiling under Win10
  * Revision 1.3  2016/03/15 Claudio Satriano <satriano@ipgp.fr>
  *               - subtrack2 now only returns the polarization filter
  * Revision 1.2  2014/05/11 Claudio Satriano <satriano@ipgp.fr>
@@ -16,10 +18,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#ifdef _MSC_VER
+  #include <io.h>
+#else
+  #include <unistd.h>
+#endif
 #include <string.h>
 #include <math.h>
-#include "IA_Err.h"
 
 #define KOG_EPS 1.0e-10  /* Termination-cond ist KOG_EPS*KOG_EPS */
 #define KOG_MAXIT 10
@@ -37,7 +42,7 @@ typedef struct {
     double **S;
 } USV32_struct;
 
-USV32_struct *New_USV32_struct();
+USV32_struct *New_USV32_struct(void);
 
 void Init_USV32_struct(double **X, USV32_struct *P);
 

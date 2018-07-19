@@ -1,6 +1,9 @@
 /*
  * rank 2 update SVD, see Rosenberger, BSSA, June 2010
  *
+ * Revision 1.5  2018/05/22 Claudio Satriano <satriano@ipgp.fr>
+ *               - compiling under Win10
+ *
  * Revision 1.4  2016/03/15 Claudio Satriano <satriano@ipgp.fr>
  *               - subtrack2 now only returns the polarization filter
  *

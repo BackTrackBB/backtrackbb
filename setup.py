@@ -34,7 +34,6 @@ ext_modules.append(Extension(
 ext_modules.append(Extension(
     'lib_rosenberger',
     sources=['backtrackbb/c_libs/rosenberger/IA_Kdiag.c',
-             'backtrackbb/c_libs/rosenberger/IA_Err.c',
              'backtrackbb/c_libs/rosenberger/IA_Ealloc.c',
              'backtrackbb/c_libs/rosenberger/IA_R2upd.c',
              'backtrackbb/c_libs/rosenberger/rosenberger.c']))

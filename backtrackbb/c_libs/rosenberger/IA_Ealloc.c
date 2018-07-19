@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "IA_Kdiag.h"
-#include "IA_Err.h"
 
 
 /** @name IA_Ealloc
@@ -22,7 +21,8 @@ void *IA_Ealloc(size_t size, const char *fail_msg)
     void *p;
 
     if((p = (void *)calloc(size,1)) == NULL) {
-        IA_Log_Die("%s",fail_msg);
+        fprintf(stderr, "%s", fail_msg);
+        exit(1);
     }
 
     return(p);
@@ -81,8 +81,10 @@ float **ealloc2float(size_t n1, size_t n2)
 {
     float **p;
 
-    if ((p=alloc2float(n1, n2))==NULL)
-        IA_Log_Die("ealloc2float: malloc failed");
+    if ((p=alloc2float(n1, n2))==NULL) {
+        fprintf(stderr, "ealloc2float: malloc failed");
+        exit(1);
+    }
     memset(*p,0,n1*n2*sizeof(float));
     return p;
 }
@@ -92,8 +94,10 @@ double **ealloc2double(size_t n1, size_t n2)
 {
     double **p;
 
-    if ((p=alloc2double(n1, n2))==NULL)
-        IA_Log_Die("ealloc2double: malloc failed");
+    if ((p=alloc2double(n1, n2))==NULL) {
+        fprintf(stderr, "ealloc2double: malloc failed");
+        exit(1);
+    }
 
     memset(*p,0,n1*n2*sizeof(double));
     return p;

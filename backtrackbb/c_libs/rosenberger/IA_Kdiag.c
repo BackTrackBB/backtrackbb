@@ -13,7 +13,8 @@ inline void mat_mult(double **A, double **B, int a_rows, int a_columns, int b_co
 
     /*sanity check */
     if( (A == NULL) || (B == NULL) || (C== NULL)) {
-        IA_Log_Die("KogBet mat_mult NULL pointer for input/output matrices");
+        fprintf(stderr, "mat_mult NULL pointer for input/output matrices");
+        exit(1);
     }
 
     for(l=0; l<b_columns; l++) {
@@ -43,7 +44,11 @@ inline double **mat_transp(double **A,  int n_rows, int n_columns)
 
 
 /* compute norm squared */
+#ifdef _MSC_VER
+double norm2(double *a, int n_rows)
+#else
 inline double norm2(double *a, int n_rows)
+#endif
 {
     int i;
     double sum=0.0;
@@ -73,7 +78,8 @@ void KogExact(double a00, double a01, double a11, double **Q, double **C, double
 
     /*sanity check */
     if( (Q ==NULL) || (C == NULL) || (E==NULL)) {
-        IA_Log_Die("Null pointer for output matrices");
+        fprintf(stderr, "Null pointer for output matrices");
+        exit(1);
     }
 
     double sigma;
@@ -200,7 +206,8 @@ void KogApx(double a00, double a01, double a11, double **Q, double **C, double *
 
     /*sanity check */
     if( (Q ==NULL) || (C == NULL) || (E==NULL)) {
-        IA_Log_Die("Null pointer for output matrices");
+        fprintf(stderr, "Null pointer for output matrices");
+        exit(1);
     }
 
     double sigma;
@@ -320,10 +327,12 @@ void KDiag2by2(double **A, int i, int j, double **R, double **Y, double **T, cha
 
     /* sanity */
     if (( A == NULL ) || (R==NULL) || (Y==NULL) || (T==NULL)) {
-        IA_Log_Die("Nullpointer in KDiag2by2");
+        fprintf(stderr, "Nullpointer in KDiag2by2");
+        exit(1);
     }
     if(j <= i) {
-        IA_Log_Die(" j > i !");
+      fprintf(stderr, "j > i !");
+      exit(1);
     }
 
     double **Q = ealloc2double(2,2);
@@ -396,7 +405,8 @@ void BA3_SVD(double **A, double **U, double **S, double **V, int *n)
     int i,j,k;
 
     if( (U == NULL) || (Y == NULL) || (V ==NULL)) {
-        IA_Log_Die("Null pointer(s) in BA3_SVD");
+        fprintf(stderr, "Null pointer(s) in BA3_SVD");
+        exit(1);
     }
 
     memset(*U,0,9*sizeof(double));

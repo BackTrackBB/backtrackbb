@@ -3,7 +3,7 @@
  *
  * Recursive higher-order statistics.
  *
- * (c) 2015      - Natalia Poiata <poiata@ipgp.fr>,
+ * (c) 2015-2018 - Natalia Poiata <poiata@ipgp.fr>,
  *                 Claudio Satriano <satriano@ipgp.fr>
  * (c) 2013-2014 - Natalia Poiata <poiata@ipgp.fr>,
  *                 Claudio Satriano <satriano@ipgp.fr>,
@@ -12,6 +12,12 @@
 #include <stdlib.h>
 #include <math.h>
 
+void initlib_rec_hos() {}
+void PyInit_lib_rec_hos() {}
+
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void _recursive_hos(const double *signal, double *hos_signal, int npts,
         float sigma_min, float C_WIN, int order,
         double *mean, double *var, double *hos, int memory_sample, int initialize)

@@ -3,16 +3,22 @@
  *
  * Recursive bandpass (or highpass) filtering
  *
- * (c) 2013-2015 - Natalia Poiata <poiata@ipgp.fr>,
+ * (c) 2013-2018 - Natalia Poiata <poiata@ipgp.fr>,
  *                 Claudio Satriano <satriano@ipgp.fr>
  */
 #include <stdlib.h>
+
+void initlib_rec_filter() {}
+void PyInit_lib_rec_filter() {}
 
 /*
  * Bandpass (or highpass) filtering by cascade of simple, first-order
  * recursive highpass and lowpass filters. The number of poles gives the
  * number of filter stages.
  */
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void _recursive_filter(const double *signal, double *filt_signal, int npts,
                        float C_HP, float C_LP, int npoles,
                        double *filterH, double *filterL,

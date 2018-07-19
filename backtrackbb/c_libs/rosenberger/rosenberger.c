@@ -2,11 +2,17 @@
  *
  * Glue code to call subtrack2() on a three-component time series
  *
- * (c) 2014 - 2016 Claudio Satriano <satriano@ipgp.fr>
+ * (c) 2014 - 2018 Claudio Satriano <satriano@ipgp.fr>
  *
  */
 #include "IA_Kdiag.h"
 
+void initlib_rosenberger() {}
+void PyInit_lib_rosenberger() {}
+
+#ifdef _MSC_VER
+__declspec(dllexport)
+#endif
 void rosenberger(double *dataX, double *dataY, double *dataZ,
                  double *polarization, int npts,
                  float lambda, float delta, char proj, char rl_filter)

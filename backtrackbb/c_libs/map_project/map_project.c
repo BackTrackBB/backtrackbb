@@ -90,6 +90,7 @@
 /*#include "gmt.h"*/
 
 #include <string.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "map_project.h"
@@ -165,6 +166,8 @@ double LambertConfConic_F[NUM_PROJ_MAX];
 double LambertConfConic_rho0[NUM_PROJ_MAX];
 
 
+void initlib_map_project() {}
+void PyInit_lib_map_project() {}
 
 
 /* set constants that were set in GMT function map_setup */

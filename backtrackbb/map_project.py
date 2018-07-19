@@ -3,7 +3,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import ctypes
-from .lib_names import get_lib_path
+try:
+    from .lib_names import get_lib_path
+except ImportError:
+    from lib_names import get_lib_path
 
 
 lib_map_project = ctypes.CDLL(get_lib_path('lib_map_project'))

@@ -59,7 +59,7 @@ void nll_putmsg(int , const char *);
 void nll_putmsg2(int imsg_level, const char *pmessage1, const char *pmessage2);
 
 /*** function to display program information */
-void DispProgInfo();
+void DispProgInfo(void);
 
 /*** function to check that int val is in range */
 int checkRangeInt(const char * name, const char * param, int val,
