@@ -1,5 +1,15 @@
-# Python porting of c-code from matrix_statistics.c,
-# part of the NonLinLoc package, written by Anthony Lomax
+# -*- coding: utf8 -*-
+"""
+Python porting of c-code from matrix_statistics.c.
+
+Part of the NonLinLoc package, written by Anthony Lomax.
+
+:copyright:
+    2013-2018 Claudio Satriano <satriano@ipgp.fr>
+:license:
+    CeCILL Free Software License Agreement, Version 2.1
+    (http://www.cecill.info/index.en.html)
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -7,18 +17,21 @@ from math import pi, cos, sin
 
 
 class Ellipsoid3D():
-    #semi-minor axis km
+    """A 3D ellipsoid."""
+
+    # semi-minor axis km
     az1 = None
     dip1 = None
     len1 = None
-    #semi-intermediate axis km
+    # semi-intermediate axis km
     az2 = None
     dip2 = None
     len2 = None
-    #semi-major axis km
+    # semi-major axis km
     len3 = None
 
     def __str__(self):
+        """String representation."""
         s = 'az1: %f\n' % self.az1
         s += 'dip1: %f\n' % self.dip1
         s += 'len1: %f\n' % self.len1
@@ -30,16 +43,20 @@ class Ellipsoid3D():
 
 
 class Vect3D():
+    """A 3D vector."""
+
     x = None
     y = None
     z = None
 
     def __str__(self):
+        """String representation."""
         s = 'x: %f y: %f z: %f' % (self.x, self.y, self.z)
         return s
 
 
 def cross_product_3d(vect_a, vect_b):
+    """Cross product between two 3D vectors."""
     product = Vect3D()
     product.x = vect_a.y * vect_b.z - vect_a.z * vect_b.y
     product.y = vect_a.z * vect_b.x - vect_a.x * vect_b.z
@@ -48,6 +65,7 @@ def cross_product_3d(vect_a, vect_b):
 
 
 def ellipsiod2Axes(pellipsoid):
+    """Get the three axes of an ellipsoid."""
     DE2RA = pi/180
 
     # strike angles positive CCW from East = 0
@@ -57,7 +75,7 @@ def ellipsiod2Axes(pellipsoid):
     dip1 = -pellipsoid.dip1
     dip2 = -pellipsoid.dip2
 
-    #get 3D vector axes
+    # get 3D vector axes
     cosd1 = cos(DE2RA * pellipsoid.dip1)
     paxis1 = Vect3D()
     paxis1.x = cos(DE2RA * az1) * cosd1
@@ -86,6 +104,7 @@ def ellipsiod2Axes(pellipsoid):
 
 
 def toEllipsoid3D(ax1, ax2, center, npts):
+    """Get the coordinates of a 3D ellipsoid defined by 2 axes and a center."""
     d_angle = 2.0 * pi / (npts - 1)
     angle = 0.0
 
@@ -104,6 +123,7 @@ def toEllipsoid3D(ax1, ax2, center, npts):
 
 
 def main():
+    """Test code."""
     import numpy as np
     import matplotlib.pyplot as plt
 

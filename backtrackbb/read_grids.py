@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 from glob import glob
 from collections import defaultdict
-from .NLLGrid import NLLGrid
+from .nllgrid import NLLGrid
 
 
 def read_grids(config):
