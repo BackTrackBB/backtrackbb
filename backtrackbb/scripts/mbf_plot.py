@@ -46,8 +46,13 @@ def main():
                     hos_sigma=hos_sigma[config.stations[0]])
     print('Creating characteristic function: %s' % (st[0].stats.station))
     if config.ch_function == 'kurtosis':
-        MBkurt_1max_gauss = GaussConv(np.amax(MBkurt_1, axis=0),
-                                      int(config.decay_const/dt1/2))
+        #
+        if config.sigma_gauss:
+            sigma_gauss = int(config.sigma_gauss/config.delta)
+        else:
+            sigma_gauss = int(config.decay_const/config.delta)
+        #
+        MBkurt_1max_gauss = GaussConv(np.amax(MBkurt_1, axis=0), sigma_gauss)
         MBkurt_1max = np.amax(MBkurt_1, axis=0)
     elif config.ch_function == 'envelope' or config.ch_function == 'hilbert':
         MBkurt_1max = np.sqrt(np.power(MBkurt_1, 2).mean(axis=0))
