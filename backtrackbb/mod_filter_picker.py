@@ -11,7 +11,7 @@ try:
     from .rec_hos import recursive_hos
     from .rec_gauss_filter import recursive_gauss_filter
     from .rosenberger import rosenberger
-except ImportError:
+except (ImportError, ValueError):
     from rec_filter import recursive_filter
     from rec_rms import recursive_rms
     from rec_hos import recursive_hos
