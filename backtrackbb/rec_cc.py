@@ -7,7 +7,7 @@ from ctypes import CDLL, c_int, c_double, c_void_p
 from numpy.ctypeslib import ndpointer
 try:
     from .lib_names import get_lib_path
-except ImportError:
+except (ImportError, ValueError):
     from lib_names import get_lib_path
 
 

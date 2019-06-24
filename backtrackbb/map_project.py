@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import ctypes
 try:
     from .lib_names import get_lib_path
-except ImportError:
+except (ImportError, ValueError):
     from lib_names import get_lib_path
 
 

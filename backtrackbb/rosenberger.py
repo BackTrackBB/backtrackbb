@@ -20,7 +20,7 @@ from numpy.ctypeslib import ndpointer
 from future.utils import PY2
 try:
     from .lib_names import get_lib_path
-except ImportError:
+except (ImportError, ValueError):
     from lib_names import get_lib_path
 
 
