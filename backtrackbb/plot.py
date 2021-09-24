@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
+import copy
 import numpy as np
 import pylab
 import matplotlib
@@ -39,7 +40,7 @@ def bp_plot(config, proj_grid,
     trig_smbl_size = 200 / ratio
 
     scmap = config.scmap
-    scmap2 = pylab.cm.jet
+    scmap2 = copy.copy(pylab.cm.jet)
     scmap2.set_under('w', LTrig)
 
     if trigger is not None:
