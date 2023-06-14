@@ -2,16 +2,7 @@
 """setup.py: setuptools control."""
 from setuptools import setup
 from distutils.core import Extension
-
-import inspect
-import os
-import sys
-
-# Import the version string.
-path = os.path.join(os.path.abspath(os.path.dirname(inspect.getfile(
-    inspect.currentframe()))), 'backtrackbb')
-sys.path.insert(0, path)
-from version import get_git_version
+import versioneer
 
 with open('README.md', 'rb') as f:
     long_descr = f.read().decode('utf-8')
@@ -55,7 +46,7 @@ setup(
             'group_triggers = backtrackbb.scripts.group_triggers:main',
             ]
         },
-    version=get_git_version(),
+    version=versioneer.get_version(),
     ext_package='backtrackbb.lib',
     ext_modules=ext_modules,
     description='Multi-band array detection and location of seismic sources',
