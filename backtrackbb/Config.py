@@ -1,8 +1,4 @@
 # -*- coding: utf8 -*-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-
 class Config(dict):
     #The following is to make Config keys accessible as attributes
     def __setitem__(self, key, value):

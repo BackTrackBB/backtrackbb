@@ -7,15 +7,12 @@
 # (c) 2013-2014 - Natalia Poiata <poiata@ipgp.fr>,
 #                 Claudio Satriano <satriano@ipgp.fr>,
 #                 Pierre Romanet <romanet@ipgp.fr>
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 from ctypes import CDLL, c_int, c_float, c_double, c_void_p, POINTER, byref
 from numpy.ctypeslib import ndpointer
 try:
     from .lib_names import get_lib_path
-except (ImportError, ValueError):
+except ImportError:
     from lib_names import get_lib_path
 
 

@@ -1,8 +1,4 @@
 # -*- coding: utf8 -*-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from past.builtins import xrange
-
 import numpy as np
 import sys
 try:
@@ -11,7 +7,7 @@ try:
     from .rec_hos import recursive_hos
     from .rec_gauss_filter import recursive_gauss_filter
     from .rosenberger import rosenberger
-except (ImportError, ValueError):
+except ImportError:
     from rec_filter import recursive_filter
     from rec_rms import recursive_rms
     from rec_hos import recursive_hos
@@ -76,7 +72,7 @@ def MBfilter_CF(st, frequencies,
         YN1 = np.zeros((Nb, len(y)), float)
         CF1 = np.zeros((Nb, len(y)), float)
 
-        for n in xrange(Nb):
+        for n in range(Nb):
             if rec_memory is not None:
                 rmem = rec_memory[(tr.id, wave_type)][n]
             else:
@@ -117,7 +113,7 @@ def MBfilter_CF(st, frequencies,
         YN1 = np.zeros((Nb, len(y1)), float)
         CF1 = np.zeros((Nb, len(y1)), float)
 
-        for n in xrange(Nb):
+        for n in range(Nb):
             if rec_memory is not None:
                 rmem1 = rec_memory[(tr1.id, wave_type)][n]
                 rmem2 = rec_memory[(tr2.id, wave_type)][n]
@@ -172,7 +168,7 @@ def MBfilter_CF(st, frequencies,
         if full_output:
             CF2 = np.zeros((Nb, len(y1)), float)
 
-        for n in xrange(Nb):
+        for n in range(Nb):
             if rec_memory is not None:
                 rmem1 = rec_memory[(tr1.id, wave_type)][n]
                 rmem2 = rec_memory[(tr2.id, wave_type)][n]

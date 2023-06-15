@@ -1,7 +1,4 @@
 # -*- coding: utf8 -*-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 from .rec_filter import rec_filter_coeff, rec_filter_norm
 from .mod_filter_picker import make_LinFq, make_LogFq
 

@@ -2,16 +2,7 @@
 """setup.py: setuptools control."""
 from setuptools import setup
 from distutils.core import Extension
-
-import inspect
-import os
-import sys
-
-# Import the version string.
-path = os.path.join(os.path.abspath(os.path.dirname(inspect.getfile(
-    inspect.currentframe()))), 'backtrackbb')
-sys.path.insert(0, path)
-from version import get_git_version
+import versioneer
 
 with open('README.md', 'rb') as f:
     long_descr = f.read().decode('utf-8')
@@ -55,7 +46,7 @@ setup(
             'group_triggers = backtrackbb.scripts.group_triggers:main',
             ]
         },
-    version=get_git_version(),
+    version=versioneer.get_version(),
     ext_package='backtrackbb.lib',
     ext_modules=ext_modules,
     description='Multi-band array detection and location of seismic sources',
@@ -73,10 +64,14 @@ setup(
                 'Agreement, Version 2.1',
             'Operating System :: OS Independent',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             'Topic :: Scientific/Engineering',
             'Topic :: Scientific/Engineering :: Physics'],
     install_requires=['obspy>=1.0.0', 'scipy>=0.17', 'pyproj']

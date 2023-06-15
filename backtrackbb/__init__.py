@@ -1,3 +1,2 @@
-from .version import get_git_version
-
-__version__ = get_git_version()
+from . import version
+__version__ = version.get_versions()['version']
