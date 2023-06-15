@@ -18,7 +18,10 @@ from scipy.ndimage import zoom
 from ctypes import Union, c_float, c_ushort
 from copy import deepcopy
 from pyproj import Proj
-from collections import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 
 valid_grid_types = (

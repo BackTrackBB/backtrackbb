@@ -1,11 +1,8 @@
 # -*- coding: utf8 -*-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import ctypes
 try:
     from .lib_names import get_lib_path
-except (ImportError, ValueError):
+except ImportError:
     from lib_names import get_lib_path
 
 

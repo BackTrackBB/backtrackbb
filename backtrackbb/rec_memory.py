@@ -1,8 +1,4 @@
 # -*- coding: utf8 -*-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from past.builtins import xrange
-
 import itertools
 from .bp_types import RecursiveMemory
 
@@ -20,5 +16,5 @@ def init_recursive_memory(config):
             [RecursiveMemory(trid=trid, wave=wave, band=n,
                              nsamples=nsamples, overlap=overlap,
                              filter_npoles=config.filter_npoles)
-             for n in xrange(n_bands)]
+             for n in range(n_bands)]
     return rec_memory

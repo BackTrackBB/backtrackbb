@@ -1,8 +1,5 @@
 # bp_types.py
 # Data types for BackTrackBB
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 from obspy import UTCDateTime
 from ctypes import c_double

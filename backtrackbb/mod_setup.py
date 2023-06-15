@@ -1,8 +1,5 @@
 # -*- coding: utf8 -*-
 """Setup functions."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import sys
 import os
 from argparse import ArgumentParser
