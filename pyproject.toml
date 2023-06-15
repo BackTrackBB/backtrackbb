@@ -1,0 +1,9 @@
+[build-system]
+requires = [
+  'wheel',
+  'setuptools',
+  'numpy>=1.18'
+]
+
+[tool.cibuildwheel]
+build = ['cp36-*', 'cp37-*', 'cp38-*', 'cp39-*', 'cp310-*', 'cp311-*']
